@@ -899,7 +899,13 @@ function connectSSE() {
         // Forward status text to overlay
         if (overlayActive && overlayTabId) {
           const statusText = formatToolLabel(toolName, p?.tool_input);
-          chrome.runtime.sendMessage({ type: "ATLAS_STATUS_UPDATE", tabId: overlayTabId, text: statusText }).catch(() => {});
+          chrome.runtime.sendMessage({
+            type: "ATLAS_STATUS_UPDATE",
+            tabId: overlayTabId,
+            text: statusText,
+            phase: phaseForTool(toolName),
+            progress: progressForTool(toolName),
+          }).catch(() => {});
         }
 
         const label = p?.tool_label ?? formatToolLabel(toolName, p?.tool_input);
@@ -1022,6 +1028,23 @@ function connectSSE() {
       scrollToBottom();
     } catch {}
   });
+}
+
+function phaseForTool(toolName) {
+  if (toolName === "navigate") return "navigating";
+  if (toolName === "computer") return "typing";
+  if (toolName === "read_page" || toolName === "get_page_text") return "verifying";
+  if (toolName === "search_web") return "planning";
+  return "thinking";
+}
+
+function progressForTool(toolName) {
+  if (toolName === "search_web") return 28;
+  if (toolName === "navigate") return 42;
+  if (toolName === "read_page" || toolName === "get_page_text") return 66;
+  if (toolName === "find") return 74;
+  if (toolName === "computer") return 86;
+  return 52;
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -16,6 +16,19 @@
   const style = document.createElement('style');
   style.id = 'atlas-agent-styles';
   style.textContent = `
+    @font-face {
+      font-family: "pplxSans";
+      src: url("https://r2cdn.perplexity.ai/fonts/PPLX-Sans-Beta-v1-VF.woff2") format("woff2");
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "FKGroteskNeue";
+      src: url("https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2") format("woff2");
+      font-weight: 100 900;
+      font-display: swap;
+    }
+
     /* ── Dim overlay ─────────────────────────────────────────────────────── */
     #atlas-dim {
       position: fixed; inset: 0;
@@ -34,20 +47,41 @@
       position: fixed; inset: 0;
       pointer-events: none;
       z-index: 2147483639;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 0);
-      background-size: 22px 22px;
-      -webkit-mask-image: radial-gradient(ellipse 88% 82% at 50% 50%, black 30%, transparent 100%);
-              mask-image: radial-gradient(ellipse 88% 82% at 50% 50%, black 30%, transparent 100%);
+      background-image: radial-gradient(circle, rgba(255,255,255,0.52) 1px, transparent 0);
+      background-size: 20px 20px;
+      -webkit-mask-image: radial-gradient(ellipse 70% 78% at 50% 52%, black 24%, transparent 74%);
+              mask-image: radial-gradient(ellipse 70% 78% at 50% 52%, black 24%, transparent 74%);
       opacity: 0;
+      animation: _atlas-dots-drift 9s linear infinite, _atlas-dots-breathe 2.8s ease-in-out infinite;
       transition: opacity 0.7s ease 0.2s;
+    }
+    #atlas-dots::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.18), transparent 62%);
+      animation: _atlas-dots-sweep 4.2s cubic-bezier(0.16,1,0.3,1) infinite;
+      mix-blend-mode: screen;
     }
     #atlas-dots.atlas-in  { opacity: 1; }
     #atlas-dots.atlas-out { opacity: 0; transition: opacity 0.3s ease; }
+    @keyframes _atlas-dots-drift {
+      0% { background-position: 0 0; }
+      100% { background-position: 20px 20px; }
+    }
+    @keyframes _atlas-dots-breathe {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.1); }
+    }
+    @keyframes _atlas-dots-sweep {
+      0%, 100% { transform: translateX(-6%); opacity: .48; }
+      50% { transform: translateX(6%); opacity: .72; }
+    }
 
     /* ── Arrow cursor ────────────────────────────────────────────────────── */
     #atlas-cursor {
       position: fixed;
-      width: 24px; height: 24px;
+      width: 26px; height: 26px;
       pointer-events: none;
       z-index: 2147483647;
       opacity: 0;
@@ -58,8 +92,8 @@
     }
     #atlas-cursor.atlas-visible { opacity: 1; }
     #atlas-cursor svg {
-      width: 24px; height: 24px;
-      filter: drop-shadow(0 1px 4px rgba(0,0,0,0.50));
+      width: 26px; height: 26px;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.62)) drop-shadow(0 8px 14px rgba(0,0,0,0.24));
       transition: transform 0.12s cubic-bezier(0.4,0,0.2,1);
     }
     #atlas-cursor.atlas-click svg { transform: scale(0.78); }
@@ -74,7 +108,7 @@
       -webkit-backdrop-filter: blur(14px) saturate(1.6);
       border: 1px solid rgba(255,255,255,0.10);
       color: rgba(255,255,255,0.90);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+      font-family: "pplxSans", "FKGroteskNeue", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
       font-size: 12px; font-weight: 500; letter-spacing: -0.01em;
       white-space: nowrap;
       pointer-events: none;
@@ -110,21 +144,21 @@
     /* ── Floating card bar ───────────────────────────────────────────────── */
     #atlas-bar {
       position: fixed;
-      bottom: 24px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%) translateY(20px);
-      width: 360px;
+      width: 364px;
       z-index: 2147483648;
       background: rgba(20,20,28,0.93);
       backdrop-filter: blur(32px) saturate(1.8);
       -webkit-backdrop-filter: blur(32px) saturate(1.8);
-      border-radius: 14px;
+      border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.09);
       box-shadow:
         0 0 0 1px rgba(0,122,255,0.35),
         0 0 20px 6px rgba(0,122,255,0.16),
         0 8px 32px rgba(0,0,0,0.48);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+      font-family: "pplxSans", "FKGroteskNeue", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
       pointer-events: auto;
       overflow: hidden;
       opacity: 0;
@@ -165,6 +199,21 @@
       flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
+    #atlas-bar-progress {
+      height: 2px;
+      margin: 0 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+    #atlas-bar-progress-fill {
+      height: 100%;
+      width: 22%;
+      background: linear-gradient(90deg, rgba(39,196,255,0.9), rgba(0,122,255,1));
+      border-radius: inherit;
+      transition: width 220ms cubic-bezier(0.16,1,0.3,1);
+    }
+
     /* Row 2 — site + buttons */
     #atlas-bar-row2 {
       display: flex; align-items: center; gap: 8px;
@@ -181,26 +230,43 @@
     }
     #atlas-bar-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .atlas-btn {
-      display: inline-flex; align-items: center; height: 28px; padding: 0 12px;
-      border-radius: 7px; border: 1px solid rgba(255,255,255,0.12);
+      display: inline-flex; align-items: center; justify-content: center; height: 30px; min-width: 84px; padding: 0 13px;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.13);
       background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.80);
-      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em;
+      font-family: "pplxSans", "FKGroteskNeue", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 11px; font-weight: 620; letter-spacing: 0.005em;
       cursor: pointer; white-space: nowrap;
       transition: background 130ms ease, border-color 130ms ease, transform 80ms ease;
       -webkit-user-select: none; user-select: none;
     }
     .atlas-btn:hover  { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
-    .atlas-btn:active { transform: scale(0.94); }
+    .atlas-btn:active { transform: scale(0.96); }
+    .atlas-btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
     .atlas-btn-primary {
-      background: rgba(0,122,255,0.88); border-color: transparent; color: #fff;
+      background: linear-gradient(180deg, rgba(41,140,255,1), rgba(0,108,255,0.92));
+      border-color: rgba(107,178,255,0.45);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
     }
-    .atlas-btn-primary:hover { background: rgba(0,122,255,1); }
+    .atlas-btn-primary:hover { background: linear-gradient(180deg, rgba(48,148,255,1), rgba(7,116,255,0.95)); }
     .atlas-btn-stop {
-      background: rgba(255,59,48,0.10); border-color: rgba(255,59,48,0.22);
-      color: rgba(255,69,58,0.90);
+      background: rgba(255,64,53,0.16);
+      border-color: rgba(255,86,76,0.38);
+      color: rgba(255,109,102,1);
     }
-    .atlas-btn-stop:hover { background: rgba(255,59,48,0.20); border-color: rgba(255,59,48,0.40); }
+    .atlas-btn-stop:hover { background: rgba(255,64,53,0.24); border-color: rgba(255,114,106,0.52); }
+
+    @media (prefers-color-scheme: light) {
+      #atlas-bar {
+        background: rgba(252,252,255,0.86);
+        border: 1px solid rgba(12,24,42,0.14);
+        box-shadow: 0 8px 24px rgba(16,30,52,0.18);
+      }
+      #atlas-bar-status { color: rgba(12,24,42,0.74); }
+      #atlas-bar-hostname { color: rgba(12,24,42,0.82); }
+      .atlas-btn { color: rgba(12,24,42,0.82); background: rgba(19,36,58,0.07); border-color: rgba(12,24,42,0.18); }
+      .atlas-btn-stop { color: rgba(211,62,54,0.92); background: rgba(214,71,63,0.12); border-color: rgba(214,71,63,0.3); }
+    }
 
     /* ── Stroke highlight ────────────────────────────────────────────────── */
     #atlas-stroke-host {
@@ -226,6 +292,13 @@
     .atlas-stroke-rect.atlas-out {
       animation: none; opacity: 0; transition: opacity 0.25s ease;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      #atlas-dim, #atlas-dots, #atlas-cursor, #atlas-bar, #atlas-label, .atlas-ripple, .atlas-stroke-rect, #atlas-bar-progress-fill {
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+      }
+    }
   `;
   document.head.appendChild(style);
 
@@ -250,15 +323,12 @@
   const cursor = document.createElement('div');
   cursor.id = 'atlas-cursor';
   // Classic system pointer — white fill, thin black outline
-  cursor.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M5.5 2.5 L19.5 11.5 L13 13.5 L10 21 Z"
-      fill="white" stroke="rgba(0,0,0,0.50)" stroke-width="1.2"
+  cursor.innerHTML = `<svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 2.4 L20.8 12.4 L13.3 14.1 L10.8 22.8 Z"
+      fill="#fff" stroke="rgba(0,0,0,0.58)" stroke-width="1.08"
       stroke-linejoin="round" stroke-linecap="round"/>
-    <path d="M13 13.5 L16.5 19.5"
-      fill="none" stroke="white" stroke-width="2.8"
-      stroke-linecap="round"/>
-    <path d="M13 13.5 L16.5 19.5"
-      fill="none" stroke="rgba(0,0,0,0.40)" stroke-width="4"
+    <path d="M13.1 14.1 L17.7 21"
+      fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1.6"
       stroke-linecap="round"/>
   </svg>`;
   html.appendChild(cursor);
@@ -282,6 +352,12 @@
   statusText.textContent = 'Logged in · Agent is using your accounts';
   row1.append(statusDot, statusText);
 
+  const progress = document.createElement('div');
+  progress.id = 'atlas-bar-progress';
+  const progressFill = document.createElement('div');
+  progressFill.id = 'atlas-bar-progress-fill';
+  progress.appendChild(progressFill);
+
   // Row 2: site + buttons
   const row2 = document.createElement('div');
   row2.id = 'atlas-bar-row2';
@@ -304,7 +380,7 @@
   actionsDiv.append(takeCtrlBtn, stopBtn);
   row2.append(faviconEl, hostnameEl, actionsDiv);
 
-  bar.append(row1, row2);
+  bar.append(row1, progress, row2);
   document.body.appendChild(bar);
   requestAnimationFrame(() => requestAnimationFrame(() => bar.classList.add('atlas-in')));
 
@@ -355,13 +431,6 @@
     }, 130);
   }
 
-  function statusToLabel(text) {
-    return text
-      .replace(/Navigate\s*→\s*.+$/i, 'Navigating')
-      .replace(/…$|\.{3}$/, '')
-      .replace(/\.$/, '')
-      .trim() || text;
-  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CLICK RIPPLE
@@ -397,35 +466,69 @@
     _strokeEl = el;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BAR INTERACTIONS
-  // ═══════════════════════════════════════════════════════════════════════════
-  takeCtrlBtn.addEventListener('click', () => {
-    paused = !paused;
-    if (paused) {
+  function emitControl(action) {
+    try {
+      chrome.runtime.sendMessage({ type: 'ATLAS_CONTROL', action });
+    } catch {}
+  }
+
+  function applyStoppingState() {
+    takeCtrlBtn.textContent = 'Take control';
+    takeCtrlBtn.classList.remove('atlas-btn-primary');
+    takeCtrlBtn.disabled = true;
+    stopBtn.disabled = true;
+    statusDot.classList.add('paused');
+    statusText.textContent = 'Stopping agent…';
+    progressFill.style.width = '8%';
+    dim.classList.add('paused');
+    dots.classList.remove('atlas-in');
+    cursor.classList.remove('atlas-visible');
+    labelEl.classList.remove('atlas-visible');
+    cursorShown = false;
+    showStroke(null);
+  }
+
+  function applyControlState(isPaused) {
+    paused = isPaused;
+    if (isPaused) {
       takeCtrlBtn.textContent = 'Resume';
       takeCtrlBtn.classList.remove('atlas-btn-primary');
       statusDot.classList.add('paused');
       statusText.textContent = 'Paused — you have control';
+      progressFill.style.width = '8%';
       dim.classList.add('paused');
       dots.classList.remove('atlas-in');
       cursor.classList.remove('atlas-visible');
       labelEl.classList.remove('atlas-visible');
       cursorShown = false;
+      takeCtrlBtn.disabled = false;
+      stopBtn.disabled = false;
       showStroke(null);
-    } else {
-      takeCtrlBtn.textContent = 'Take control';
-      takeCtrlBtn.classList.add('atlas-btn-primary');
-      statusDot.classList.remove('paused');
-      statusText.textContent = 'Logged in · Agent is using your accounts';
-      dim.classList.remove('paused');
-      dots.classList.add('atlas-in');
+      return;
     }
-    chrome.runtime.sendMessage({ type: 'ATLAS_CONTROL', action: paused ? 'pause' : 'resume' });
+    takeCtrlBtn.textContent = 'Take control';
+    takeCtrlBtn.classList.add('atlas-btn-primary');
+    statusDot.classList.remove('paused');
+    statusText.textContent = 'Logged in · Agent is using your accounts';
+    progressFill.style.width = '24%';
+    dim.classList.remove('paused');
+    dots.classList.add('atlas-in');
+    takeCtrlBtn.disabled = false;
+    stopBtn.disabled = false;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BAR INTERACTIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  takeCtrlBtn.addEventListener('click', () => {
+    const nextPaused = !paused;
+    applyControlState(nextPaused);
+    emitControl(nextPaused ? 'pause' : 'resume');
   });
 
   stopBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ type: 'ATLAS_CONTROL', action: 'stop' });
+    applyStoppingState();
+    emitControl('stop');
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -450,6 +553,21 @@
   // ═══════════════════════════════════════════════════════════════════════════
   // MESSAGE HANDLER
   // ═══════════════════════════════════════════════════════════════════════════
+  function setStatusFromMessage(msg) {
+    const text = (msg?.text || msg?.statusText || '').trim();
+    const phase = String(msg?.phase || '').toLowerCase();
+    const phaseLabel = ({ thinking: 'Thinking', planning: 'Planning', navigating: 'Navigating', typing: 'Typing', verifying: 'Verifying' })[phase] || 'Agent';
+    if (text) {
+      statusText.textContent = `${phaseLabel} · ${text}`;
+      setLabelText(text);
+    } else {
+      statusText.textContent = 'Agent is working';
+    }
+    const rawProgress = Number.isFinite(msg?.progress) ? Number(msg.progress) : NaN;
+    const progressPct = Number.isFinite(rawProgress) ? Math.max(8, Math.min(100, rawProgress)) : 22;
+    progressFill.style.width = `${progressPct}%`;
+  }
+
   function onMessage(msg) {
     if (!msg || typeof msg.type !== 'string') return;
     const vw = window.innerWidth;
@@ -469,11 +587,7 @@
       }
 
       case 'ATLAS_STATUS_UPDATE': {
-        const text = (msg.text || '').trim();
-        if (!text) break;
-        setLabelText(statusToLabel(text));
-        // Update row-1 status text while agent is running
-        if (!paused) statusText.textContent = 'Logged in · Agent is using your accounts';
+        if (!paused) setStatusFromMessage(msg);
         break;
       }
 
