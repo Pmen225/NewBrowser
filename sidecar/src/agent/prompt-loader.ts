@@ -40,11 +40,17 @@ export async function loadPromptSpecs(options: PromptLoaderOptions = {}): Promis
   ]);
 
   const toolNames = extractToolNames(toolsSpec);
+  const normalizedSystemPrompt = systemPrompt.toLowerCase();
+  const missingTools = toolNames.filter((toolName) => !normalizedSystemPrompt.includes(toolName));
+  const systemPromptWithTools =
+    missingTools.length === 0
+      ? systemPrompt
+      : `${systemPrompt.trimEnd()}\n\n## Available tools\n${toolsSpec.trim()}\n`;
 
   return {
-    systemPrompt,
+    systemPrompt: systemPromptWithTools,
     toolsSpec,
     toolNames,
-    policy: compilePromptPolicy(systemPrompt, toolNames)
+    policy: compilePromptPolicy(systemPromptWithTools, toolNames)
   };
 }

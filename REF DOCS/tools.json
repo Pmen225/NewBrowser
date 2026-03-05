@@ -1,0 +1,26 @@
+### read_page
+Read the current page structure and interactive elements.
+
+### find
+Find matching interactive elements on the current page.
+
+### get_page_text
+Extract text content from the current page.
+
+### search_web
+Search the web for external information.
+
+### navigate
+Navigate the current tab to a URL or move through history.
+
+### tabs_create
+Manage browser tabs: create, activate, close, list, group, or ungroup.
+
+### computer
+Perform low-level browser interactions such as click, type, scroll, or screenshot.
+
+### form_input
+Fill one or more form fields by ref_id.
+
+### todo_write
+Write task progress notes for the current run.
