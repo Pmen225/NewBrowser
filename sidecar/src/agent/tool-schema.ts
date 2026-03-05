@@ -1,5 +1,5 @@
 import type { JsonObject } from "../../../shared/src/transport";
-import type { AgentToolSchemaEntry } from "./types";
+import type { AgentToolSchemaEntry, PromptDeclaredTool } from "./types";
 
 const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
   {
@@ -142,6 +142,56 @@ const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
 
 function cloneParameters(parameters: JsonObject): JsonObject {
   return JSON.parse(JSON.stringify(parameters)) as JsonObject;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
+}
+
+function asStringSet(value: unknown): Set<string> {
+  return new Set(Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").map((item) => item.toLowerCase()) : []);
+}
+
+export function findToolCatalogMismatches(declaredTools: PromptDeclaredTool[], catalog: AgentToolSchemaEntry[]): string[] {
+  const catalogByName = new Map(catalog.map((entry) => [entry.name.toLowerCase(), entry]));
+  const mismatches: string[] = [];
+
+  for (const declared of declaredTools) {
+    const implemented = catalogByName.get(declared.name.toLowerCase());
+    if (!implemented) {
+      mismatches.push(`missing:${declared.name}`);
+      continue;
+    }
+
+    if (!declared.parameters) {
+      continue;
+    }
+
+    const declaredParameters = asRecord(declared.parameters);
+    const implementedParameters = asRecord(implemented.parameters);
+    const declaredProps = asRecord(declaredParameters?.properties);
+    const implementedProps = asRecord(implementedParameters?.properties);
+
+    if (!declaredProps || !implementedProps) {
+      continue;
+    }
+
+    for (const propertyName of Object.keys(declaredProps)) {
+      if (!(propertyName in implementedProps)) {
+        mismatches.push(`param:${declared.name}.${propertyName}`);
+      }
+    }
+
+    const declaredRequired = asStringSet(declaredParameters?.required);
+    const implementedRequired = asStringSet(implementedParameters?.required);
+    for (const requiredName of declaredRequired) {
+      if (!implementedRequired.has(requiredName)) {
+        mismatches.push(`required:${declared.name}.${requiredName}`);
+      }
+    }
+  }
+
+  return mismatches;
 }
 
 export function buildToolSchemaCatalog(toolNames: string[]): AgentToolSchemaEntry[] {

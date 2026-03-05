@@ -11,10 +11,16 @@ import type {
 import type { PromptPolicy } from "../policy/types";
 export type { PromptPolicy } from "../policy/types";
 
+export interface PromptDeclaredTool {
+  name: string;
+  parameters?: JsonObject;
+}
+
 export interface PromptSpecs {
   systemPrompt: string;
   toolsSpec: string;
   toolNames: string[];
+  declaredTools: PromptDeclaredTool[];
   policy: PromptPolicy;
 }
 

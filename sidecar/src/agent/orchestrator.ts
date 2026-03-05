@@ -21,7 +21,7 @@ import {
 } from "../policy/response-validator";
 import { createMemoryStore } from "./memory-store";
 import { loadPromptSpecs, type PromptLoaderOptions } from "./prompt-loader";
-import { buildToolSchemaCatalog } from "./tool-schema";
+import { buildToolSchemaCatalog, findToolCatalogMismatches } from "./tool-schema";
 import type {
   AgentMemoryStore,
   AgentOrchestrator,
@@ -1079,6 +1079,14 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       }
 
       const fullToolCatalog = buildToolSchemaCatalog(promptSpecs.toolNames);
+      const toolingMismatches = findToolCatalogMismatches(promptSpecs.declaredTools, fullToolCatalog);
+      if (toolingMismatches.length > 0) {
+        throw Object.assign(new Error(`Tool definitions from REF DOCS mismatch sidecar implementation: ${toolingMismatches.join(", ")}`), {
+          code: "TOOLING_MISMATCH",
+          retryable: false
+        });
+      }
+
       let toolCatalog = fullToolCatalog.filter((tool) => tool.name !== "todo_write");
       if (!funcCallingEnabled) {
         toolCatalog = [];
