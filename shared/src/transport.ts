@@ -1315,9 +1315,10 @@ export function parseRpcRequest(value: unknown): RpcRequest | null {
     return null;
   }
 
-  if (!isNonEmptyString(value.tab_id)) {
-    return null;
-  }
+  // tab_id is optional — if absent or not a string, default to empty string.
+  // The sidecar's system dispatcher ignores it for agent actions; browser actions
+  // that require a specific tab should supply a valid sidecar tab ID.
+  const tab_id = isNonEmptyString(value.tab_id) ? value.tab_id : "";
 
   if (!isRecord(value.params)) {
     return null;
@@ -1326,7 +1327,7 @@ export function parseRpcRequest(value: unknown): RpcRequest | null {
   return {
     request_id: value.request_id,
     action: value.action,
-    tab_id: value.tab_id,
+    tab_id,
     params: value.params
   };
 }

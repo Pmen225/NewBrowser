@@ -299,7 +299,7 @@ function appendAiMsg() {
 
 function setAiAvatar(msgEl, animClass) {
   const gc = msgEl?.querySelector(".msg-ai-avatar .gamma-container");
-  if (gc) gc.className = `gamma-container${animClass ? " " + animClass : ""}`;
+  if (gc) gc.setAttribute("class", `gamma-container${animClass ? " " + animClass : ""}`);
 }
 
 function setAiContent(msgEl, html) {
@@ -1104,11 +1104,16 @@ async function sendPrompt(promptText) {
   scrollToBottom();
   transitionState("running");
 
+  // Get the active Chrome tab ID for overlay control.
+  // Note: the sidecar RPC uses its own internal string tab IDs ("tab-1", "tab-2"),
+  // which differ from Chrome's integer tab IDs. Pass null as the sidecar tab_id
+  // for AgentRun — the system dispatcher ignores it and the agent resolves the
+  // active tab through its own CDP state.
   let tabId = null;
   try {
     const tab = await getActiveWebTab();
-    tabId = tab?.id ?? null;
-    overlayTabId = tabId;
+    overlayTabId = tab?.id ?? null;
+    // tabId stays null — do not pass Chrome's integer tab ID to the sidecar RPC
   } catch {}
 
   // Session persistence — record user message

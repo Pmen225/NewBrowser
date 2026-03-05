@@ -337,6 +337,7 @@ export function createRpcWebSocketServer(options: RpcWebSocketServerOptions) {
         return;
       }
 
+      // Extract request_id defensively so we can echo it back in any error response.
       const requestIdForError =
         isRecord(parsedJson) && typeof parsedJson.request_id === "string"
           ? parsedJson.request_id
@@ -356,12 +357,17 @@ export function createRpcWebSocketServer(options: RpcWebSocketServerOptions) {
 
       const requestPayload = parseRpcRequest(parsedJson);
       if (!requestPayload) {
+        // Use the parsed request_id (if available) so the client can match the error
+        // to its pending promise and surface it properly instead of timing out silently.
+        const invalidReqId = isRecord(parsedJson) && typeof parsedJson.request_id === "string"
+          ? parsedJson.request_id
+          : "invalid-request";
         await traceLog(options.traceLogger, {
-          request_id: "invalid-request",
+          request_id: invalidReqId,
           event: "rpc.error",
           error: toTraceError("INVALID_REQUEST", "RPC payload does not match expected shape", false)
         });
-        failRequest(socket, "invalid-request", "INVALID_REQUEST", "RPC payload does not match expected shape", false);
+        failRequest(socket, invalidReqId, "INVALID_REQUEST", "RPC payload does not match expected shape", false);
         markViolation(socket, state);
         return;
       }
