@@ -19,7 +19,9 @@
     "format:check": "tsc --noEmit -p tsconfig.task2.json",
     "test:unit": "vitest run tests/cdp/frame-registry.spec.ts tests/cdp/session-registry.spec.ts",
     "test:integration": "vitest run tests/cdp/target-event-router.spec.ts",
-    "test:e2e": "vitest run tests/e2e/*.spec.ts"
+    "test:e2e": "vitest run tests/e2e/*.spec.ts",
+    "audit:tools": "tsx scripts/audit-tool-access.mjs",
+    "test:tool-audit": "vitest run tests/agent/tool-schema-audit.spec.ts"
   },
   "devDependencies": {
     "@types/node": "^25.3.2",

@@ -140,8 +140,37 @@ const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
   }
 ];
 
+export const SYSTEM_REQUIRED_TOOL_NAMES = [
+  "read_page",
+  "find",
+  "get_page_text",
+  "search_web",
+  "navigate",
+  "tabs_create",
+  "computer",
+  "form_input",
+  "todo_write"
+] as const;
+
+export interface ToolSchemaAuditResult {
+  available: string[];
+  missing: string[];
+}
+
 function cloneParameters(parameters: JsonObject): JsonObject {
   return JSON.parse(JSON.stringify(parameters)) as JsonObject;
+}
+
+export function listToolSchemaNames(): string[] {
+  return TOOL_SCHEMAS.map((entry) => entry.name);
+}
+
+export function validateRequiredToolSchemas(requiredToolNames: readonly string[]): ToolSchemaAuditResult {
+  const availableSet = new Set(listToolSchemaNames());
+  const missing = requiredToolNames.filter((toolName) => !availableSet.has(toolName));
+  const available = requiredToolNames.filter((toolName) => availableSet.has(toolName));
+
+  return { available, missing };
 }
 
 export function buildToolSchemaCatalog(toolNames: string[]): AgentToolSchemaEntry[] {
