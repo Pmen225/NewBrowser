@@ -2,13 +2,14 @@
 // RPC: ws://127.0.0.1:3210/rpc   SSE: http://127.0.0.1:3210/events
 import { createPanelRpcClient } from "./lib/rpc.js";
 import {
-  normalizeModelConfig, normalizeModelCatalog, chooseAutoModel,
-  MODEL_CONFIG_STORAGE_KEY, MODEL_CATALOG_STORAGE_KEY
+  normalizeModelConfig, normalizeModelCatalog, normalizeModelBenchmarkManifest, chooseAutoModel, buildTaskCapabilityRequest,
+  MODEL_CONFIG_STORAGE_KEY, MODEL_CATALOG_STORAGE_KEY, MODEL_BENCHMARK_STORAGE_KEY
 } from "./lib/model-config.js";
 import { OVERLAY_NONE, normalizeOverlayKind, toggleOverlay } from "./lib/overlay-controller.js";
 import { listMatchingShortcuts, SHORTCUTS_STORAGE_KEY } from "./lib/shortcuts.js";
 import { readImportedAttachments, buildAttachmentPromptPrefix } from "./lib/file-import.js";
 import { createDictationController, isDictationSupported } from "./lib/speech.js";
+import { overlayPhaseForTool } from "./lib/atlas-overlay-state.js";
 import {
   normalizeChatSessionsStore, ensureActiveSession,
   appendSessionMessage, pruneChatSessions, CHAT_SESSIONS_STORAGE_KEY
@@ -17,6 +18,11 @@ import { readUnlockedProviders } from "./lib/provider-session.js";
 
 const SIDECAR_WS   = "ws://127.0.0.1:3210";
 const EVENTS_URL   = "http://127.0.0.1:3210/events";
+const FULL_PROMPT_PLACEHOLDER = "Ask anything...";
+const PROMPT_ARIA_LABEL = "Ask anything";
+const EMPTY_DEFAULT_COPY = "What can I help with?";
+const OFFLINE_EMPTY_COPY = "Sidecar offline. Start local dev, then reconnect.";
+const RECONNECT_BUSY_LABEL = "Reconnecting...";
 
 // Returns the active web tab (http/https), skipping the side panel itself.
 async function getActiveWebTab() {
@@ -72,6 +78,7 @@ const SVG = {
   clock:       `<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3.5l2.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   gear:        `<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 1.5v1.5M8 13v1.5M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M1.5 8H3M13 8h1.5M3.3 12.7l1.1-1.1M11.6 4.4l1.1-1.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`,
   flash:       `<svg viewBox="0 0 16 16" fill="currentColor"><path d="M9 2L4 9h4l-1 5 5-7H8l1-5z"/></svg>`,
+  mail:        `<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.6" stroke="currentColor" stroke-width="1.3"/><path d="M3 5.5l5 4 5-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 };
 
 // Tool name → icon
@@ -84,6 +91,7 @@ const TOOL_ICONS = {
   search_web:    SVG.globe,
   form_input:    SVG.code,
   tabs_create:   SVG.newChat,
+  draft_email:   SVG.mail,
   todo_write:    SVG.check,
 };
 
@@ -102,8 +110,8 @@ const BUILTIN_SHORTCUTS = [
 // ═══════════════════════════════════════════════════════════════════
 // DOM build
 // ═══════════════════════════════════════════════════════════════════
-function buildUI(root) {
-  root.innerHTML = `
+export function buildPanelShellMarkup() {
+  return `
 <div class="assistant-shell">
   <header class="panel-header">
     <div class="panel-header-brand">
@@ -111,6 +119,7 @@ function buildUI(root) {
       <span>Assistant</span>
     </div>
     <div class="panel-header-actions">
+      <button class="icon-btn" id="settings-btn" title="Settings" aria-label="Settings">${SVG.gear}</button>
       <button class="icon-btn" id="btn-new-chat" title="New chat" aria-label="New chat">${SVG.newChat}</button>
       <div class="kebab-wrap">
         <button class="icon-btn" id="btn-kebab" title="More options" aria-label="More options">${SVG.dotsThree}</button>
@@ -128,13 +137,14 @@ function buildUI(root) {
     <div class="stage" id="stage">
       <div class="empty-state" id="empty-state">
         <div class="hero-gamma">${svgGamma("gamma-thinking")}</div>
-        <p class="empty-title">What can I help with?</p>
+        <p class="empty-title">${EMPTY_DEFAULT_COPY}</p>
         <div class="suggested-chips" id="chips">
           <button class="chip" data-prompt="Summarize this page for me">✦ Summarize</button>
           <button class="chip" data-prompt="What can I do on this page?">What can I do here?</button>
           <button class="chip" data-prompt="Tell me more about this page">Learn more</button>
           <button class="chip" data-prompt="Find the main call to action on this page">Find CTA</button>
         </div>
+        <button class="empty-reconnect-btn" id="empty-reconnect-btn" type="button" hidden>Reconnect to sidecar</button>
       </div>
       <div class="thread" id="thread" hidden></div>
     </div>
@@ -146,12 +156,12 @@ function buildUI(root) {
     <div id="overlay-panel" class="overlay-panel composer-overlay" hidden></div>
     <div class="composer" id="composer">
       <div id="attachment-preview" class="attachment-preview" hidden></div>
-      <textarea id="prompt-input" rows="1" placeholder="Ask anything…" autocomplete="off" spellcheck="true" aria-label="Message input"></textarea>
+      <textarea id="prompt-input" rows="1" placeholder="${FULL_PROMPT_PLACEHOLDER}" autocomplete="off" spellcheck="true" aria-label="${PROMPT_ARIA_LABEL}"></textarea>
       <div class="composer-dock">
         <button id="btn-plus" class="dock-btn dock-btn--icon" title="Add content" aria-label="Add content">${SVG.plus}</button>
         <div class="dock-right">
           <button id="btn-model" class="dock-btn dock-btn--pill" title="Select model" aria-label="Select model">
-            <span id="model-label">Auto ✦</span>
+            <span id="model-label">Auto</span>
             ${SVG.chevronDown}
           </button>
           <button id="btn-mic" class="dock-btn dock-btn--icon" title="Voice input" aria-label="Voice input" hidden>${SVG.mic}</button>
@@ -165,11 +175,19 @@ function buildUI(root) {
 </div>`;
 }
 
+function buildUI(root) {
+  root.innerHTML = buildPanelShellMarkup();
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Markdown renderer (full)
 // ═══════════════════════════════════════════════════════════════════
 function renderMarkdown(raw) {
-  let text = raw.replace(/<\/?answer>/gi, "").trim();
+  let text = raw
+    .replace(/<\/?answer>/gi, "")
+    .replace(/<confirmation[^>]*\/?>/gi, "")
+    .replace(/\[(web|screenshot|image):\d+\]/g, "")
+    .trim();
   const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
     `<pre><code class="lang-${lang}">${esc(code.trim())}</code></pre>`);
@@ -196,6 +214,197 @@ function renderMarkdown(raw) {
   return `<p>${text}</p>`;
 }
 
+export function deriveTerminalRunSnapshot(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const status = payload.status;
+  if (status !== "completed" && status !== "failed" && status !== "stopped") {
+    return null;
+  }
+
+  const rawAnswer =
+    typeof payload.final_answer === "string"
+      ? payload.final_answer
+      : typeof payload.content === "string"
+        ? payload.content
+        : "";
+
+  const sources = Array.isArray(payload.sources)
+    ? payload.sources
+    : Array.isArray(payload.citations)
+      ? payload.citations
+      : [];
+
+  return {
+    status,
+    rawText: rawAnswer.replace(/<\/?answer>/gi, "").trim(),
+    errorMessage: typeof payload.error_message === "string" ? payload.error_message : "",
+    isStopped: status === "stopped",
+    draftArtifact: payload.draft_artifact,
+    sources
+  };
+}
+
+export function deriveDraftInsertState(insertContext) {
+  const hasSubject = Boolean(insertContext?.subject?.targetId);
+  const hasBody = Boolean(insertContext?.body?.targetId);
+
+  if (hasSubject && hasBody) {
+    return {
+      canInsert: true,
+      mode: "subject_and_body",
+      statusLabel: "Ready to insert"
+    };
+  }
+
+  if (hasBody) {
+    return {
+      canInsert: true,
+      mode: "body_only",
+      statusLabel: "Body ready"
+    };
+  }
+
+  if (hasSubject) {
+    return {
+      canInsert: true,
+      mode: "subject_only",
+      statusLabel: "Subject ready"
+    };
+  }
+
+  return {
+    canInsert: false,
+    mode: "none",
+    statusLabel: "Refocus page fields"
+  };
+}
+
+export function buildEmailDraftCardMarkup(artifact, insertState) {
+  return `
+    <section class="draft-card" data-draft-kind="email">
+      <div class="draft-card-header">
+        <span class="draft-card-badge">${SVG.mail}<span>Email</span></span>
+        <span class="draft-card-status">${escHtml(insertState.statusLabel)}</span>
+      </div>
+      <div class="draft-card-subject">
+        <span class="draft-card-label">Subject</span>
+        <p>${escHtml(artifact.subject)}</p>
+      </div>
+      <div class="draft-card-body">
+        <span class="draft-card-label">Body</span>
+        ${renderMarkdown(artifact.body_markdown)}
+      </div>
+      <div class="draft-card-actions">
+        <button class="draft-card-btn draft-card-btn--secondary" type="button" data-draft-action="copy">Copy</button>
+        <button class="draft-card-btn draft-card-btn--primary" type="button" data-draft-action="insert" ${insertState.canInsert ? "" : "disabled"}>Insert</button>
+      </div>
+    </section>`;
+}
+
+function setDraftCardState(cardEl, insertState) {
+  if (!cardEl) return;
+  const status = cardEl.querySelector(".draft-card-status");
+  const insertButton = cardEl.querySelector('[data-draft-action="insert"]');
+  if (status) status.textContent = insertState.statusLabel;
+  if (insertButton) insertButton.disabled = insertState.canInsert !== true;
+}
+
+async function fetchInsertContextForActiveTab() {
+  const tab = await getActiveWebTab();
+  if (!tab?.id) {
+    return {
+      tabId: null,
+      context: undefined
+    };
+  }
+
+  const response = await chrome.runtime.sendMessage({
+    type: "ATLAS_GET_INSERT_CONTEXT",
+    tabId: tab.id
+  }).catch(() => null);
+
+  return {
+    tabId: tab.id,
+    context: response?.context
+  };
+}
+
+async function refreshDraftCardState(cardEl) {
+  const { tabId, context } = await fetchInsertContextForActiveTab();
+  if (typeof tabId === "number") {
+    cardEl.dataset.tabId = String(tabId);
+  }
+  setDraftCardState(cardEl, deriveDraftInsertState(context));
+}
+
+function buildDraftClipboardText(artifact) {
+  return `Subject: ${artifact.subject}\n\n${artifact.body_text}`;
+}
+
+function attachDraftCardBehaviour(cardEl, artifact) {
+  const copyButton = cardEl.querySelector('[data-draft-action="copy"]');
+  const insertButton = cardEl.querySelector('[data-draft-action="insert"]');
+
+  copyButton?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(buildDraftClipboardText(artifact));
+      showToast("Draft copied", "default", 1400);
+    } catch {
+      showToast("Copy failed", "error");
+    }
+  });
+
+  insertButton?.addEventListener("click", async () => {
+    const tab = await getActiveWebTab();
+    if (!tab?.id) {
+      setDraftCardState(cardEl, deriveDraftInsertState(undefined));
+      showToast("Focus the page fields first", "error");
+      return;
+    }
+
+    const response = await chrome.runtime.sendMessage({
+      type: "ATLAS_INSERT_DRAFT",
+      tabId: tab.id,
+      artifact
+    }).catch(() => null);
+
+    setDraftCardState(cardEl, deriveDraftInsertState(response?.context));
+
+    if (response?.ok) {
+      const inserted = Array.isArray(response.inserted) ? response.inserted : [];
+      const label =
+        inserted.length === 2
+          ? "Inserted into subject and body"
+          : inserted[0] === "subject"
+            ? "Inserted into subject"
+            : "Inserted into body";
+      showToast(label, "default", 1600);
+      return;
+    }
+
+    showToast(response?.message ?? "Insertion failed", "error");
+  });
+
+  void refreshDraftCardState(cardEl);
+}
+
+function appendDraftArtifact(msgEl, artifact) {
+  if (!msgEl || !artifact || artifact.kind !== "email") return;
+  const content = msgEl.querySelector(".msg-content");
+  if (!content) return;
+  content.querySelector(".draft-card")?.remove();
+
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = buildEmailDraftCardMarkup(artifact, deriveDraftInsertState(undefined));
+  const cardEl = wrapper.firstElementChild;
+  if (!cardEl) return;
+  content.appendChild(cardEl);
+  attachDraftCardBehaviour(cardEl, artifact);
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // State machine
 // ═══════════════════════════════════════════════════════════════════
@@ -203,6 +412,7 @@ let state        = "idle";
 let currentRunId = null;
 let currentAiEl  = null;
 let streamBuffer = "";
+let currentRunState = null;
 
 // Overlay + attachment state
 let overlayKind     = OVERLAY_NONE;
@@ -214,6 +424,17 @@ let dictation       = null;
 // Page overlay state
 let overlayTabId  = null;
 let overlayActive = false;
+let currentControlState = "active";
+let isReconnecting = false;
+let sseReconnectTimer = null;
+let currentRunPollTimer = null;
+let lastTerminalRunId = null;
+
+function clearRunStatePollTimer() {
+  if (!currentRunPollTimer) return;
+  clearTimeout(currentRunPollTimer);
+  currentRunPollTimer = null;
+}
 
 function transitionState(newState) {
   state = newState;
@@ -221,12 +442,21 @@ function transitionState(newState) {
   const input = document.getElementById("prompt-input");
   if (!btn) return;
 
+  // Micro-animation: pop icon in on swap
+  btn.style.transform = "scale(0.82)";
+  btn.style.opacity   = "0.6";
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    btn.style.transform = "";
+    btn.style.opacity   = "";
+  }));
+
   if (newState === "running") {
     btn.innerHTML = SVG.stop;
     btn.classList.add("stop-mode");
     btn.disabled  = false;
     if (input) input.disabled = true;
   } else {
+    clearRunStatePollTimer();
     btn.innerHTML = SVG.send;
     btn.classList.remove("stop-mode");
     btn.disabled  = false;
@@ -234,18 +464,20 @@ function transitionState(newState) {
     currentRunId = null;
     currentAiEl  = null;
     streamBuffer = "";
+    currentRunState = null;
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // Provider / model resolution
 // ═══════════════════════════════════════════════════════════════════
-async function resolveProvider() {
+async function resolveProvider(taskRequest = {}) {
   const stored = await new Promise(r =>
-    chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY, MODEL_CATALOG_STORAGE_KEY], r)
+    chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY, MODEL_CATALOG_STORAGE_KEY, MODEL_BENCHMARK_STORAGE_KEY], r)
   );
   const config   = normalizeModelConfig(stored[MODEL_CONFIG_STORAGE_KEY]);
   const catalog  = normalizeModelCatalog(stored[MODEL_CATALOG_STORAGE_KEY] ?? []);
+  const benchmarkManifest = normalizeModelBenchmarkManifest(stored[MODEL_BENCHMARK_STORAGE_KEY]);
 
   // Read saved provider sessions (set via options page)
   const sessions = await readUnlockedProviders();
@@ -258,9 +490,13 @@ async function resolveProvider() {
   let baseUrl  = session?.baseUrl ?? undefined;
 
   if (config.defaultModelMode === "auto" && catalog.length > 0) {
-    const chosen = chooseAutoModel(catalog, {}, config);
+    const chosen = chooseAutoModel(catalog, taskRequest, config, benchmarkManifest);
     if (chosen) { provider = chosen.chosenProvider; model = chosen.chosenModelId; }
   }
+
+  // Guard: provider must be one of the sidecar's accepted values
+  const VALID_PROVIDERS = ["openai", "anthropic", "google", "deepseek"];
+  if (!VALID_PROVIDERS.includes(provider)) provider = "google";
 
   return { provider, model, apiKey, baseUrl };
 }
@@ -273,6 +509,120 @@ function setThreadVisible(v) {
   const thread = document.getElementById("thread");
   if (empty)  empty.hidden  =  v;
   if (thread) thread.hidden = !v;
+  syncReconnectCallToAction();
+}
+
+function describeAgentStep(step) {
+  if (!step) {
+    return {
+      description: "Planning the next action.",
+      chip: "Queued"
+    };
+  }
+
+  const label = typeof step.label === "string" && step.label.trim().length > 0
+    ? step.label.trim()
+    : typeof step.toolName === "string" && step.toolName.trim().length > 0
+      ? step.toolName.trim()
+      : "Working";
+
+  if (step.status === "completed") {
+    return {
+      description: `${label} completed.`,
+      chip: "Done"
+    };
+  }
+
+  return {
+    description: label,
+    chip: "Live"
+  };
+}
+
+function buildThinkingState(message) {
+  const article = document.createElement("div");
+  article.classList.add("message--assistant-thinking");
+
+  const runState = message?.runState ?? null;
+  const steps = Array.isArray(runState?.steps) ? runState.steps : [];
+  const latestStep = steps.at(-1) ?? null;
+  const completedCount = steps.filter((step) => step?.status === "completed").length;
+  const details = describeAgentStep(latestStep);
+
+  if (completedCount > 0 && !latestStep) {
+    article.classList.add("message--assistant-stale");
+  }
+
+  const thinking = document.createElement("div");
+  thinking.className = "thinking-block";
+
+  const dots = document.createElement("div");
+  dots.className = "thinking-grid";
+  for (let index = 0; index < 4; index += 1) {
+    const dot = document.createElement("span");
+    dot.className = "thinking-grid-dot";
+    dots.appendChild(dot);
+  }
+
+  const copy = document.createElement("div");
+  copy.className = "thinking-copy";
+
+  const headline = document.createElement("div");
+  headline.className = "thinking-headline";
+  headline.textContent = "Thinking";
+
+  const summary = document.createElement("p");
+  summary.className = "thinking-summary";
+  summary.textContent = details.description;
+
+  const chips = document.createElement("div");
+  chips.className = "thinking-chips";
+
+  const statusChip = document.createElement("span");
+  statusChip.className = "thinking-chip";
+  statusChip.textContent = details.chip;
+  chips.appendChild(statusChip);
+
+  if (completedCount > 0) {
+    const completedChip = document.createElement("span");
+    completedChip.className = "thinking-chip";
+    completedChip.textContent = `${completedCount} step${completedCount === 1 ? "" : "s"}`;
+    chips.appendChild(completedChip);
+  }
+
+  copy.appendChild(headline);
+  copy.appendChild(summary);
+  copy.appendChild(chips);
+  thinking.appendChild(dots);
+  thinking.appendChild(copy);
+  article.appendChild(thinking);
+  return article;
+}
+
+function clearThinkingState(messageEl) {
+  messageEl?.querySelector(".message--assistant-thinking")?.remove();
+}
+
+function renderThinkingState(messageEl, runState) {
+  if (!messageEl) return;
+  const content = messageEl.querySelector(".msg-content");
+  if (!content) return;
+  clearThinkingState(messageEl);
+  const thinking = buildThinkingState({ runState });
+  content.prepend(thinking);
+}
+
+function findLatestActiveThinkingIndex(messages) {
+  if (!Array.isArray(messages)) return -1;
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.role !== "assistant") continue;
+    const steps = Array.isArray(message?.runState?.steps) ? message.runState.steps : [];
+    if (steps.some((step) => step?.status !== "completed")) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 function appendUserMsg(text) {
@@ -307,11 +657,64 @@ function setAiContent(msgEl, html) {
   if (c) c.innerHTML = html;
 }
 
+function hasRenderableMessageText(contentEl) {
+  if (!contentEl) return false;
+  return Array.from(contentEl.childNodes).some((node) => {
+    if (node.nodeType === Node.TEXT_NODE) return Boolean(node.textContent?.trim());
+    if (node.nodeType !== Node.ELEMENT_NODE) return false;
+    const el = node;
+    if (el.classList.contains("action-log")) return false;
+    if (el.dataset.runState) return false;
+    return Boolean(el.textContent?.trim());
+  });
+}
+
+function upsertRunState(contentEl, state, html) {
+  if (!contentEl) return;
+  let stateEl = contentEl.querySelector("[data-run-state]");
+  if (!stateEl) {
+    stateEl = document.createElement("div");
+    contentEl.appendChild(stateEl);
+  }
+  stateEl.dataset.runState = state;
+  stateEl.innerHTML = html;
+}
+
+function clearRunState(contentEl) {
+  contentEl?.querySelector("[data-run-state]")?.remove();
+}
+
+function broadcastOverlayControlState() {
+  if (!overlayActive || !overlayTabId) return;
+  chrome.runtime.sendMessage({
+    type: "ATLAS_CONTROL_STATE",
+    tabId: overlayTabId,
+    state: currentControlState,
+  }).catch(() => {});
+}
+
+function setOverlayControlState(nextState) {
+  currentControlState = nextState;
+  broadcastOverlayControlState();
+}
+
 function ensureActionLog(msgEl) {
   let log = msgEl.querySelector(".action-log");
   if (!log) {
     log = document.createElement("div");
     log.className = "action-log";
+    // Single animated slot — shows only the current action (Comet-style)
+    const slot = document.createElement("div");
+    slot.className = "action-slot";
+    slot.innerHTML = `
+      <span class="action-slot-icon"></span>
+      <div class="action-slot-text-wrap"><span class="action-slot-text"></span></div>
+      <span class="action-slot-spinner"><span></span></span>`;
+    const count = document.createElement("div");
+    count.className = "action-count";
+    count.hidden = true;
+    log.appendChild(slot);
+    log.appendChild(count);
     const wrap = msgEl.querySelector(".msg-content");
     if (wrap) wrap.prepend(log);
   }
@@ -320,37 +723,80 @@ function ensureActionLog(msgEl) {
 
 function appendActionItem(msgEl, toolName, label) {
   const log  = ensureActionLog(msgEl);
-  const item = document.createElement("div");
-  item.className = "action-item";
-  const icon = TOOL_ICONS[toolName] ?? SVG.cursor;
-  item.innerHTML = `
-    <span class="action-item-icon">${icon}</span>
-    <span class="action-item-label">${escHtml(label)}</span>
-    <span class="action-item-spinner"></span>`;
-  log.appendChild(item);
-  return item;
+  const slot = log.querySelector(".action-slot");
+  const iconEl = slot.querySelector(".action-slot-icon");
+  const textWrap = slot.querySelector(".action-slot-text-wrap");
+
+  iconEl.innerHTML = TOOL_ICONS[toolName] ?? SVG.cursor;
+
+  const oldText = textWrap.querySelector(".action-slot-text");
+  if (oldText && oldText.textContent) {
+    // Slot-machine: animate old text out, swap, animate new text in
+    oldText.classList.add("_slot-out");
+    setTimeout(() => {
+      const newText = document.createElement("span");
+      newText.className = "action-slot-text";
+      newText.textContent = label;
+      textWrap.replaceChildren(newText);
+    }, 100);
+  } else {
+    if (oldText) oldText.textContent = label;
+  }
+
+  // Reset to active state
+  slot.classList.remove("done");
+  const check = slot.querySelector(".action-slot-check");
+  if (check) {
+    // Restore spinner (was replaced by checkmark on previous done)
+    const spinner = document.createElement("span");
+    spinner.className = "action-slot-spinner";
+    spinner.innerHTML = "<span></span>";
+    check.replaceWith(spinner);
+  }
+
+  return slot;
 }
 
 function finishActionItem(itemEl) {
   if (!itemEl) return;
-  itemEl.classList.add("done");
-  const spinner = itemEl.querySelector(".action-item-spinner");
-  if (spinner) spinner.replaceWith((() => {
-    const s = document.createElement("span");
-    s.className = "action-item-icon";
-    s.innerHTML = SVG.check;
-    s.style.color = "oklch(72.3% .191 149.58)";
-    return s;
-  })());
+  const slot = itemEl; // itemEl is the slot element
+  const log  = slot.closest(".action-log");
+
+  // Increment step count
+  const count = log?.querySelector(".action-count");
+  if (count) {
+    const n = (parseInt(count.dataset.n ?? "0") || 0) + 1;
+    count.dataset.n = n;
+    count.textContent = n === 1 ? "1 step done" : `${n} steps done`;
+    count.hidden = false;
+  }
+
+  // Replace spinner with checkmark
+  slot.classList.add("done");
+  const spinner = slot.querySelector(".action-slot-spinner");
+  if (spinner) {
+    const check = document.createElement("span");
+    check.className = "action-slot-check action-slot-icon";
+    check.innerHTML = SVG.check;
+    check.style.color = "oklch(72.3% .191 149.58)";
+    spinner.replaceWith(check);
+  }
 }
 
 function appendSources(msgEl, sources) {
   if (!sources?.length) return;
   const content = msgEl.querySelector(".msg-content");
   if (!content) return;
+  // Strip internal system sources (user:prompt, system:policy) that carry no real URL
+  const webSources = sources.filter(s => {
+    const u = s.url ?? s.link ?? "";
+    if (!u || u === "#") return false;
+    try { new URL(u); return true; } catch { return false; }
+  });
+  if (!webSources.length) return;
   const row = document.createElement("div");
   row.className = "sources-row";
-  for (const src of sources.slice(0, 6)) {
+  for (const src of webSources.slice(0, 6)) {
     const url   = src.url ?? src.link ?? "#";
     const title = src.title ?? src.name ?? url;
     let domain = "";
@@ -386,27 +832,88 @@ function showToast(msg, type = "default", durationMs = 3200) {
 // ═══════════════════════════════════════════════════════════════════
 // Scroll helpers
 // ═══════════════════════════════════════════════════════════════════
-function scrollToBottom() {
+function scrollToBottom(smooth = true) {
   const stage = document.getElementById("stage");
-  if (stage) stage.scrollTop = stage.scrollHeight;
+  if (!stage) return;
+  if (smooth && stage.scrollHeight - stage.scrollTop - stage.clientHeight > 40) {
+    stage.scrollTo({ top: stage.scrollHeight, behavior: "smooth" });
+  } else {
+    stage.scrollTop = stage.scrollHeight;
+  }
 }
 
 function setupScrollFab() {
   const stage = document.getElementById("stage");
   const fab   = document.getElementById("scroll-fab");
   if (!stage || !fab) return;
-  const update = () => {
-    fab.hidden = (stage.scrollHeight - stage.scrollTop - stage.clientHeight) < 80;
+
+  let fabVisible = false;
+
+  const hideFab = () => {
+    if (!fabVisible) return;
+    fabVisible = false;
+    fab.style.animation = "scaleAndFadeOut .12s var(--ease-in-expo) both";
+    fab.addEventListener("animationend", () => {
+      fab.hidden = true;
+      fab.style.animation = "";
+    }, { once: true });
   };
+
+  const showFab = () => {
+    if (fabVisible) return;
+    fabVisible = true;
+    fab.hidden = false;
+    fab.style.animation = "";
+  };
+
+  const update = () => {
+    const atBottom = (stage.scrollHeight - stage.scrollTop - stage.clientHeight) < 80;
+    if (atBottom) hideFab(); else showFab();
+  };
+
   stage.addEventListener("scroll", update, { passive: true });
-  fab.addEventListener("click", () => { scrollToBottom(); fab.hidden = true; });
+  fab.addEventListener("click", () => { scrollToBottom(); hideFab(); });
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // Overlay state machine
 // ═══════════════════════════════════════════════════════════════════
+let _overlayCancelClose = null; // cancel any pending close animation
+
 function setOverlay(kind) {
+  const prev = overlayKind;
   overlayKind = normalizeOverlayKind(kind);
+
+  // Cancel any in-flight close animation so it can't close a freshly-opened overlay
+  if (_overlayCancelClose) { _overlayCancelClose(); _overlayCancelClose = null; }
+
+  // If closing, play exit animation before hiding
+  if (prev !== OVERLAY_NONE && overlayKind === OVERLAY_NONE) {
+    const panel = document.getElementById("overlay-panel");
+    if (panel && !panel.hidden) {
+      panel.dataset.state = "closed";
+      let cancelled = false;
+      const cleanup = () => {
+        if (cancelled) return;
+        panel.hidden = true;
+        panel.innerHTML = "";
+        delete panel.dataset.state;
+        delete panel.dataset.kind;
+        _overlayCancelClose = null;
+      };
+      const t = setTimeout(cleanup, 180);
+      const onAnim = () => { clearTimeout(t); cleanup(); };
+      panel.addEventListener("animationend", onAnim, { once: true });
+      _overlayCancelClose = () => {
+        cancelled = true;
+        clearTimeout(t);
+        panel.removeEventListener("animationend", onAnim);
+        _overlayCancelClose = null;
+      };
+      return;
+    }
+  }
+
   renderOverlay();
 }
 
@@ -423,6 +930,7 @@ function renderOverlay() {
 
   panel.hidden = false;
   panel.dataset.kind = overlayKind;
+  panel.dataset.state = "open";
   // Re-animate
   panel.style.animation = "none";
   panel.offsetHeight; // reflow
@@ -538,13 +1046,16 @@ async function renderAtPalette(panel) {
       if (item.action === "screenshot") {
         try {
           const resp = await chrome.runtime.sendMessage({ action: "captureScreenshot" });
+          if (resp?.error) throw new Error(resp.error);
           if (resp?.dataUrl) {
             attachments.push({ type: "screenshot", dataUrl: resp.dataUrl, name: "screenshot.png" });
             updateAttachmentPreview();
             input.value = before;
             showToast("Screenshot captured", "default", 1600);
+          } else {
+            throw new Error("No image returned");
           }
-        } catch { showToast("Screenshot failed", "error"); }
+        } catch (e) { showToast("Screenshot failed: " + (e?.message ?? "unknown"), "error"); }
       } else if (item.action === "allTabs") {
         try {
           const tabs    = await chrome.tabs.query({ currentWindow: true });
@@ -602,12 +1113,15 @@ function renderPlusMenu(panel) {
     setOverlay(OVERLAY_NONE);
     try {
       const resp = await chrome.runtime.sendMessage({ action: "captureScreenshot" });
+      if (resp?.error) throw new Error(resp.error);
       if (resp?.dataUrl) {
         attachments.push({ type: "screenshot", dataUrl: resp.dataUrl, name: "screenshot.png" });
         updateAttachmentPreview();
         showToast("Screenshot captured", "default", 1600);
+      } else {
+        throw new Error("No image returned");
       }
-    } catch { showToast("Screenshot failed", "error"); }
+    } catch (e) { showToast("Screenshot failed: " + (e?.message ?? "unknown"), "error"); }
   });
 
   document.getElementById("plus-control")?.addEventListener("click", async () => {
@@ -618,6 +1132,7 @@ function renderPlusMenu(panel) {
         chrome.runtime.sendMessage({ type: "ATLAS_OVERLAY_START", tabId: tab.id }).catch(() => {});
         overlayTabId  = tab.id;
         overlayActive = true;
+        currentControlState = "active";
         showToast("Browser control active", "default", 1600);
       }
     } catch {}
@@ -646,7 +1161,7 @@ async function renderModelPicker(panel) {
   let html = `
     <button class="palette-item${isAuto ? " palette-item--active" : ""}" data-model-mode="auto">
       <span class="pi-icon">${SVG.flash}</span>
-      <span class="pi-label">Auto ✦</span>
+      <span class="pi-label">Auto</span>
       <span class="pi-desc">Best model for each task</span>
       ${isAuto ? `<span class="pi-check">${SVG.check}</span>` : ""}
     </button>`;
@@ -677,7 +1192,7 @@ async function renderModelPicker(panel) {
     const c = normalizeModelConfig(s[MODEL_CONFIG_STORAGE_KEY]);
     c.defaultModelMode = "auto";
     chrome.storage.local.set({ [MODEL_CONFIG_STORAGE_KEY]: c });
-    updateModelLabel("Auto ✦");
+    updateModelLabel("Auto");
     setOverlay(OVERLAY_NONE);
   });
 
@@ -746,14 +1261,17 @@ function restoreSession(session) {
   const msgs = session.messages ?? [];
   for (const msg of msgs) {
     if (msg.role === "user") {
-      appendUserMsg(msg.text ?? "");
+      const el = appendUserMsg(msg.text ?? "");
+      // Suppress entry animation on history restore
+      if (el) el.style.animation = "none";
     } else if (msg.role === "assistant") {
       const el = appendAiMsg();
-      const content = el.querySelector(".msg-content");
+      if (el) el.style.animation = "none";
+      const content = el?.querySelector(".msg-content");
       if (content) content.innerHTML = msg.text ? renderMarkdown(msg.text) : "<em style='opacity:.5'>No response.</em>";
     }
   }
-  scrollToBottom();
+  scrollToBottom(false);
   activeSessionId = session.id;
 }
 
@@ -789,7 +1307,8 @@ function openKebab() {
     closeKebab(); setOverlay("recents");
   });
   document.getElementById("kebab-settings")?.addEventListener("click", () => {
-    closeKebab(); chrome.runtime.openOptionsPage();
+    closeKebab();
+    void openSettingsPage();
   });
 }
 
@@ -815,17 +1334,38 @@ function updateAttachmentPreview() {
     return;
   }
   preview.hidden = false;
-  preview.innerHTML = attachments.map((a, i) => `
-    <div class="attachment-chip">
-      <span class="attach-icon">${a.type === "screenshot" ? SVG.camera : SVG.paperclip}</span>
-      <span class="attach-name">${escHtml(a.name ?? "file")}</span>
-      <button class="attachment-remove" data-idx="${i}" aria-label="Remove">${SVG.xMark}</button>
-    </div>`).join("");
-  preview.querySelectorAll(".attachment-remove").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const idx = parseInt(btn.dataset.idx, 10);
-      if (!isNaN(idx)) { attachments.splice(idx, 1); updateAttachmentPreview(); }
+  preview.innerHTML = "";
+  attachments.forEach((a, i) => {
+    const chip = document.createElement("div");
+    chip.className = "attachment-chip";
+    const isImage = (a.type === "screenshot" || a.type === "image") && a.dataUrl;
+    if (isImage) {
+      const thumb = document.createElement("img");
+      thumb.className = "attach-thumb";
+      thumb.src = a.dataUrl;
+      thumb.alt = a.name ?? "image";
+      chip.appendChild(thumb);
+    } else {
+      const icon = document.createElement("span");
+      icon.className = "attach-icon";
+      icon.innerHTML = SVG.paperclip;
+      chip.appendChild(icon);
+    }
+    const nameEl = document.createElement("span");
+    nameEl.className = "attach-name";
+    nameEl.textContent = a.name ?? "file";
+    chip.appendChild(nameEl);
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "attachment-remove";
+    removeBtn.dataset.idx = String(i);
+    removeBtn.setAttribute("aria-label", "Remove");
+    removeBtn.innerHTML = SVG.xMark;
+    removeBtn.addEventListener("click", () => {
+      attachments.splice(i, 1);
+      updateAttachmentPreview();
     });
+    chip.appendChild(removeBtn);
+    preview.appendChild(chip);
   });
 }
 
@@ -842,7 +1382,7 @@ async function loadInitialModelLabel() {
     const stored = await new Promise(r => chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY], r));
     const config = normalizeModelConfig(stored[MODEL_CONFIG_STORAGE_KEY]);
     if (config.defaultModelMode === "auto" || config.selectedModelId === "auto") {
-      updateModelLabel("Auto ✦");
+      updateModelLabel("Auto");
     } else if (config.selectedModelId) {
       const id       = config.selectedModelId;
       const shortName = id.includes("/") ? id.split("/").pop() : id;
@@ -857,16 +1397,78 @@ async function loadInitialModelLabel() {
 let sseSource   = null;
 let actionItems = new Map();
 
+async function openSettingsPage() {
+  try {
+    if (typeof chrome !== "undefined" && typeof chrome.runtime?.openOptionsPage === "function") {
+      await chrome.runtime.openOptionsPage();
+    }
+  } catch {}
+}
+
+function clearSseReconnectTimer() {
+  if (sseReconnectTimer !== null) {
+    clearTimeout(sseReconnectTimer);
+    sseReconnectTimer = null;
+  }
+}
+
+function scheduleSseReconnect() {
+  if (sseReconnectTimer !== null) return;
+  sseReconnectTimer = setTimeout(() => {
+    sseReconnectTimer = null;
+    connectSSE();
+  }, 3000);
+}
+
+function syncReconnectCallToAction() {
+  const emptyState = document.getElementById("empty-state");
+  const emptyTitle = emptyState?.querySelector(".empty-title");
+  const emptyReconnectButton = document.getElementById("empty-reconnect-btn");
+  if (!emptyReconnectButton || !emptyTitle) return;
+
+  const shouldShow = !emptyState?.hidden && !_connOk;
+  emptyReconnectButton.hidden = !shouldShow;
+  emptyReconnectButton.disabled = isReconnecting;
+  emptyReconnectButton.textContent = isReconnecting ? RECONNECT_BUSY_LABEL : "Reconnect to sidecar";
+  emptyTitle.textContent = shouldShow ? OFFLINE_EMPTY_COPY : EMPTY_DEFAULT_COPY;
+}
+
+function reconnectToSidecar() {
+  if (isReconnecting) return;
+  isReconnecting = true;
+  syncReconnectCallToAction();
+  clearSseReconnectTimer();
+
+  try {
+    sseSource?.close();
+  } catch {}
+  sseSource = null;
+
+  rpc.reconnect();
+  connectSSE();
+
+  setTimeout(() => {
+    isReconnecting = false;
+    syncReconnectCallToAction();
+  }, 1200);
+}
+
 function connectSSE() {
   if (sseSource) return;
   sseSource = new EventSource(EVENTS_URL);
 
-  sseSource.addEventListener("open",  () => setConnStatus(true));
+  sseSource.addEventListener("open",  () => {
+    clearSseReconnectTimer();
+    isReconnecting = false;
+    setConnStatus(true);
+  });
   sseSource.addEventListener("error", () => {
     setConnStatus(false);
-    sseSource.close();
+    try {
+      sseSource.close();
+    } catch {}
     sseSource = null;
-    setTimeout(connectSSE, 3000);
+    scheduleSseReconnect();
   });
   sseSource.addEventListener("heartbeat", () => setConnStatus(true));
 
@@ -875,15 +1477,43 @@ function connectSSE() {
     try {
       const env  = JSON.parse(e.data);
       const p    = env?.payload ?? env;
-      if (p?.run_id !== currentRunId) return;
+      if (p?.run_id && currentRunId && p.run_id !== currentRunId) return;
       const s    = p?.status;
 
       if (s === "running" && currentAiEl) {
+        setOverlayControlState("active");
+        clearRunState(currentAiEl.querySelector(".msg-content"));
         setAiAvatar(currentAiEl, "gamma-thinking");
+        renderThinkingState(currentAiEl, currentRunState);
+      }
+
+      if (s === "pausing" && currentAiEl) {
+        setOverlayControlState("pausing");
+        const content = currentAiEl.querySelector(".msg-content");
+        upsertRunState(content, "pausing", "<em style='opacity:.5'>Pausing…</em>");
+      }
+
+      if (s === "paused" && currentAiEl) {
+        setOverlayControlState("paused");
+        const content = currentAiEl.querySelector(".msg-content");
+        upsertRunState(content, "paused", "<em style='opacity:.5'>Paused — you have control.</em>");
       }
 
       if (s === "tool_start" && currentAiEl) {
         const toolName = p?.tool_name ?? "tool";
+        const label = p?.tool_label ?? formatToolLabel(toolName, p?.tool_input);
+
+        if (!currentRunState) {
+          currentRunState = { steps: [] };
+        }
+        currentRunState.steps.push({
+          callId: p?.tool_call_id ?? null,
+          toolName,
+          label,
+          status: "running"
+        });
+        clearRunState(currentAiEl.querySelector(".msg-content"));
+        renderThinkingState(currentAiEl, currentRunState);
 
         // Page overlay — inject/move cursor on computer tool
         if (toolName === "computer" && overlayTabId) {
@@ -894,15 +1524,25 @@ function connectSSE() {
           const coord = p?.tool_input?.coordinate;
           if (Array.isArray(coord) && coord.length === 2) {
             chrome.runtime.sendMessage({ type: "ATLAS_CURSOR", tabId: overlayTabId, x: coord[0], y: coord[1] }).catch(() => {});
+            // Dispatch click ripple for click/left_click actions
+            const act = (p?.tool_input?.action ?? "").toLowerCase();
+            if (act === "click" || act === "left_click" || act === "double_click") {
+              chrome.runtime.sendMessage({ type: "ATLAS_CLICK", tabId: overlayTabId, x: coord[0], y: coord[1] }).catch(() => {});
+            }
           }
         }
         // Forward status text to overlay
         if (overlayActive && overlayTabId) {
           const statusText = formatToolLabel(toolName, p?.tool_input);
-          chrome.runtime.sendMessage({ type: "ATLAS_STATUS_UPDATE", tabId: overlayTabId, text: statusText }).catch(() => {});
+          chrome.runtime.sendMessage({
+            type: "ATLAS_STATUS_UPDATE",
+            tabId: overlayTabId,
+            text: statusText,
+            phase: phaseForTool(toolName),
+            progress: progressForTool(toolName),
+          }).catch(() => {});
         }
 
-        const label = p?.tool_label ?? formatToolLabel(toolName, p?.tool_input);
         const item  = appendActionItem(currentAiEl, toolName, label);
         if (p?.tool_call_id) actionItems.set(p.tool_call_id, item);
         setAiAvatar(currentAiEl, "gamma-scanning");
@@ -910,6 +1550,15 @@ function connectSSE() {
       }
 
       if (s === "tool_done" && p?.tool_call_id) {
+        if (currentRunState) {
+          const matchingStep = [...currentRunState.steps]
+            .reverse()
+            .find((step) => step?.callId === p.tool_call_id) ?? currentRunState.steps.at(-1) ?? null;
+          if (matchingStep) {
+            matchingStep.status = "completed";
+          }
+          renderThinkingState(currentAiEl, currentRunState);
+        }
         const item = actionItems.get(p.tool_call_id);
         finishActionItem(item);
         actionItems.delete(p.tool_call_id);
@@ -918,9 +1567,13 @@ function connectSSE() {
           if (content) {
             const imgWrap = document.createElement("div");
             imgWrap.className = "agent-screenshot";
+            const header = document.createElement("div");
+            header.className = "agent-screenshot-header";
+            header.innerHTML = `${SVG.camera}<span>Agent view</span>`;
             const img = document.createElement("img");
             img.src = "data:image/png;base64," + p.screenshot_b64;
-            img.alt = "Screenshot";
+            img.alt = "Agent screenshot";
+            imgWrap.appendChild(header);
             imgWrap.appendChild(img);
             content.appendChild(imgWrap);
             scrollToBottom();
@@ -935,12 +1588,13 @@ function connectSSE() {
     try {
       const env   = JSON.parse(e.data);
       const p     = env?.payload ?? env;
-      if (p?.run_id !== currentRunId) return;
+      if (p?.run_id && currentRunId && p.run_id !== currentRunId) return;
       const delta = p?.token ?? p?.delta ?? "";
       if (!delta || !currentAiEl) return;
 
       streamBuffer += delta;
       setAiAvatar(currentAiEl, "gamma-streaming");
+      clearThinkingState(currentAiEl);
       const content = currentAiEl.querySelector(".msg-content");
       if (content) {
         const log = content.querySelector(".action-log");
@@ -957,71 +1611,44 @@ function connectSSE() {
 
   // result: final answer
   sseSource.addEventListener("result", (e) => {
+    let shouldTransition = false;
     try {
       const env     = JSON.parse(e.data);
       const p       = env?.payload ?? env;
-      if (p?.run_id !== currentRunId) return;
+      if (p?.run_id && lastTerminalRunId === p.run_id) return;
+      // Match by run_id OR accept if currentRunId is null (reconnect edge-case)
+      if (p?.run_id && currentRunId && p.run_id !== currentRunId) return;
 
-      const rawText = (p?.final_answer ?? p?.content ?? "").replace(/<\/?answer>/gi, "").trim();
-      const errMsg  = p?.error_message;
-      const sources = p?.sources ?? p?.citations ?? [];
-
-      for (const item of actionItems.values()) finishActionItem(item);
-      actionItems.clear();
-      document.getElementById("thinking-row")?.remove();
-
-      if (currentAiEl) {
-        if (errMsg) {
-          setAiAvatar(currentAiEl, "gamma-error");
-          const content = currentAiEl.querySelector(".msg-content");
-          const log = content?.querySelector(".action-log");
-          if (content) {
-            content.innerHTML = "";
-            if (log) content.appendChild(log);
-            const errEl = document.createElement("div");
-            errEl.style.color = "oklch(62.8% .258 29.23)";
-            errEl.innerHTML = SVG.warning + " " + escHtml(errMsg || "An error occurred.");
-            content.appendChild(errEl);
-          }
-          showToast(errMsg || "Agent error", "error");
-        } else {
-          const content = currentAiEl.querySelector(".msg-content");
-          const log = content?.querySelector(".action-log");
-          if (content) {
-            content.innerHTML = "";
-            if (log) content.appendChild(log);
-            const textEl = document.createElement("div");
-            textEl.innerHTML = rawText ? renderMarkdown(rawText) : "<em style='opacity:.5'>No response.</em>";
-            content.appendChild(textEl);
-          }
-          setAiAvatar(currentAiEl, "gamma-done");
-          appendSources(currentAiEl, sources);
-          setTimeout(() => setAiAvatar(currentAiEl, ""), 1600);
-        }
+      shouldTransition = true; // we own this run — always transition when done
+      if (finalizeCurrentRun(p?.run_id ?? currentRunId, p)) {
+        shouldTransition = false;
       }
-
-      // Session persistence — save assistant message
-      if (activeSessionId && sessionStore && rawText) {
-        try {
-          sessionStore = appendSessionMessage(sessionStore, activeSessionId, {
-            role: "assistant", text: rawText, ts: Date.now(), runId: currentRunId
-          });
-          sessionStore = pruneChatSessions(sessionStore);
-          chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore });
-        } catch {}
-      }
-
-      // Remove page overlay
-      if (overlayActive && overlayTabId) {
-        chrome.runtime.sendMessage({ type: "ATLAS_OVERLAY_STOP", tabId: overlayTabId }).catch(() => {});
-        overlayActive = false;
-        overlayTabId  = null;
-      }
-
-      transitionState("idle");
-      scrollToBottom();
-    } catch {}
+    } catch {
+      // exception during result processing — still need to reset state
+    } finally {
+      // Always reset the stop button if we owned this result
+      if (shouldTransition) transitionState("idle");
+    }
   });
+}
+
+function phaseForTool(toolName) {
+  if (toolName === "navigate") return "navigating";
+  if (toolName === "read_page") return "reading";
+  if (toolName === "get_page_text") return "extracting";
+  if (toolName === "computer") return "typing";
+  if (toolName === "find" || toolName === "form_input") return "verifying";
+  if (toolName === "search_web") return "planning";
+  return overlayPhaseForTool(toolName);
+}
+
+function progressForTool(toolName) {
+  if (toolName === "search_web") return 28;
+  if (toolName === "navigate") return 42;
+  if (toolName === "read_page" || toolName === "get_page_text") return 66;
+  if (toolName === "find") return 74;
+  if (toolName === "computer") return 86;
+  return 52;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1037,6 +1664,7 @@ function formatToolLabel(toolName, input) {
   if (toolName === "find")          return `Find: "${input.query ?? ""}"`;
   if (toolName === "form_input")    return "Filling form…";
   if (toolName === "tabs_create")   return "Opening tab…";
+  if (toolName === "draft_email")   return "Drafting email…";
   if (toolName === "todo_write")    return "Updating tasks…";
   return toolName;
 }
@@ -1060,6 +1688,7 @@ function setConnStatus(ok) {
     dot.className = "conn-dot err";
     if (label) label.textContent = "Reconnecting to sidecar…";
   }
+  syncReconnectCallToAction();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1071,6 +1700,115 @@ const rpc = createPanelRpcClient({
   onClose: () => setConnStatus(false),
 });
 
+function finalizeCurrentRun(runId, payload) {
+  const terminal = deriveTerminalRunSnapshot(payload);
+  if (!terminal) return false;
+
+  if (typeof runId === "string" && runId.length > 0) {
+    if (lastTerminalRunId === runId) return true;
+    if (currentRunId && currentRunId !== runId) return false;
+  }
+
+  for (const item of actionItems.values()) finishActionItem(item);
+  actionItems.clear();
+  clearThinkingState(currentAiEl);
+  currentRunState = null;
+
+  if (currentAiEl) {
+    if (terminal.errorMessage) {
+      setAiAvatar(currentAiEl, "gamma-error");
+      const content = currentAiEl.querySelector(".msg-content");
+      const log = content?.querySelector(".action-log");
+      if (content) {
+        content.innerHTML = "";
+        if (log) content.appendChild(log);
+        const errEl = document.createElement("div");
+        errEl.style.color = "oklch(62.8% .258 29.23)";
+        errEl.innerHTML = SVG.warning + " " + escHtml(terminal.errorMessage || "An error occurred.");
+        content.appendChild(errEl);
+      }
+      showToast(terminal.errorMessage || "Agent error", "error");
+    } else {
+      const content = currentAiEl.querySelector(".msg-content");
+      const log = content?.querySelector(".action-log");
+      if (content) {
+        content.innerHTML = "";
+        if (log) content.appendChild(log);
+        if (terminal.isStopped) {
+          upsertRunState(content, "stopped", "<em style='opacity:.5'>Stopped.</em>");
+        } else {
+          const textEl = document.createElement("div");
+          textEl.innerHTML = terminal.rawText ? renderMarkdown(terminal.rawText) : "<em style='opacity:.5'>No response.</em>";
+          content.appendChild(textEl);
+          if (terminal.draftArtifact?.kind === "email") {
+            appendDraftArtifact(currentAiEl, terminal.draftArtifact);
+          }
+        }
+      }
+      if (terminal.isStopped) {
+        setAiAvatar(currentAiEl, "");
+      } else {
+        setAiAvatar(currentAiEl, "gamma-done");
+        appendSources(currentAiEl, terminal.sources);
+        setTimeout(() => setAiAvatar(currentAiEl, ""), 1600);
+      }
+    }
+  }
+
+  const sessionText = terminal.isStopped ? "Stopped." : terminal.rawText;
+  if (activeSessionId && sessionStore && sessionText) {
+    try {
+      sessionStore = appendSessionMessage(sessionStore, activeSessionId, {
+        role: "assistant", text: sessionText, ts: Date.now(), runId: currentRunId
+      });
+      sessionStore = pruneChatSessions(sessionStore);
+      chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore });
+    } catch {}
+  }
+
+  if (overlayActive && overlayTabId) {
+    chrome.runtime.sendMessage({ type: "ATLAS_OVERLAY_STOP", tabId: overlayTabId }).catch(() => {});
+    overlayActive = false;
+    overlayTabId  = null;
+  }
+  currentControlState = "active";
+  lastTerminalRunId = typeof runId === "string" && runId.length > 0 ? runId : currentRunId;
+
+  scrollToBottom();
+  transitionState("idle");
+  return true;
+}
+
+function scheduleRunStatePoll(runId, delayMs = 1_000) {
+  clearRunStatePollTimer();
+  if (!runId || state !== "running") return;
+
+  currentRunPollTimer = setTimeout(() => {
+    currentRunPollTimer = null;
+    void pollCurrentRunState(runId);
+  }, delayMs);
+}
+
+async function pollCurrentRunState(runId) {
+  if (!runId || state !== "running" || currentRunId !== runId) {
+    return;
+  }
+
+  try {
+    const snapshot = await rpc.call("AgentGetState", null, { run_id: runId });
+    if (state !== "running" || currentRunId !== runId) {
+      return;
+    }
+    if (finalizeCurrentRun(runId, snapshot)) {
+      return;
+    }
+  } catch {}
+
+  if (state === "running" && currentRunId === runId) {
+    scheduleRunStatePoll(runId);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Send & stop
 // ═══════════════════════════════════════════════════════════════════
@@ -1078,14 +1816,20 @@ async function sendPrompt(promptText) {
   const text = promptText.trim();
   if (!text || state === "running") return;
 
+  const pendingAttachments = attachments.slice();
+
   // Build full prompt with attachments prefix
   let fullPrompt = text;
-  if (attachments.length > 0) {
+  if (pendingAttachments.length > 0) {
     try {
-      const prefix = buildAttachmentPromptPrefix(attachments);
+      const prefix = buildAttachmentPromptPrefix(pendingAttachments);
       if (prefix) fullPrompt = prefix + "\n\n" + text;
     } catch {}
   }
+
+  const imageDataUrls = pendingAttachments
+    .filter(a => (a.type === "screenshot" || a.type === "image") && a.dataUrl)
+    .map(a => a.dataUrl);
 
   setThreadVisible(true);
   appendUserMsg(text);
@@ -1101,6 +1845,9 @@ async function sendPrompt(promptText) {
   currentAiEl  = appendAiMsg();
   streamBuffer = "";
   actionItems.clear();
+  currentRunState = { steps: [] };
+  currentControlState = "active";
+  renderThinkingState(currentAiEl, currentRunState);
   scrollToBottom();
   transitionState("running");
 
@@ -1114,6 +1861,10 @@ async function sendPrompt(promptText) {
     const tab = await getActiveWebTab();
     overlayTabId = tab?.id ?? null;
     // tabId stays null — do not pass Chrome's integer tab ID to the sidecar RPC
+    if (overlayTabId) {
+      chrome.runtime.sendMessage({ type: "ATLAS_OVERLAY_START", tabId: overlayTabId }).catch(() => {});
+      overlayActive = true;
+    }
   } catch {}
 
   // Session persistence — record user message
@@ -1130,7 +1881,11 @@ async function sendPrompt(promptText) {
     }
   } catch {}
 
-  const { provider, model, apiKey, baseUrl } = await resolveProvider();
+  const capabilityRequest = buildTaskCapabilityRequest({
+    prompt: text,
+    hasImageInput: imageDataUrls.length > 0
+  });
+  const { provider, model, apiKey, baseUrl } = await resolveProvider(capabilityRequest);
 
   try {
     const result = await rpc.call("AgentRun", tabId, {
@@ -1139,8 +1894,13 @@ async function sendPrompt(promptText) {
       model,
       ...(apiKey  ? { api_key:  apiKey }  : {}),
       ...(baseUrl ? { base_url: baseUrl } : {}),
+      ...(imageDataUrls.length ? { images: imageDataUrls, has_image_input: true } : {}),
     });
     currentRunId = result?.run_id ?? result?.id ?? null;
+    lastTerminalRunId = null;
+    if (currentRunId) {
+      scheduleRunStatePoll(currentRunId);
+    }
   } catch (err) {
     setAiAvatar(currentAiEl, "gamma-error");
     setAiContent(currentAiEl, `<span style="color:oklch(62.8% .258 29.23)">${SVG.warning} ${escHtml(err?.message ?? "Failed to reach sidecar.")}</span>`);
@@ -1151,16 +1911,18 @@ async function sendPrompt(promptText) {
 
 async function stopRun() {
   if (state !== "running") return;
+  setOverlayControlState("stopping");
   try { await rpc.call("AgentStop", null, { run_id: currentRunId }); } catch {}
 
   for (const item of actionItems.values()) finishActionItem(item);
   actionItems.clear();
-  document.getElementById("thinking-row")?.remove();
+  clearThinkingState(currentAiEl);
+  currentRunState = null;
 
   if (currentAiEl) {
     const content = currentAiEl.querySelector(".msg-content");
-    if (content && !content.textContent.trim()) {
-      content.innerHTML = "<em style='opacity:.5'>Stopped.</em>";
+    if (content && !hasRenderableMessageText(content)) {
+      upsertRunState(content, "stopped", "<em style='opacity:.5'>Stopped.</em>");
     }
     setAiAvatar(currentAiEl, "");
   }
@@ -1170,8 +1932,45 @@ async function stopRun() {
     overlayActive = false;
     overlayTabId  = null;
   }
+  currentControlState = "active";
 
   transitionState("idle");
+}
+
+async function pauseRun() {
+  if (state !== "running" || !currentRunId) return;
+  if (currentControlState === "pausing" || currentControlState === "paused" || currentControlState === "stopping") return;
+
+  setOverlayControlState("pausing");
+
+  try {
+    const result = await rpc.call("AgentPause", null, { run_id: currentRunId });
+    if (result?.status === "paused") {
+      setOverlayControlState("paused");
+      const content = currentAiEl?.querySelector(".msg-content");
+      upsertRunState(content, "paused", "<em style='opacity:.5'>Paused — you have control.</em>");
+      return;
+    }
+    setOverlayControlState("pausing");
+  } catch (err) {
+    setOverlayControlState("active");
+    showToast(err?.message ?? "Failed to pause the agent", "error");
+  }
+}
+
+async function resumeRun() {
+  if (state !== "running" || !currentRunId || currentControlState !== "paused") return;
+
+  try {
+    const result = await rpc.call("AgentResume", null, { run_id: currentRunId });
+    if (result?.status === "running") {
+      setOverlayControlState("active");
+      clearRunState(currentAiEl?.querySelector(".msg-content"));
+    }
+  } catch (err) {
+    setOverlayControlState("paused");
+    showToast(err?.message ?? "Failed to resume the agent", "error");
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1180,15 +1979,32 @@ async function stopRun() {
 function newChat() {
   if (state === "running") stopRun();
   const thread = document.getElementById("thread");
-  if (thread) { thread.innerHTML = ""; thread.hidden = true; }
-  const empty = document.getElementById("empty-state");
-  if (empty) empty.hidden = false;
-  actionItems.clear();
-  attachments = [];
-  updateAttachmentPreview();
-  activeSessionId = null;
-  const input = document.getElementById("prompt-input");
-  if (input) { input.value = ""; input.style.height = ""; input.focus(); }
+  const empty  = document.getElementById("empty-state");
+
+  const finish = () => {
+    if (thread) { thread.innerHTML = ""; thread.hidden = true; thread.style.opacity = ""; thread.style.transition = ""; }
+    if (empty) { empty.hidden = false; }
+    actionItems.clear();
+    currentRunId = null;
+    currentAiEl = null;
+    streamBuffer = "";
+    currentRunState = null;
+    currentControlState = "active";
+    attachments = [];
+    updateAttachmentPreview();
+    activeSessionId = null;
+    const input = document.getElementById("prompt-input");
+    if (input) { input.value = ""; input.style.height = ""; input.focus(); }
+  };
+
+  if (thread && !thread.hidden && thread.innerHTML.trim()) {
+    thread.style.transition = "opacity .15s ease";
+    thread.style.opacity    = "0";
+    thread.addEventListener("transitionend", finish, { once: true });
+  } else {
+    finish();
+  }
+  syncReconnectCallToAction();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1203,6 +2019,7 @@ function autoResize(el) {
 // Init
 // ═══════════════════════════════════════════════════════════════════
 (function init() {
+  if (typeof document === "undefined") return;
   const root = document.getElementById("root");
   if (!root) return;
 
@@ -1215,6 +2032,10 @@ function autoResize(el) {
   const plusBtn = document.getElementById("btn-plus");
   const modelBtn = document.getElementById("btn-model");
   const kebabBtn = document.getElementById("btn-kebab");
+  const settingsButton = document.getElementById("settings-btn");
+  const emptyReconnectButton = document.getElementById("empty-reconnect-btn");
+
+  syncReconnectCallToAction();
 
   // Auto-resize + slash/@ detection
   input.addEventListener("input", () => {
@@ -1223,9 +2044,13 @@ function autoResize(el) {
 
     if (val.startsWith("/")) {
       _slashToken = val.slice(1);
-      if (overlayKind !== "slash") overlayKind = "slash";
-      renderSlashPalette(document.getElementById("overlay-panel"), _slashToken);
-      document.getElementById("overlay-panel").hidden = false;
+      if (overlayKind !== "slash") {
+        setOverlay("slash");  // properly sets data-kind and enter animation
+      } else {
+        // Already open as slash — just re-render with updated token
+        const panel = document.getElementById("overlay-panel");
+        if (panel) renderSlashPalette(panel, _slashToken);
+      }
       return;
     }
 
@@ -1250,12 +2075,33 @@ function autoResize(el) {
     }
   });
 
+  // Paste image from clipboard
+  input.addEventListener("paste", async (e) => {
+    const items = Array.from(e.clipboardData?.items ?? []);
+    const imageItem = items.find(item => item.type.startsWith("image/"));
+    if (!imageItem) return;
+    e.preventDefault();
+    const blob = imageItem.getAsFile();
+    if (!blob) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      attachments.push({ type: "image", dataUrl: reader.result, name: "pasted-image.png" });
+      updateAttachmentPreview();
+      showToast("Image attached", "default", 1200);
+    };
+    reader.readAsDataURL(blob);
+  });
+
   sendBtn.addEventListener("click", () => {
     if (state === "running") stopRun();
     else sendPrompt(input.value);
   });
 
   newBtn.addEventListener("click", newChat);
+  settingsButton?.addEventListener("click", () => {
+    void openSettingsPage();
+  });
+  emptyReconnectButton?.addEventListener("click", reconnectToSidecar);
   chips.addEventListener("click", (e) => {
     const chip = e.target.closest(".chip");
     if (chip?.dataset.prompt) sendPrompt(chip.dataset.prompt);
@@ -1279,13 +2125,16 @@ function autoResize(el) {
 
   // Click outside → close all overlays
   document.addEventListener("click", (e) => {
-    const panel    = document.getElementById("overlay-panel");
-    const composer = document.getElementById("composer");
-    const kebab    = document.getElementById("kebab-menu");
+    const panel     = document.getElementById("overlay-panel");
+    const composer  = document.getElementById("composer");
     const kebabWrap = document.querySelector(".kebab-wrap");
 
+    // Don't close composer overlay if click was inside it, the composer, or the
+    // kebab wrap (kebab items like "Recent chats" open the overlay — without this
+    // exception the document handler fires after and immediately closes it again).
     const inComposer = composer?.contains(e.target) || panel?.contains(e.target);
-    if (!inComposer) setOverlay(OVERLAY_NONE);
+    const inKebab    = kebabWrap?.contains(e.target);
+    if (!inComposer && !inKebab) setOverlay(OVERLAY_NONE);
 
     if (!kebabWrap?.contains(e.target)) closeKebab();
   });
@@ -1308,11 +2157,40 @@ function autoResize(el) {
 
   // Listen for stop from page overlay content script
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.type === "ATLAS_CONTROL" && msg.action === "stop") stopRun();
+    if (msg.type !== "ATLAS_CONTROL") return;
+    if (msg.action === "stop") {
+      void stopRun();
+      return;
+    }
+    if (msg.action === "pause") {
+      void pauseRun();
+      return;
+    }
+    if (msg.action === "resume") {
+      void resumeRun();
+    }
+  });
+
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type !== "ATLAS_INSERT_CONTEXT_CHANGED") return;
+    document.querySelectorAll(".draft-card").forEach((cardEl) => {
+      const tabId = Number.parseInt(cardEl.dataset.tabId ?? "", 10);
+      if (!Number.isFinite(tabId) || tabId === msg.tabId) {
+        setDraftCardState(cardEl, deriveDraftInsertState(msg.context));
+      }
+    });
   });
 
   setupScrollFab();
   loadInitialModelLabel();
   connectSSE();
   rpc.connect();
+
+  // First-run: nudge user to pin the extension
+  chrome.storage.local.get(["_pinHintShown"], ({ _pinHintShown }) => {
+    if (!_pinHintShown) {
+      chrome.storage.local.set({ _pinHintShown: true });
+      setTimeout(() => showToast("Pin this extension to your toolbar for quick access", "default", 5000), 1200);
+    }
+  });
 })();

@@ -17,32 +17,76 @@ import {
 } from "./lib/provider-session.js";
 import {
   MODEL_CONFIG_STORAGE_KEY,
-  normalizeModelConfig
+  MODEL_CATALOG_STORAGE_KEY,
+  MODEL_BENCHMARK_STORAGE_KEY,
+  AGENT_CONFIG_STORAGE_KEY,
+  normalizeModelConfig,
+  normalizeAgentConfig,
+  normalizeModelCatalog,
+  normalizeModelBenchmarkManifest,
+  upsertManualModel,
+  deleteManualModel,
+  syncModelCatalogs,
+  getModelBenchmarkEntry,
+  recordModelBenchmarkResult,
+  isBrowserControlBenchmarkCandidate
 } from "./lib/model-config.js";
 
-const narrationToggle = document.getElementById("narration-toggle");
-const transcriptionToggle = document.getElementById("transcription-toggle");
-const supportLine = document.getElementById("audio-support");
-const clearChatsButton = document.getElementById("clear-chats-btn");
-const chatList = document.getElementById("chat-list");
-const providerIdInput = document.getElementById("provider-id-input");
-const providerKeyInput = document.getElementById("provider-key-input");
-const providerBaseUrlInput = document.getElementById("provider-base-url-input");
-const providerModelInput = document.getElementById("provider-model-input");
-const providerSaveButton = document.getElementById("provider-save-btn");
-const providerSaveStatus = document.getElementById("provider-save-status");
-const providerList = document.getElementById("provider-list");
+// ─── Element refs ────────────────────────────────────────────────────────────
 
-const modelModeSelect = document.getElementById("model-mode-select");
+// Agent
+const agentMaxSteps       = document.getElementById("agent-max-steps");
+const agentMaxActions     = document.getElementById("agent-max-actions");
+const agentFailureTol     = document.getElementById("agent-failure-tolerance");
+const agentVisionToggle   = document.getElementById("agent-vision-toggle");
+const agentHighlightsTog  = document.getElementById("agent-highlights-toggle");
+const agentReplanFreq     = document.getElementById("agent-replan-freq");
+const agentPageLoadWait   = document.getElementById("agent-page-load-wait");
+const agentReplayToggle   = document.getElementById("agent-replay-toggle");
+const agentSaveDot        = document.getElementById("agent-save-dot");
+
+// Provider
+const providerIdInput     = document.getElementById("provider-id-input");
+const providerKeyInput    = document.getElementById("provider-key-input");
+const providerBaseUrlInput= document.getElementById("provider-base-url-input");
+const providerModelInput  = document.getElementById("provider-model-input");
+const providerSaveBtn     = document.getElementById("provider-save-btn");
+const providerSaveStatus  = document.getElementById("provider-save-status");
+const providerList        = document.getElementById("provider-list");
+
+// Models
+const modelsSyncBtn       = document.getElementById("models-sync-btn");
+const modelsAddBtn        = document.getElementById("models-add-btn");
+const modelsAddForm       = document.getElementById("models-add-form");
+const manualModelProvider = document.getElementById("manual-model-provider");
+const manualModelId       = document.getElementById("manual-model-id");
+const manualModelName     = document.getElementById("manual-model-name");
+const manualModelCancel   = document.getElementById("manual-model-cancel");
+const manualModelSave     = document.getElementById("manual-model-save");
+const modelsSyncStatus    = document.getElementById("models-sync-status");
+const modelsList          = document.getElementById("models-list");
+
+// Model config
+const modelModeSelect     = document.getElementById("model-mode-select");
 const thinkingLevelSelect = document.getElementById("thinking-level-select");
-const functionCallingToggle = document.getElementById("function-calling-toggle");
-const browserSearchToggle = document.getElementById("browser-search-toggle");
-const codeExecutionToggle = document.getElementById("code-execution-toggle");
-const modelConfigSaveButton = document.getElementById("model-config-save-btn");
-const modelConfigStatus = document.getElementById("model-config-status");
+const functionCallingTog  = document.getElementById("function-calling-toggle");
+const browserSearchTog    = document.getElementById("browser-search-toggle");
+const codeExecutionTog    = document.getElementById("code-execution-toggle");
+const modelSaveDot        = document.getElementById("model-save-dot");
 
-function normalizeProviderId(value) {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
+// Audio
+const narrationToggle     = document.getElementById("narration-toggle");
+const transcriptionToggle = document.getElementById("transcription-toggle");
+const audioSupport        = document.getElementById("audio-support");
+
+// Chats
+const clearChatsBtn       = document.getElementById("clear-chats-btn");
+const chatList            = document.getElementById("chat-list");
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function normalizeProviderId(v) {
+  return typeof v === "string" ? v.trim().toLowerCase() : "";
 }
 
 function maskKey(key) {
@@ -50,96 +94,121 @@ function maskKey(key) {
   return key.slice(0, 6) + "••••" + key.slice(-3);
 }
 
+function formatTimestamp(v) {
+  if (typeof v !== "string" || !v.trim()) return "";
+  try { return new Date(v).toLocaleString(); } catch { return v; }
+}
+
+function showStatus(el, message, type = "ok") {
+  el.textContent = message;
+  el.dataset.type = type;
+  el.hidden = false;
+  setTimeout(() => { el.hidden = true; delete el.dataset.type; }, 3200);
+}
+
+function showSavedDot(el) {
+  if (!el) return;
+  // Re-trigger animation by forcing reflow
+  el.hidden = false;
+  el.style.animation = "none";
+  void el.offsetWidth;
+  el.style.animation = "";
+  clearTimeout(el._dotTimer);
+  el._dotTimer = setTimeout(() => { el.hidden = true; }, 2000);
+}
+
 function readUnlockedProvidersFromLocalStorage() {
-  if (typeof globalThis.localStorage !== "object" || globalThis.localStorage === null) {
-    return [];
-  }
+  if (typeof globalThis.localStorage !== "object" || !globalThis.localStorage) return [];
   const raw = globalThis.localStorage.getItem(PROVIDER_SESSION_STORAGE_KEY);
-  if (!raw) {
-    return [];
-  }
+  if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") {
-      return [];
-    }
-    const normalized = [];
-    for (const entry of Object.values(parsed)) {
+    if (!parsed || typeof parsed !== "object") return [];
+    return Object.values(parsed).reduce((acc, entry) => {
       const provider = normalizeProviderId(entry?.provider);
-      const apiKey = typeof entry?.apiKey === "string" ? entry.apiKey.trim() : "";
-      if (!provider || !apiKey) {
-        continue;
-      }
-      normalized.push({
+      const apiKey   = typeof entry?.apiKey === "string" ? entry.apiKey.trim() : "";
+      if (!provider || !apiKey) return acc;
+      acc.push({
         provider,
         apiKey,
-        baseUrl: typeof entry?.baseUrl === "string" ? entry.baseUrl.trim() : "",
+        baseUrl:        typeof entry?.baseUrl        === "string" ? entry.baseUrl.trim()        : "",
         preferredModel: typeof entry?.preferredModel === "string" ? entry.preferredModel.trim() : "",
-        unlockedAt: typeof entry?.unlockedAt === "string" ? entry.unlockedAt : new Date().toISOString()
+        unlockedAt:     typeof entry?.unlockedAt     === "string" ? entry.unlockedAt            : new Date().toISOString()
       });
-    }
-    return normalized;
-  } catch {
-    return [];
-  }
+      return acc;
+    }, []);
+  } catch { return []; }
 }
 
-function formatTimestamp(value) {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    return "";
-  }
-  try {
-    return new Date(value).toLocaleString();
-  } catch {
-    return value;
-  }
+// ─── Storage helpers ──────────────────────────────────────────────────────────
+
+async function chromeGet(keys) {
+  if (!globalThis.chrome?.storage?.local) return {};
+  return chrome.storage.local.get(keys);
 }
 
-async function loadChats() {
-  if (!globalThis.chrome?.storage?.local) {
-    return { sessions: [], activeSessionId: null };
-  }
-  const result = await chrome.storage.local.get(CHAT_SESSIONS_STORAGE_KEY);
-  return normalizeChatSessionsStore(result[CHAT_SESSIONS_STORAGE_KEY]);
+async function chromeSet(obj) {
+  if (!globalThis.chrome?.storage?.local?.set) return;
+  await chrome.storage.local.set(obj);
 }
 
-async function clearChats() {
-  if (!globalThis.chrome?.storage?.local) {
-    return;
-  }
-  await chrome.storage.local.remove(CHAT_SESSIONS_STORAGE_KEY);
+async function callSidecarRpc(action, params, { timeoutMs = 15 * 60 * 1000 } = {}) {
+  const response = await fetch("http://127.0.0.1:3210/rpc", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      request_id: `options-${Date.now()}`,
+      action,
+      tab_id: "__system__",
+      params
+    }),
+    signal: AbortSignal.timeout(timeoutMs)
+  });
+
+  const payload = await response.json();
+  if (payload?.ok === true) return payload.result || {};
+
+  const error = new Error(typeof payload?.error?.message === "string" ? payload.error.message : `RPC failed for ${action}`);
+  error.code = typeof payload?.error?.code === "string" ? payload.error.code : "RPC_FAILED";
+  throw error;
 }
 
-function renderChats(store) {
-  const sessions = store.sessions.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  chatList.replaceChildren();
-  if (sessions.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "settings-hint";
-    empty.textContent = "No chats saved yet.";
-    chatList.append(empty);
-    return;
-  }
+// ─── Agent config ─────────────────────────────────────────────────────────────
 
-  for (const session of sessions) {
-    const item = document.createElement("div");
-    item.className = "settings-chat-item";
-    const title = document.createElement("div");
-    title.className = "settings-chat-title";
-    title.textContent = session.title || "Untitled chat";
-    const meta = document.createElement("div");
-    meta.className = "settings-chat-meta";
-    meta.textContent = formatTimestamp(session.updatedAt);
-    item.append(title, meta);
-    chatList.append(item);
-  }
+async function loadAgentConfig() {
+  const result = await chromeGet(AGENT_CONFIG_STORAGE_KEY);
+  return normalizeAgentConfig(result[AGENT_CONFIG_STORAGE_KEY]);
 }
+
+function applyAgentConfigToForm(cfg) {
+  if (agentMaxSteps)       agentMaxSteps.value       = cfg.maxStepsPerTask;
+  if (agentMaxActions)     agentMaxActions.value     = cfg.maxActionsPerStep;
+  if (agentFailureTol)     agentFailureTol.value     = cfg.failureTolerance;
+  if (agentVisionToggle)   agentVisionToggle.checked = cfg.enableVision;
+  if (agentHighlightsTog)  agentHighlightsTog.checked= cfg.displayHighlights;
+  if (agentReplanFreq)     agentReplanFreq.value     = cfg.replanningFrequency;
+  if (agentPageLoadWait)   agentPageLoadWait.value   = cfg.pageLoadWaitTimeMs;
+  if (agentReplayToggle)   agentReplayToggle.checked = cfg.replayHistoricalTasks;
+}
+
+function readAgentConfigFromForm() {
+  return normalizeAgentConfig({
+    maxStepsPerTask:       parseInt(agentMaxSteps?.value,       10) || 1000,
+    maxActionsPerStep:     parseInt(agentMaxActions?.value,     10) || 1000,
+    failureTolerance:      parseInt(agentFailureTol?.value,     10) || 10,
+    enableVision:          agentVisionToggle?.checked   === true,
+    displayHighlights:     agentHighlightsTog?.checked  !== false,
+    replanningFrequency:   parseInt(agentReplanFreq?.value,     10) || 10,
+    pageLoadWaitTimeMs:    parseInt(agentPageLoadWait?.value,   10) || 250,
+    replayHistoricalTasks: agentReplayToggle?.checked   !== false
+  });
+}
+
+// ─── Providers ────────────────────────────────────────────────────────────────
 
 async function loadProviders() {
   const providers = await readUnlockedProviders();
-  if (Array.isArray(providers) && providers.length > 0) {
-    return providers;
-  }
+  if (Array.isArray(providers) && providers.length > 0) return providers;
   return readUnlockedProvidersFromLocalStorage();
 }
 
@@ -147,47 +216,50 @@ function renderProviders(list) {
   providerList.replaceChildren();
   if (!Array.isArray(list) || list.length === 0) {
     const empty = document.createElement("div");
-    empty.className = "settings-hint";
+    empty.className = "settings-empty";
     empty.textContent = "No provider keys saved yet.";
     providerList.append(empty);
     return;
   }
 
-  for (const entry of list) {
-    const row = document.createElement("div");
-    row.className = "provider-row";
+  list.forEach(entry => {
+    const item = document.createElement("div");
+    item.className = "settings-item";
 
-    const left = document.createElement("div");
-    left.className = "provider-copy";
+    const copy = document.createElement("div");
+    copy.className = "settings-item-copy";
+
     const title = document.createElement("div");
-    title.className = "provider-title";
+    title.className = "settings-item-title";
     title.textContent = entry.provider || "(unknown)";
+
     const meta = document.createElement("div");
-    meta.className = "provider-meta";
+    meta.className = "settings-item-meta";
     const parts = [];
-    if (entry.apiKey) parts.push(maskKey(entry.apiKey));
+    if (entry.apiKey)        parts.push(maskKey(entry.apiKey));
     if (entry.preferredModel) parts.push(entry.preferredModel);
-    if (entry.baseUrl) parts.push(entry.baseUrl);
+    if (entry.baseUrl)       parts.push(entry.baseUrl);
     meta.textContent = parts.join(" · ") || "No details";
-    left.append(title, meta);
+
+    copy.append(title, meta);
 
     const actions = document.createElement("div");
-    actions.className = "provider-actions";
+    actions.className = "settings-item-actions";
 
     const edit = document.createElement("button");
     edit.type = "button";
     edit.className = "settings-button";
     edit.textContent = "Edit";
     edit.addEventListener("click", () => {
-      providerIdInput.value = entry.provider;
-      providerKeyInput.value = "";
+      providerIdInput.value    = entry.provider;
+      providerKeyInput.value   = "";
       providerKeyInput.placeholder = maskKey(entry.apiKey) + " (enter new key to change)";
       providerModelInput.value = entry.preferredModel || "";
       providerBaseUrlInput.value = entry.baseUrl || "";
       providerIdInput.scrollIntoView({ behavior: "smooth", block: "center" });
       providerKeyInput.focus();
+      document.getElementById("provider").scrollIntoView({ behavior: "smooth", block: "start" });
     });
-    actions.append(edit);
 
     const remove = document.createElement("button");
     remove.type = "button";
@@ -197,163 +269,486 @@ function renderProviders(list) {
       await forgetUnlockedProviderSession(entry.provider);
       renderProviders(await loadProviders());
     });
-    actions.append(remove);
 
-    row.append(left, actions);
-    providerList.append(row);
+    actions.append(edit, remove);
+    item.append(copy, actions);
+    providerList.append(item);
+  });
+}
+
+// ─── Model catalog ────────────────────────────────────────────────────────────
+
+async function loadCatalog() {
+  const result = await chromeGet(MODEL_CATALOG_STORAGE_KEY);
+  return normalizeModelCatalog(result[MODEL_CATALOG_STORAGE_KEY]);
+}
+
+async function saveCatalog(catalog) {
+  await chromeSet({ [MODEL_CATALOG_STORAGE_KEY]: catalog });
+}
+
+async function loadBenchmarkManifest() {
+  const result = await chromeGet(MODEL_BENCHMARK_STORAGE_KEY);
+  return normalizeModelBenchmarkManifest(result[MODEL_BENCHMARK_STORAGE_KEY]);
+}
+
+async function saveBenchmarkManifest(manifest) {
+  await chromeSet({ [MODEL_BENCHMARK_STORAGE_KEY]: manifest });
+}
+
+const activeBenchmarks = new Set();
+
+function capabilityTags(entry, benchmarkEntry) {
+  const tags = [];
+  if (entry.inputModalities?.includes("vision"))    tags.push({ label: "vision",   cls: "settings-tag--vision"   });
+  if (entry.supportsFunctionCalling)                tags.push({ label: "tools",    cls: "settings-tag--tools"    });
+  if (entry.supportsBrowserSearch)                  tags.push({ label: "search",   cls: "settings-tag--search"   });
+  if (entry.supportsCodeExecution)                  tags.push({ label: "code",     cls: "settings-tag--code"     });
+  if (entry.source === "manual")                    tags.push({ label: "manual",   cls: "settings-tag--manual"   });
+  if (entry.costTier === "lowest" || entry.costTier === "low") tags.push({ label: "cheap", cls: "settings-tag--cheap" });
+  if (entry.capabilityTier === "advanced")          tags.push({ label: "advanced", cls: "settings-tag--advanced" });
+  if (benchmarkEntry?.status === "approved")        tags.push({ label: "approved", cls: "settings-tag--approved" });
+  if (benchmarkEntry?.status === "experimental")    tags.push({ label: "experimental", cls: "settings-tag--experimental" });
+  if (benchmarkEntry?.status === "blocked")         tags.push({ label: "blocked", cls: "settings-tag--blocked" });
+  return tags;
+}
+
+function formatBenchmarkMeta(entry, benchmarkEntry) {
+  if (!benchmarkEntry?.benchmark) {
+    return isBrowserControlBenchmarkCandidate(entry) ? "Browser benchmark: not run yet." : "";
+  }
+
+  const benchmark = benchmarkEntry.benchmark;
+  const parts = [
+    `Browser benchmark ${benchmark.passCount}/${benchmark.totalCount}`,
+    benchmark.hardFailureCount > 0 ? `${benchmark.hardFailureCount} hard fail${benchmark.hardFailureCount === 1 ? "" : "s"}` : "0 hard fails",
+    benchmark.medianElapsedMs > 0 ? `${Math.round(benchmark.medianElapsedMs / 1000)}s median` : ""
+  ].filter(Boolean);
+  return parts.join(" · ");
+}
+
+function renderCatalog(catalog, manifest) {
+  modelsList.replaceChildren();
+  if (!catalog || catalog.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "settings-empty";
+    empty.textContent = "No models synced yet. Add a provider key and click Sync models.";
+    modelsList.append(empty);
+    return;
+  }
+
+  catalog.forEach(entry => {
+    const benchmarkEntry = getModelBenchmarkEntry(manifest, entry.provider, entry.id);
+    const benchmarkKey = `${entry.provider}::${entry.id}`;
+    const item = document.createElement("div");
+    item.className = "settings-item";
+
+    const copy = document.createElement("div");
+    copy.className = "settings-item-copy";
+
+    const title = document.createElement("div");
+    title.className = "settings-item-title";
+    title.textContent = entry.displayName || entry.id;
+
+    const meta = document.createElement("div");
+    meta.className = "settings-item-meta";
+    const priceParts = [];
+    if (entry.inputPricePerMToken  != null) priceParts.push(`$${entry.inputPricePerMToken.toFixed(2)}/M in`);
+    if (entry.outputPricePerMToken != null) priceParts.push(`$${entry.outputPricePerMToken.toFixed(2)}/M out`);
+    meta.textContent = `${entry.provider} · ${entry.id}${priceParts.length ? " · " + priceParts.join(" · ") : ""}`;
+
+    const tags = document.createElement("div");
+    tags.className = "settings-item-tags";
+    capabilityTags(entry, benchmarkEntry).forEach(({ label, cls }) => {
+      const t = document.createElement("span");
+      t.className = `settings-tag ${cls}`;
+      t.textContent = label;
+      tags.append(t);
+    });
+
+    copy.append(title, meta, tags);
+    const benchmarkMeta = formatBenchmarkMeta(entry, benchmarkEntry);
+    if (benchmarkMeta) {
+      const benchmarkLine = document.createElement("div");
+      benchmarkLine.className = "settings-item-meta";
+      benchmarkLine.textContent = benchmarkMeta;
+      copy.append(benchmarkLine);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "settings-item-actions";
+
+    if (isBrowserControlBenchmarkCandidate(entry)) {
+      const benchmarkButton = document.createElement("button");
+      benchmarkButton.type = "button";
+      benchmarkButton.className = "settings-button";
+      benchmarkButton.textContent = activeBenchmarks.has(benchmarkKey)
+        ? "Benchmarking…"
+        : benchmarkEntry
+          ? "Re-run benchmark"
+          : "Benchmark";
+      if (activeBenchmarks.has(benchmarkKey)) {
+        benchmarkButton.classList.add("is-loading");
+      }
+      benchmarkButton.addEventListener("click", async () => {
+        activeBenchmarks.add(benchmarkKey);
+        renderCatalog(await loadCatalog(), await loadBenchmarkManifest());
+        showStatus(modelsSyncStatus, `Benchmarking ${entry.displayName || entry.id}. This will drive the live browser.`, "info");
+        try {
+          const result = await callSidecarRpc("ProviderBenchmarkBrowserControl", {
+            provider: entry.provider,
+            model_id: entry.id
+          });
+          const nextManifest = recordModelBenchmarkResult(await loadBenchmarkManifest(), result);
+          await saveBenchmarkManifest(nextManifest);
+          renderCatalog(await loadCatalog(), nextManifest);
+          showStatus(
+            modelsSyncStatus,
+            `${result.policy_status === "approved" ? "Approved" : result.policy_status === "blocked" ? "Blocked" : "Marked experimental"} ${entry.displayName || entry.id} (${result.summary.pass_count}/${result.summary.total_count}).`,
+            result.policy_status === "approved" ? "ok" : result.policy_status === "blocked" ? "error" : "info"
+          );
+        } catch (error) {
+          showStatus(modelsSyncStatus, error instanceof Error ? error.message : String(error), "error");
+        } finally {
+          activeBenchmarks.delete(benchmarkKey);
+          renderCatalog(await loadCatalog(), await loadBenchmarkManifest());
+        }
+      });
+      actions.append(benchmarkButton);
+    }
+
+    if (entry.source === "manual") {
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "settings-button settings-button--danger";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", async () => {
+        const current = await loadCatalog();
+        const next = deleteManualModel(current, entry.provider, entry.id);
+        await saveCatalog(next);
+        renderCatalog(next, await loadBenchmarkManifest());
+      });
+      actions.append(remove);
+    }
+
+    item.append(copy, actions);
+    modelsList.append(item);
+  });
+}
+
+async function syncModels(providers) {
+  if (!providers || providers.length === 0) {
+    showStatus(modelsSyncStatus, "No providers configured. Add a provider key first.", "error");
+    return;
+  }
+
+  modelsSyncBtn.classList.add("is-syncing", "is-loading");
+  showStatus(modelsSyncStatus, "Syncing models from providers…", "info");
+
+  const existingCatalog = await loadCatalog();
+
+  let catalog = existingCatalog;
+  const errors = [];
+
+  for (const prov of providers) {
+    try {
+      const resp = await fetch("http://127.0.0.1:3210/api/list-models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: prov.provider, api_key: prov.apiKey, base_url: prov.baseUrl || undefined })
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const payload = await resp.json();
+      const { catalog: next } = await syncModelCatalogs({
+        existingCatalog: catalog,
+        unlockedProviders: [prov],
+        listModels: () => Promise.resolve(payload)
+      });
+      catalog = next;
+    } catch (err) {
+      errors.push(prov.provider);
+    }
+  }
+
+  await saveCatalog(catalog);
+  renderCatalog(catalog, await loadBenchmarkManifest());
+  modelsSyncBtn.classList.remove("is-syncing", "is-loading");
+
+  if (errors.length > 0) {
+    showStatus(modelsSyncStatus, `Sync done — errors for: ${errors.join(", ")} (check provider key or server).`, "error");
+  } else {
+    showStatus(modelsSyncStatus, `✓ Models synced — ${catalog.length} model(s) available.`, "ok");
   }
 }
 
-function showStatus(el, message, isError = false) {
-  el.textContent = message;
-  el.dataset.status = isError ? "error" : "ok";
-  el.hidden = false;
-  setTimeout(() => { el.hidden = true; }, 3000);
-}
-
-function renderSupportLine() {
-  const narrationOk = isNarrationSupported();
-  const dictationOk = isDictationSupported();
-  supportLine.textContent = `Narration: ${narrationOk ? "supported" : "unavailable"} · Dictation: ${dictationOk ? "supported" : "unavailable"}`;
-}
+// ─── Model config ─────────────────────────────────────────────────────────────
 
 async function loadModelConfig() {
-  if (!globalThis.chrome?.storage?.local) {
-    return normalizeModelConfig({});
-  }
-  const result = await chrome.storage.local.get(MODEL_CONFIG_STORAGE_KEY);
+  const result = await chromeGet(MODEL_CONFIG_STORAGE_KEY);
   return normalizeModelConfig(result[MODEL_CONFIG_STORAGE_KEY]);
 }
 
 function applyModelConfigToForm(config) {
-  if (modelModeSelect) modelModeSelect.value = config.defaultModelMode || "auto";
-  if (thinkingLevelSelect) thinkingLevelSelect.value = config.thinkingLevel || "low";
-  if (functionCallingToggle) functionCallingToggle.checked = config.enableFunctionCalling !== false;
-  if (browserSearchToggle) browserSearchToggle.checked = config.allowBrowserSearch !== false;
-  if (codeExecutionToggle) codeExecutionToggle.checked = config.enableCodeExecution !== false;
+  if (modelModeSelect)     modelModeSelect.value     = config.defaultModelMode || "auto";
+  if (thinkingLevelSelect) thinkingLevelSelect.value = config.thinkingLevel    || "low";
+  if (functionCallingTog)  functionCallingTog.checked = config.enableFunctionCalling !== false;
+  if (browserSearchTog)    browserSearchTog.checked   = config.allowBrowserSearch    !== false;
+  if (codeExecutionTog)    codeExecutionTog.checked   = config.enableCodeExecution   !== false;
 }
 
 async function saveModelConfigFromForm() {
   const config = normalizeModelConfig({
-    defaultModelMode: modelModeSelect?.value || "auto",
-    thinkingLevel: thinkingLevelSelect?.value || "low",
-    enableFunctionCalling: functionCallingToggle?.checked !== false,
-    allowBrowserSearch: browserSearchToggle?.checked !== false,
-    enableCodeExecution: codeExecutionToggle?.checked !== false,
-
+    defaultModelMode:      modelModeSelect?.value    || "auto",
+    thinkingLevel:         thinkingLevelSelect?.value || "low",
+    enableFunctionCalling: functionCallingTog?.checked !== false,
+    allowBrowserSearch:    browserSearchTog?.checked  !== false,
+    enableCodeExecution:   codeExecutionTog?.checked  !== false
   });
-  if (globalThis.chrome?.storage?.local?.set) {
-    await chrome.storage.local.set({ [MODEL_CONFIG_STORAGE_KEY]: config });
-  }
+  await chromeSet({ [MODEL_CONFIG_STORAGE_KEY]: config });
   return config;
 }
 
-async function main() {
-  renderSupportLine();
+// ─── Chats ────────────────────────────────────────────────────────────────────
 
-  // Parallelize all storage reads for faster settings page load
-  const [rawSettings, store, providers, modelConfig] = await Promise.all([
+async function loadChats() {
+  if (!globalThis.chrome?.storage?.local) return { sessions: [], activeSessionId: null };
+  const result = await chrome.storage.local.get(CHAT_SESSIONS_STORAGE_KEY);
+  return normalizeChatSessionsStore(result[CHAT_SESSIONS_STORAGE_KEY]);
+}
+
+function renderChats(store) {
+  const sessions = store.sessions.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  chatList.replaceChildren();
+  if (sessions.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "settings-empty";
+    empty.textContent = "No chats saved yet.";
+    chatList.append(empty);
+    return;
+  }
+  sessions.forEach(session => {
+    const item = document.createElement("div");
+    item.className = "settings-item";
+
+    const copy = document.createElement("div");
+    copy.className = "settings-item-copy";
+
+    const title = document.createElement("div");
+    title.className = "settings-item-title";
+    title.textContent = session.title || "Untitled chat";
+
+    const meta = document.createElement("div");
+    meta.className = "settings-item-meta";
+    meta.textContent = formatTimestamp(session.updatedAt);
+
+    copy.append(title, meta);
+    item.append(copy);
+    chatList.append(item);
+  });
+}
+
+// ─── Active nav tracking ──────────────────────────────────────────────────────
+
+function setupNavHighlight() {
+  const sections = Array.from(document.querySelectorAll(".settings-section[id]"));
+  const navItems = Array.from(document.querySelectorAll(".settings-nav-item[data-section]"));
+
+  if (!sections.length || !navItems.length) return;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const id = entry.target.id;
+      navItems.forEach(item => {
+        item.classList.toggle("is-active", item.dataset.section === id);
+      });
+    });
+  }, { rootMargin: "-20% 0px -60% 0px", threshold: 0 });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Also handle click navigation
+  navItems.forEach(item => {
+    item.addEventListener("click", () => {
+      navItems.forEach(n => n.classList.remove("is-active"));
+      item.classList.add("is-active");
+    });
+  });
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+async function main() {
+  // Render audio support line
+  audioSupport.textContent =
+    `Narration: ${isNarrationSupported() ? "supported" : "unavailable"} · ` +
+    `Dictation: ${isDictationSupported() ? "supported" : "unavailable"}`;
+
+  // Load everything in parallel
+  const [rawSettings, store, providers, modelConfig, agentConfig, catalog, benchmarkManifest] = await Promise.all([
     loadPanelSettings(),
     loadChats(),
     loadProviders(),
-    loadModelConfig()
+    loadModelConfig(),
+    loadAgentConfig(),
+    loadCatalog(),
+    loadBenchmarkManifest()
   ]);
 
+  // ── Audio ──
   let currentSettings = normalizePanelSettings(rawSettings);
-  narrationToggle.checked = currentSettings.narrationEnabled;
-  transcriptionToggle.checked = currentSettings.transcriptionEnabled;
+  narrationToggle.checked    = currentSettings.narrationEnabled;
+  transcriptionToggle.checked= currentSettings.transcriptionEnabled;
 
   narrationToggle.addEventListener("change", async () => {
-    currentSettings = await savePanelSettings({
-      ...currentSettings,
-      narrationEnabled: narrationToggle.checked
-    });
+    currentSettings = await savePanelSettings({ ...currentSettings, narrationEnabled: narrationToggle.checked });
   });
-
   transcriptionToggle.addEventListener("change", async () => {
-    currentSettings = await savePanelSettings({
-      ...currentSettings,
-      transcriptionEnabled: transcriptionToggle.checked
-    });
+    currentSettings = await savePanelSettings({ ...currentSettings, transcriptionEnabled: transcriptionToggle.checked });
   });
 
-  renderChats(store);
-  renderProviders(providers);
+  // ── Agent config — auto-save ──
+  applyAgentConfigToForm(agentConfig);
+  async function autoSaveAgent() {
+    const cfg = readAgentConfigFromForm();
+    await chromeSet({ [AGENT_CONFIG_STORAGE_KEY]: cfg });
+    showSavedDot(agentSaveDot);
+  }
+  for (const el of [agentVisionToggle, agentHighlightsTog, agentReplayToggle]) {
+    el?.addEventListener("change", autoSaveAgent);
+  }
+  for (const el of [agentMaxSteps, agentMaxActions, agentFailureTol, agentReplanFreq, agentPageLoadWait]) {
+    el?.addEventListener("blur", autoSaveAgent);
+  }
 
-  // Pre-fill form with first saved provider (convenience)
+  // ── Providers ──
+  renderProviders(providers);
   if (providers.length > 0) {
     const first = providers[0];
-    providerIdInput.value = first.provider;
+    providerIdInput.value    = first.provider;
     providerModelInput.value = first.preferredModel || "";
     providerKeyInput.placeholder = maskKey(first.apiKey) + " (enter new key to change)";
   }
 
-  applyModelConfigToForm(modelConfig);
-
-  providerSaveButton.addEventListener("click", async () => {
+  providerSaveBtn.addEventListener("click", async () => {
     const provider = normalizeProviderId(providerIdInput.value);
-    const rawKey = providerKeyInput.value.trim();
-    const baseUrl = providerBaseUrlInput.value.trim();
+    const rawKey   = providerKeyInput.value.trim();
+    const baseUrl  = providerBaseUrlInput.value.trim();
     const preferredModel = providerModelInput.value.trim();
-    if (!provider) {
-      showStatus(providerSaveStatus, "Provider ID is required.", true);
-      return;
-    }
+    if (!provider) { showStatus(providerSaveStatus, "Provider ID is required.", "error"); return; }
 
-    // If key field is empty, keep existing key for this provider
     let apiKey = rawKey;
     let current = null;
     if (!apiKey) {
       current = await loadProviders();
       const existing = current.find(p => p.provider === provider);
-      if (existing) {
-        apiKey = existing.apiKey;
-      } else {
-        showStatus(providerSaveStatus, "API key is required.", true);
-        return;
-      }
+      if (existing) { apiKey = existing.apiKey; }
+      else { showStatus(providerSaveStatus, "API key is required.", "error"); return; }
     }
 
     await rememberUnlockedProviderSession({ provider, apiKey, baseUrl, preferredModel });
-    // Reuse already-loaded list or fetch once
     const updated = current ?? await loadProviders();
-    const next = updated.filter(p => p.provider !== provider).concat({ provider, apiKey, baseUrl, preferredModel, unlockedAt: new Date().toISOString() });
+    const next = updated.filter(p => p.provider !== provider).concat({
+      provider, apiKey, baseUrl, preferredModel, unlockedAt: new Date().toISOString()
+    });
     renderProviders(next);
     providerKeyInput.value = "";
     providerKeyInput.placeholder = maskKey(apiKey) + " (enter new key to change)";
     showStatus(providerSaveStatus, `✓ ${provider} key saved.`);
   });
 
-  modelConfigSaveButton.addEventListener("click", async () => {
-    await saveModelConfigFromForm();
-    showStatus(modelConfigStatus, "✓ Model settings saved.");
+  // ── Models ──
+  renderCatalog(catalog, benchmarkManifest);
+
+  modelsSyncBtn.addEventListener("click", async () => {
+    const currentProviders = await loadProviders();
+    await syncModels(currentProviders);
   });
 
-  clearChatsButton.addEventListener("click", async () => {
-    await clearChats();
+  modelsAddBtn.addEventListener("click", () => {
+    modelsAddForm.hidden = !modelsAddForm.hidden;
+    if (!modelsAddForm.hidden) manualModelProvider.focus();
+  });
+
+  manualModelCancel.addEventListener("click", () => {
+    modelsAddForm.hidden = true;
+    manualModelProvider.value = "";
+    manualModelId.value       = "";
+    manualModelName.value     = "";
+  });
+
+  manualModelSave.addEventListener("click", async () => {
+    const provider = normalizeProviderId(manualModelProvider.value);
+    const id       = manualModelId.value.trim();
+    const name     = manualModelName.value.trim();
+    if (!provider || !id) {
+      showStatus(modelsSyncStatus, "Provider and Model ID are required.", "error");
+      return;
+    }
+    const current = await loadCatalog();
+    const next    = upsertManualModel(current, { provider, id, displayName: name || undefined, source: "manual" });
+    await saveCatalog(next);
+    renderCatalog(next, await loadBenchmarkManifest());
+    modelsAddForm.hidden = true;
+    manualModelProvider.value = "";
+    manualModelId.value       = "";
+    manualModelName.value     = "";
+    showStatus(modelsSyncStatus, `✓ Added ${name || id}.`);
+  });
+
+  // ── Model config — auto-save ──
+  applyModelConfigToForm(modelConfig);
+  async function autoSaveModelConfig() {
+    await saveModelConfigFromForm();
+    showSavedDot(modelSaveDot);
+  }
+  for (const el of [modelModeSelect, thinkingLevelSelect, functionCallingTog, browserSearchTog, codeExecutionTog]) {
+    el?.addEventListener("change", autoSaveModelConfig);
+  }
+
+  // ── Chats ──
+  renderChats(store);
+  clearChatsBtn.addEventListener("click", async () => {
+    await chrome.storage.local.remove(CHAT_SESSIONS_STORAGE_KEY);
     renderChats({ sessions: [], activeSessionId: null });
   });
 
+  // ── Storage change listener ──
   if (globalThis.chrome?.storage?.onChanged?.addListener) {
-    chrome.storage.onChanged.addListener((changes) => {
+    chrome.storage.onChanged.addListener(async (changes) => {
       if (changes[PANEL_SETTINGS_STORAGE_KEY]) {
         const next = normalizePanelSettings(changes[PANEL_SETTINGS_STORAGE_KEY].newValue);
         currentSettings = next;
-        narrationToggle.checked = next.narrationEnabled;
+        narrationToggle.checked     = next.narrationEnabled;
         transcriptionToggle.checked = next.transcriptionEnabled;
       }
       if (changes[CHAT_SESSIONS_STORAGE_KEY]) {
         renderChats(normalizeChatSessionsStore(changes[CHAT_SESSIONS_STORAGE_KEY].newValue));
       }
       if (changes[PROVIDER_SESSION_STORAGE_KEY]) {
-        const map = changes[PROVIDER_SESSION_STORAGE_KEY].newValue || {};
-        renderProviders(Object.values(map));
+        renderProviders(Object.values(changes[PROVIDER_SESSION_STORAGE_KEY].newValue || {}));
       }
       if (changes[MODEL_CONFIG_STORAGE_KEY]) {
         applyModelConfigToForm(normalizeModelConfig(changes[MODEL_CONFIG_STORAGE_KEY].newValue));
       }
+      if (changes[AGENT_CONFIG_STORAGE_KEY]) {
+        applyAgentConfigToForm(normalizeAgentConfig(changes[AGENT_CONFIG_STORAGE_KEY].newValue));
+      }
+      if (changes[MODEL_CATALOG_STORAGE_KEY]) {
+        renderCatalog(
+          normalizeModelCatalog(changes[MODEL_CATALOG_STORAGE_KEY].newValue),
+          changes[MODEL_BENCHMARK_STORAGE_KEY]
+            ? normalizeModelBenchmarkManifest(changes[MODEL_BENCHMARK_STORAGE_KEY].newValue)
+            : await loadBenchmarkManifest()
+        );
+      }
+      if (changes[MODEL_BENCHMARK_STORAGE_KEY] && !changes[MODEL_CATALOG_STORAGE_KEY]) {
+        renderCatalog(await loadCatalog(), normalizeModelBenchmarkManifest(changes[MODEL_BENCHMARK_STORAGE_KEY].newValue));
+      }
     });
   }
+
+  setupNavHighlight();
 }
 
 main();

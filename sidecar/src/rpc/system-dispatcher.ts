@@ -1,9 +1,12 @@
 import type { JsonObject } from "../../../shared/src/transport";
 import {
   parseAgentGetStateParams,
+  parseAgentPauseParams,
   parseAgentRunParams,
+  parseAgentResumeParams,
   parseAgentStopParams,
   parseGetRuntimeStateParams,
+  parseProviderBenchmarkBrowserControlParams,
   parseProviderListModelsParams,
   parseProviderValidateParams,
   type GetRuntimeStateResult
@@ -19,6 +22,7 @@ export interface SystemDispatcherOptions {
   providerRegistry?: ProviderRegistry;
   providerState?: ProviderStateService;
   orchestrator?: AgentOrchestrator;
+  benchmarkRunner?: (params: { provider: "openai" | "anthropic" | "google" | "deepseek"; model_id: string }) => Promise<JsonObject>;
 }
 
 function isProviderName(value: unknown): value is "openai" | "anthropic" | "google" | "deepseek" {
@@ -68,11 +72,14 @@ export function createSystemDispatcher(options: SystemDispatcherOptions): Action
         action === "GetRuntimeState" ||
         action === "ProviderValidate" ||
         action === "ProviderListModels" ||
+        action === "ProviderBenchmarkBrowserControl" ||
         action === "ProviderDefaultsGet" ||
         action === "ProviderDefaultsPut" ||
         action === "ProviderCatalogGet" ||
         action === "ProviderCatalogSync" ||
         action === "AgentRun" ||
+        action === "AgentPause" ||
+        action === "AgentResume" ||
         action === "AgentStop" ||
         action === "AgentGetState"
       );
@@ -157,6 +164,19 @@ export function createSystemDispatcher(options: SystemDispatcherOptions): Action
 
           throw createDispatcherError("PROVIDER_UNAVAILABLE", "Provider request failed", true);
         }
+      }
+
+      if (action === "ProviderBenchmarkBrowserControl") {
+        if (!options.benchmarkRunner) {
+          throw createDispatcherError("NOT_IMPLEMENTED", "Benchmark runner is not configured", false);
+        }
+
+        const parsed = parseProviderBenchmarkBrowserControlParams(params);
+        if (!parsed) {
+          throw createDispatcherError("INVALID_REQUEST", "Invalid ProviderBenchmarkBrowserControl params", false);
+        }
+
+        return await options.benchmarkRunner(parsed);
       }
 
       if (action === "ProviderDefaultsGet") {
@@ -244,6 +264,34 @@ export function createSystemDispatcher(options: SystemDispatcherOptions): Action
         }
 
         const result = await options.orchestrator.stop(parsed);
+        return result as unknown as JsonObject;
+      }
+
+      if (action === "AgentPause") {
+        if (!options.orchestrator) {
+          throw createDispatcherError("NOT_IMPLEMENTED", "Agent orchestrator is not configured", false);
+        }
+
+        const parsed = parseAgentPauseParams(params);
+        if (!parsed) {
+          throw createDispatcherError("INVALID_REQUEST", "Invalid AgentPause params", false);
+        }
+
+        const result = await options.orchestrator.pause(parsed);
+        return result as unknown as JsonObject;
+      }
+
+      if (action === "AgentResume") {
+        if (!options.orchestrator) {
+          throw createDispatcherError("NOT_IMPLEMENTED", "Agent orchestrator is not configured", false);
+        }
+
+        const parsed = parseAgentResumeParams(params);
+        if (!parsed) {
+          throw createDispatcherError("INVALID_REQUEST", "Invalid AgentResume params", false);
+        }
+
+        const result = await options.orchestrator.resume(parsed);
         return result as unknown as JsonObject;
       }
 

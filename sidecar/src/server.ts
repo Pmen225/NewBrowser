@@ -24,6 +24,7 @@ import { loadPromptSpecs } from "./agent/prompt-loader";
 import { enforceUserFacingResponsePayload } from "./policy/response-validator";
 import { createProviderRegistry } from "./llm/provider-registry";
 import { createProviderStateService } from "./llm/provider-state";
+import { createBrowserControlBenchmarkRunner } from "./bench/browser-model-benchmark";
 import { createActiveTabDispatcher } from "./rpc/active-tab-dispatcher";
 import { createBrowserActionDispatcher } from "./rpc/browser-action-dispatcher";
 import { createFindDispatcher } from "./rpc/find-dispatcher";
@@ -108,6 +109,14 @@ function parseBrowserPolicy(raw: string | undefined): BrowserDiscoveryPolicy {
     return "any_chromium";
   }
   return "ungoogled_only";
+}
+
+const debugStartup = process.env.SIDECAR_DEBUG_STARTUP === "1";
+
+function startupLog(message: string): void {
+  if (debugStartup) {
+    console.log(`[startup] ${message}`);
+  }
 }
 
 async function reserveLoopbackPort(preferredPort: number): Promise<number> {
@@ -326,6 +335,7 @@ function createBrowserRuntime(transport: ChromeCdpTransport, sessionRegistry: Se
     routeByFrameOrdinal: sessionRegistry.routeByFrameOrdinal.bind(sessionRegistry),
     getTab: sessionRegistry.getTab.bind(sessionRegistry),
     listTabs: sessionRegistry.listTabs.bind(sessionRegistry),
+    getJavaScriptDialog: sessionRegistry.getJavaScriptDialog.bind(sessionRegistry),
     attachTab: sessionRegistry.attachTab.bind(sessionRegistry),
     enableDomains: sessionRegistry.enableDomains.bind(sessionRegistry),
     refreshFrameTree: sessionRegistry.refreshFrameTree.bind(sessionRegistry),
@@ -347,13 +357,23 @@ async function attachInitialTab(
   const targets = await transport.send<{ targetInfos?: TargetInfoLike[] }>("Target.getTargets", {});
   const targetInfos = targets.targetInfos ?? [];
 
-  const candidate =
-    targetInfos.find((target) => target.type === "page" && !target.url.startsWith("devtools://")) ??
-    targetInfos.find((target) => target.type === "page") ??
-    targetInfos.find((target) => target.type === "tab");
+  // Comet isInternalPage equivalent: prefer real web content tabs over extension/internal pages.
+  // Extension pages (chrome-extension://) cannot be navigated by the agent — Chrome rejects it
+  // via CDP, causing TAB_NOT_FOUND errors. Always use a real web content tab as the default.
+  const isWebContent = (url: string) =>
+    !url.startsWith("chrome-extension://") &&
+    !url.startsWith("chrome://") &&
+    !url.startsWith("devtools://");
 
-  let targetId = candidate?.targetId;
-  if (!targetId) {
+  const webCandidate = targetInfos.find((target) => target.type === "page" && isWebContent(target.url));
+
+  let targetId: string | undefined;
+  if (webCandidate) {
+    // Found a real web content tab — use it as default
+    targetId = webCandidate.targetId;
+  } else {
+    // Only extension/internal pages exist — create a fresh blank content tab.
+    // The agent can freely navigate this tab without Chrome CDP restrictions.
     const created = await transport.send<{ targetId: string }>("Target.createTarget", {
       url: "about:blank"
     });
@@ -596,6 +616,7 @@ async function start(): Promise<void> {
     providerRegistry,
     cachePath: process.env.SIDECAR_PROVIDER_STATE_PATH?.trim() || resolve(config.traceDir, "provider-state.json")
   });
+  const benchmarkRunner = createBrowserControlBenchmarkRunner();
   void providerState.primeFromEnvironment().catch((error) => {
     console.warn("Provider catalog priming failed.");
     if (error instanceof Error) {
@@ -635,11 +656,14 @@ async function start(): Promise<void> {
   const coreDispatchers = [createPingDispatcher(), createSearchWebDispatcher(), createTodoDispatcher()];
 
   if (config.cdpWsUrl) {
+    startupLog(`Connecting transport to ${config.cdpWsUrl}`);
     transport = new ChromeCdpTransport({
       wsUrl: config.cdpWsUrl
     });
     await transport.connect();
+    startupLog("Transport connected");
     extensionLoaded = await detectExtensionLoaded(transport);
+    startupLog(`Extension loaded: ${String(extensionLoaded)}`);
     config.extensionLoaded = extensionLoaded;
     if (!extensionLoaded) {
       console.warn("New Browser extension was not detected in Chrome targets.");
@@ -649,8 +673,10 @@ async function start(): Promise<void> {
     sessionRegistry = new SessionRegistry(transport, frameRegistry);
     targetRouter = new TargetEventRouter(transport, sessionRegistry, frameRegistry);
     targetRouter.start();
+    startupLog("Target router started");
 
     defaultTabId = await attachInitialTab(transport, sessionRegistry);
+    startupLog(`Initial tab attached: ${defaultTabId ?? "none"}`);
     activeTabId = defaultTabId;
     lastPageTabId = undefined;
 
@@ -675,7 +701,9 @@ async function start(): Promise<void> {
       .catch(() => undefined);
     coreDispatchers.push(
       createReadPageDispatcher({
-        getClientForTab: (tabId: string) => createReadPageClientForTab(transport as ChromeCdpTransport, sessionRegistry as SessionRegistry, tabId),
+        getClientForTab: (tabId: string) =>
+          createReadPageClientForTab(transport as ChromeCdpTransport, sessionRegistry as SessionRegistry, tabId),
+        getDialogForTab: (tabId: string) => (sessionRegistry as SessionRegistry).getJavaScriptDialog(tabId),
         traceLogger
       }),
       createFindDispatcher({
@@ -683,6 +711,7 @@ async function start(): Promise<void> {
       }),
       createGetPageTextDispatcher({
         getTab: (tabId: string) => (sessionRegistry as SessionRegistry).getTab(tabId),
+        getDialogForTab: (tabId: string) => (sessionRegistry as SessionRegistry).getJavaScriptDialog(tabId),
         send: transport.send.bind(transport)
       }),
       createBrowserActionDispatcher({
@@ -773,7 +802,7 @@ async function start(): Promise<void> {
         }
       });
 
-      if (state.status !== "running") {
+      if (state.status === "completed" || state.status === "failed" || state.status === "stopped") {
         sseHub.publish({
           event: "result",
           data: {
@@ -783,6 +812,7 @@ async function start(): Promise<void> {
               run_id: state.runId,
               status: state.status,
               final_answer: state.finalAnswer,
+              draft_artifact: state.draftArtifact,
               error_message: state.errorMessage,
               content: state.finalAnswer ?? state.errorMessage,
               user_language: state.userLanguage,
@@ -811,6 +841,7 @@ async function start(): Promise<void> {
       });
     }
   });
+  startupLog("Orchestrator created");
 
   const systemDispatcher = createSystemDispatcher({
     getRuntimeState: () => ({
@@ -827,7 +858,8 @@ async function start(): Promise<void> {
     }),
     providerRegistry,
     providerState,
-    orchestrator
+    orchestrator,
+    benchmarkRunner
   });
 
   const baseDispatcher = createComposedDispatcher([...coreDispatchers, systemDispatcher]);
@@ -901,6 +933,7 @@ async function start(): Promise<void> {
   await new Promise<void>((resolve) => {
     httpServer.listen(config.port, config.host, () => resolve());
   });
+  startupLog(`HTTP server listening on ${config.host}:${config.port}`);
 
   sseHub.publish({
     event: "status",

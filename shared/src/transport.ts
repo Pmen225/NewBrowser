@@ -27,7 +27,7 @@ export type CanonicalToolRpcAction =
   | "search_web"
   | "todo_write";
 export type ToolRpcAction = LegacyToolRpcAction | CanonicalToolRpcAction;
-export type AgentRpcAction = "AgentRun" | "AgentStop" | "AgentGetState";
+export type AgentRpcAction = "AgentRun" | "AgentPause" | "AgentResume" | "AgentStop" | "AgentGetState";
 export type LlmProvider = "openai" | "anthropic" | "google" | "deepseek";
 export type ProviderStateRpcAction =
   | "ProviderDefaultsGet"
@@ -39,6 +39,7 @@ export type SystemRpcAction =
   | "GetRuntimeState"
   | "ProviderValidate"
   | "ProviderListModels"
+  | "ProviderBenchmarkBrowserControl"
   | ProviderStateRpcAction
   | AgentRpcAction;
 export type RpcAction = "ping" | BrowserRpcAction | ToolRpcAction | SystemRpcAction;
@@ -88,13 +89,27 @@ export interface ComputerScreenshotStep {
   kind: "screenshot";
 }
 
+// Comet WAIT action — pause for duration_ms then take a screenshot
+export interface ComputerWaitStep {
+  kind: "wait";
+  duration_ms: number;
+}
+
+export interface ComputerDialogStep {
+  kind: "dialog";
+  accept: boolean;
+  prompt_text?: string;
+}
+
 export type ComputerStep =
   | ComputerClickStep
   | ComputerTypeStep
   | ComputerKeyStep
   | ComputerScrollStep
   | ComputerDragStep
-  | ComputerScreenshotStep;
+  | ComputerScreenshotStep
+  | ComputerWaitStep
+  | ComputerDialogStep;
 
 export interface ComputerBatchParams {
   steps: ComputerStep[];
@@ -110,6 +125,11 @@ export interface ComputerBatchResult {
   steps: ComputerBatchStepResult[];
   completed_steps: number;
   screenshot_b64?: string;
+  javascript_dialog?: {
+    type: string;
+    message: string;
+    default_prompt?: string;
+  };
 }
 
 export interface NavigateParams {
@@ -127,15 +147,23 @@ export interface NavigateResult {
 export interface FormInputField {
   ref: string;
   value: string | boolean;
-  kind: "text" | "select" | "checkbox";
+  kind: "text" | "select" | "checkbox" | "file";
 }
 
 export interface FormInputParams {
   fields: FormInputField[];
 }
 
+export interface FormInputAppliedField {
+  ref: string;
+  kind: FormInputField["kind"];
+  requested_value: string | boolean;
+  confirmed_value?: string | boolean;
+}
+
 export interface FormInputResult {
   updated: number;
+  applied?: FormInputAppliedField[];
 }
 
 export interface TabOperationParams {
@@ -151,18 +179,29 @@ export interface TabOperationListItem {
   tab_id: string;
   target_id: string;
   status: string;
+  title?: string;
+  url?: string;
 }
 
 export interface TabOperationStatusResult {
   tab_id: string;
   status: "ok";
+  group_name?: string;
+  grouped_tabs?: string[];
 }
 
 export interface TabOperationListResult {
   tabs: TabOperationListItem[];
 }
 
-export type TabOperationResult = TabOperationStatusResult | TabOperationListResult;
+export interface TabOperationGroupResult {
+  tab_id: string;
+  status: "ok";
+  group_name: string;
+  grouped_tabs: string[];
+}
+
+export type TabOperationResult = TabOperationStatusResult | TabOperationListResult | TabOperationGroupResult;
 
 export interface SetActiveTabParams {
   chrome_tab_id: number;
@@ -217,6 +256,33 @@ export interface ProviderListModelsResult {
   provider: LlmProvider;
   models: string[];
   default_model?: string;
+}
+
+export interface ProviderBenchmarkBrowserControlParams {
+  provider: LlmProvider;
+  model_id: string;
+}
+
+export interface ProviderBenchmarkBrowserControlSummary {
+  model_id: string;
+  cost_tier: "lowest" | "low" | "medium" | "high";
+  pass_count: number;
+  total_count: number;
+  hard_failure_count: number;
+  median_elapsed_ms: number;
+  failure_modes: string[];
+}
+
+export interface ProviderBenchmarkBrowserControlResult {
+  provider: LlmProvider;
+  model_id: string;
+  benchmark_kind: string;
+  generated_at: string;
+  search_excluded: boolean;
+  policy_status: "approved" | "experimental" | "blocked";
+  output_dir: string;
+  summary_path: string;
+  summary: ProviderBenchmarkBrowserControlSummary;
 }
 
 export interface FindParams {
@@ -287,7 +353,19 @@ export interface SourceAttribution {
   origin: SourceOrigin;
   action?: string;
   label?: string;
+  title?: string;
+  url?: string;
 }
+
+export interface EmailDraftArtifact {
+  kind: "email";
+  subject: string;
+  body_markdown: string;
+  body_text: string;
+  body_html?: string;
+}
+
+export type DraftArtifact = EmailDraftArtifact;
 
 export interface AgentRunParams {
   prompt: string;
@@ -317,6 +395,32 @@ export interface AgentRunResult {
   status: "started";
 }
 
+export type AgentTaskRole = "primary" | "subagent";
+export type AgentTaskVisibility = "panel" | "hidden";
+
+export interface AgentTaskError {
+  code: string;
+  message: string;
+}
+
+export interface AgentPauseParams {
+  run_id: string;
+}
+
+export interface AgentPauseResult {
+  run_id: string;
+  status: "pausing" | "paused";
+}
+
+export interface AgentResumeParams {
+  run_id: string;
+}
+
+export interface AgentResumeResult {
+  run_id: string;
+  status: "running";
+}
+
 export interface AgentStopParams {
   run_id: string;
 }
@@ -338,15 +442,48 @@ export interface AgentStepTrace {
   details?: JsonObject;
 }
 
+export type AgentLifecycleStatus = "running" | "pausing" | "paused" | "completed" | "failed" | "stopped";
+
+export interface AgentTaskState {
+  task_id: string;
+  run_id: string;
+  parent_task_id?: string;
+  role: AgentTaskRole;
+  visibility: AgentTaskVisibility;
+  status: AgentLifecycleStatus;
+  children: string[];
+  active_child_task_id?: string;
+  child_summary?: string;
+  child_error?: AgentTaskError;
+  last_validated_observation?: string;
+}
+
+export interface CreateSubagentParams {
+  prompt: string;
+  goal_summary?: string;
+  start_url?: string;
+  parent_task_id: string;
+}
+
+export interface CreateSubagentResult {
+  task_id: string;
+  status: "started" | "rejected";
+  visibility: "hidden";
+  summary?: string;
+  error?: AgentTaskError;
+}
+
 export interface AgentStateResult {
   run_id: string;
-  status: "running" | "completed" | "failed" | "stopped";
+  status: AgentLifecycleStatus;
   steps: AgentStepTrace[];
   final_answer?: string;
+  draft_artifact?: DraftArtifact;
   error_message?: string;
   user_language?: string;
   has_image_input?: boolean;
   sources?: SourceAttribution[];
+  task?: AgentTaskState;
 }
 
 export type BrowserActionParams = ComputerBatchParams | NavigateParams | FormInputParams | TabOperationParams;
@@ -410,8 +547,12 @@ function isMouseButton(value: unknown): value is MouseButton {
 }
 
 function parseComputerStep(value: unknown): ComputerStep | null {
-  if (!isRecord(value) || !isString(value.kind)) {
+  if (!isRecord(value)) {
     return null;
+  }
+
+  if (!isString(value.kind)) {
+    return parseComputerStepAlias(value);
   }
 
   if (value.kind === "click") {
@@ -514,6 +655,19 @@ function parseComputerStep(value: unknown): ComputerStep | null {
     };
   }
 
+  if (value.kind === "dialog") {
+    const accept = isBoolean(value.accept) ? value.accept : true;
+    if (value.prompt_text !== undefined && !isString(value.prompt_text)) {
+      return null;
+    }
+
+    return {
+      kind: "dialog",
+      accept,
+      prompt_text: value.prompt_text
+    };
+  }
+
   if (value.kind === "drag") {
     const fromRef = isNonEmptyString(value.from_ref) ? value.from_ref : undefined;
     const toRef = isNonEmptyString(value.to_ref) ? value.to_ref : undefined;
@@ -555,6 +709,21 @@ function parseComputerStep(value: unknown): ComputerStep | null {
   }
 
   return null;
+}
+
+function parseComputerStepAlias(value: JsonObject): ComputerStep | null {
+  const normalized: JsonObject = { ...value };
+
+  if (normalized.ref === undefined && isNonEmptyString(normalized.ref_id)) {
+    normalized.ref = normalized.ref_id;
+  }
+
+  const parsed = parseCanonicalComputerAliasParams(normalized);
+  if (!parsed || parsed.steps.length !== 1) {
+    return null;
+  }
+
+  return parsed.steps[0] ?? null;
 }
 
 function parseComputerBatchParams(value: unknown): ComputerBatchParams | null {
@@ -599,8 +768,70 @@ function parseCanonicalComputerAliasParams(value: unknown): ComputerBatchParams 
     };
   }
 
+  if (action === "accept_dialog" || action === "confirm_dialog" || action === "dialog_accept") {
+    const promptText =
+      isString(value.prompt_text) ? value.prompt_text
+        : isString(value.text) ? value.text
+          : isString(value.value) ? value.value
+            : undefined;
+
+    return {
+      steps: [{ kind: "dialog", accept: true, prompt_text: promptText }]
+    };
+  }
+
+  if (action === "dismiss_dialog" || action === "cancel_dialog" || action === "dialog_dismiss") {
+    return {
+      steps: [{ kind: "dialog", accept: false }]
+    };
+  }
+
+  if (action === "dialog" || action === "handle_dialog") {
+    const accept = isBoolean(value.accept) ? value.accept : true;
+    const promptText =
+      isString(value.prompt_text) ? value.prompt_text
+        : isString(value.text) ? value.text
+          : isString(value.value) ? value.value
+            : undefined;
+
+    return {
+      steps: [{ kind: "dialog", accept, prompt_text: promptText }]
+    };
+  }
+
+  if (action === "prompt" || action === "submit_prompt" || action === "dialog_prompt") {
+    const promptText =
+      isString(value.prompt_text) ? value.prompt_text
+        : isString(value.text) ? value.text
+          : isString(value.value) ? value.value
+            : undefined;
+
+    return {
+      steps: [{ kind: "dialog", accept: true, prompt_text: promptText }]
+    };
+  }
+
+  if (action === "accept" || action === "confirm") {
+    const promptText =
+      isString(value.prompt_text) ? value.prompt_text
+        : isString(value.text) ? value.text
+          : isString(value.value) ? value.value
+            : undefined;
+
+    return {
+      steps: [{ kind: "dialog", accept: true, prompt_text: promptText }]
+    };
+  }
+
+  if (action === "dismiss" || action === "cancel") {
+    return {
+      steps: [{ kind: "dialog", accept: false }]
+    };
+  }
+
   if (
     action === "left_click" ||
+    action === "click" ||          // alias: LLMs sometimes emit "click" instead of "left_click"
     action === "right_click" ||
     action === "double_click" ||
     action === "triple_click"
@@ -677,6 +908,58 @@ function parseCanonicalComputerAliasParams(value: unknown): ComputerBatchParams 
     };
   }
 
+  // mouse_move: no-op — convert to screenshot so the LLM gets visual feedback
+  if (action === "mouse_move" || action === "move_mouse" || action === "hover") {
+    return { steps: [{ kind: "screenshot" }] };
+  }
+
+  // middle_click: treat as left_click (best approximation)
+  if (action === "middle_click") {
+    const coordinate = value.coordinate === undefined ? null : parseCoordinate(value.coordinate);
+    if (coordinate) {
+      return { steps: [{ kind: "click", x: coordinate.x, y: coordinate.y, button: "left", click_count: 1 }] };
+    }
+    return null;
+  }
+
+  // Comet WAIT action — pause for specified duration then screenshot
+  if (action === "wait" || action === "sleep" || action === "pause") {
+    const rawDuration = value.duration ?? value.duration_ms ?? value.ms ?? value.milliseconds;
+    const durationMs = typeof rawDuration === "number" && rawDuration > 0
+      ? Math.min(Math.floor(rawDuration), 10_000)  // cap at 10s
+      : 1000;                                        // default 1s if not specified
+    return { steps: [{ kind: "wait", duration_ms: durationMs }] };
+  }
+
+  // key_press / press_key: alias for "key"
+  if (action === "key_press" || action === "press_key" || action === "keyboard") {
+    const text = isNonEmptyString(value.text) ? value.text : isNonEmptyString(value.key) ? value.key : null;
+    if (!text) return null;
+    return { steps: [{ kind: "key", key: text }] };
+  }
+
+  // left_click_drag: treat as a click at the start coordinate (drag unsupported; avoid crash)
+  if (action === "left_click_drag" || action === "click_drag" || action === "drag_and_drop") {
+    const coordinate = value.coordinate === undefined
+      ? (value.startCoordinate === undefined ? null : parseCoordinate(value.startCoordinate))
+      : parseCoordinate(value.coordinate);
+    if (coordinate) {
+      return { steps: [{ kind: "click", x: coordinate.x, y: coordinate.y, button: "left", click_count: 1 }] };
+    }
+    return { steps: [{ kind: "screenshot" }] };
+  }
+
+  // scroll_to: alias for scroll — treat as scroll-down at coordinate
+  if (action === "scroll_to") {
+    const coordinate = value.coordinate === undefined ? null : parseCoordinate(value.coordinate);
+    return { steps: [{ kind: "scroll", x: coordinate?.x, y: coordinate?.y, delta_x: 0, delta_y: 360 }] };
+  }
+
+  // cursor_position / get_cursor_position: no-op screenshot
+  if (action === "cursor_position" || action === "get_cursor_position") {
+    return { steps: [{ kind: "screenshot" }] };
+  }
+
   if (action === "scroll") {
     if (!isRecord(value.scroll_parameters) || !isNonEmptyString(value.scroll_parameters.scroll_direction)) {
       return null;
@@ -741,7 +1024,13 @@ function parseNavigateParams(value: unknown): NavigateParams | null {
 
   if (rawMode === "to" || rawMode === "back" || rawMode === "forward") {
     mode = rawMode;
-  } else if (rawMode === "url" || rawMode === "open" || rawMode === "goto") {
+  } else if (
+    rawMode === "url" ||
+    rawMode === "open" ||
+    rawMode === "goto" ||
+    rawMode === "direct" ||
+    rawMode === "gpt_history"
+  ) {
     mode = "to";
   } else if (value.mode !== undefined) {
     return null;
@@ -786,15 +1075,27 @@ function parseFormInputParams(value: unknown): FormInputParams | null {
 
   const fields: FormInputField[] = [];
   for (const rawField of value.fields) {
-    if (!isRecord(rawField) || !isNonEmptyString(rawField.ref)) {
+    if (!isRecord(rawField)) {
+      return null;
+    }
+    const ref = isNonEmptyString(rawField.ref) ? rawField.ref : isNonEmptyString(rawField.ref_id) ? rawField.ref_id : null;
+    if (!ref) {
       return null;
     }
 
-    if (rawField.kind !== "text" && rawField.kind !== "select" && rawField.kind !== "checkbox") {
+    const inferredKind =
+      rawField.kind === "text" || rawField.kind === "select" || rawField.kind === "checkbox" || rawField.kind === "file"
+        ? rawField.kind
+        : isBoolean(rawField.value)
+          ? "checkbox"
+          : isString(rawField.value)
+            ? "text"
+            : null;
+    if (!inferredKind) {
       return null;
     }
 
-    if (rawField.kind === "checkbox") {
+    if (inferredKind === "checkbox") {
       if (!isBoolean(rawField.value)) {
         return null;
       }
@@ -803,8 +1104,8 @@ function parseFormInputParams(value: unknown): FormInputParams | null {
     }
 
     fields.push({
-      ref: rawField.ref,
-      kind: rawField.kind,
+      ref,
+      kind: inferredKind,
       value: rawField.value
     });
   }
@@ -849,7 +1150,8 @@ function parseTabOperationParams(value: unknown): TabOperationParams | null {
     return null;
   }
 
-  if (value.operation !== "create" && value.operation !== "activate" && value.operation !== "close" && value.operation !== "list") {
+  const VALID_OPS = ["create", "activate", "close", "list", "group", "ungroup"] as const;
+  if (!VALID_OPS.includes(value.operation as (typeof VALID_OPS)[number])) {
     return null;
   }
 
@@ -861,10 +1163,20 @@ function parseTabOperationParams(value: unknown): TabOperationParams | null {
     return null;
   }
 
+  // tab_ids: accept string[] or number[] (LLMs sometimes send ints)
+  let tab_ids: string[] | undefined;
+  if (value.tab_ids !== undefined) {
+    if (!Array.isArray(value.tab_ids)) return null;
+    tab_ids = (value.tab_ids as unknown[]).map((id) => String(id));
+  }
+
   return {
-    operation: value.operation,
-    target_tab_id: value.target_tab_id,
-    url: value.url
+    operation: value.operation as TabOperationParams["operation"],
+    target_tab_id: isNonEmptyString(value.target_tab_id) ? value.target_tab_id : undefined,
+    url: isNonEmptyString(value.url) ? value.url : undefined,
+    tab_ids,
+    group_name: isNonEmptyString(value.group_name) ? value.group_name : undefined,
+    group_color: isNonEmptyString(value.group_color) ? value.group_color : undefined,
   };
 }
 
@@ -960,6 +1272,25 @@ export function parseProviderListModelsParams(value: unknown): ProviderListModel
     provider: value.provider,
     api_key: value.api_key,
     base_url: value.base_url
+  };
+}
+
+export function parseProviderBenchmarkBrowserControlParams(value: unknown): ProviderBenchmarkBrowserControlParams | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  if (!isLlmProvider(value.provider)) {
+    return null;
+  }
+
+  if (!isNonEmptyString(value.model_id)) {
+    return null;
+  }
+
+  return {
+    provider: value.provider,
+    model_id: value.model_id
   };
 }
 
@@ -1177,6 +1508,26 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
 }
 
 export function parseAgentStopParams(value: unknown): AgentStopParams | null {
+  if (!isRecord(value) || !isNonEmptyString(value.run_id)) {
+    return null;
+  }
+
+  return {
+    run_id: value.run_id
+  };
+}
+
+export function parseAgentPauseParams(value: unknown): AgentPauseParams | null {
+  if (!isRecord(value) || !isNonEmptyString(value.run_id)) {
+    return null;
+  }
+
+  return {
+    run_id: value.run_id
+  };
+}
+
+export function parseAgentResumeParams(value: unknown): AgentResumeParams | null {
   if (!isRecord(value) || !isNonEmptyString(value.run_id)) {
     return null;
   }
