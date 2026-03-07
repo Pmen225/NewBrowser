@@ -1,0 +1,120 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:72",
+      "frame_id": "47D5498EF7395B68DBCC03C1A284A309",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 1382
+      },
+      "click": {
+        "x": 678,
+        "y": 691
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:81",
+      "frame_id": "47D5498EF7395B68DBCC03C1A284A309",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 337.140625
+      },
+      "click": {
+        "x": 678,
+        "y": 168.5703125
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:83",
+      "frame_id": "47D5498EF7395B68DBCC03C1A284A309",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 1246,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 1291,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:80",
+      "frame_id": "47D5498EF7395B68DBCC03C1A284A309",
+      "role": "combobox",
+      "state": {
+        "expanded": false,
+        "value": "Please select an option",
+        "options": [
+          "Please select an option",
+          "Option 1",
+          "Option 2"
+        ]
+      },
+      "bbox": {
+        "x": 30,
+        "y": 148.140625,
+        "w": 1296,
+        "h": 45
+      },
+      "click": {
+        "x": 678,
+        "y": 170.640625
+      },
+      "actions": [
+        "click",
+        "type",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:125",
+      "frame_id": "47D5498EF7395B68DBCC03C1A284A309",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 626.984375,
+        "y": 302.140625,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 767.7734375,
+        "y": 320.640625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 5,
+    "generated_at": "2026-03-06T19:31:13.627Z"
+  }
+}

@@ -1,0 +1,2 @@
+import{s,E as o,l as a}from"./platform-core-CZ-8UOca.js";import"./vendors-bqg7Hkg3.js";import"./vite-h6ohMMGa.js";const c=async({reason:t})=>{const e="getAPIGroupsV2";try{const{data:r}=await s.GET("/rest/pplx-api/v2/groups",t,{timeoutMs:1e4,numRetries:1,reason:t});return r?.orgs??o}catch(r){return a.log(`Error in ${e}:`,r),[]}};export{c as getAPIGroupsV2};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/getAPIGroupsV2-CXRz8QQF.js.map

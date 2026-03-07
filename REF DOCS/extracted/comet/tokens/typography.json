@@ -1,0 +1,3417 @@
+[
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "-.025em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "16px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "-.025rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "var(--font-letter-spacing)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "var(--font-letter-spacing)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".005em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-normal)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-answer),var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "var(--font-serif-answer-letter-spacing)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "bolder",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "80%",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "75%",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "100%",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang SC,Microsoft YaHei,PingFang TC,PingFang HK,PingFang MO,Microsoft JhengHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang SC,Microsoft YaHei,PingFang TC,PingFang HK,Microsoft JhengHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang TC,Microsoft JhengHei,PingFang HK,PingFang SC,Microsoft YaHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang HK,Microsoft JhengHei,PingFang MO,PingFang TC,PingFang SC,Microsoft YaHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang MO,Microsoft JhengHei,PingFang HK,PingFang TC,PingFang SC,Microsoft YaHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,Yu Gothic,Meiryo,PingFang SC,Microsoft YaHei,Microsoft JhengHei,Apple SD Gothic Neo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Apple SD Gothic Neo,Hiragino Sans,Yu Gothic,Meiryo,PingFang SC,Microsoft YaHei,Microsoft JhengHei",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.6",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "800",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.25em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.1111111",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "900",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.3333333",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.6",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "700",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "700",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "450",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".9em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.7142857",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.7142857",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.4285714",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "var(--font-micro)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "10px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": ".625rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "13px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "450",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-bold)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-extrabold)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-extralight)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-normal)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-semibold)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-semimedium)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-thin)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": ".75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.3",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "12px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "18px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "32px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "48px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "64px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.625",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.375",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "-.025em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "-.05em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".025em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".05em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".1em",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "FK Grotesk Neue,sans-serif",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-bold)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-normal)!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "font-family",
+    "value": "FKGroteskNeue",
+    "source": "comet-content.css"
+  },
+  {
+    "property": "font-size",
+    "value": "13px",
+    "source": "comet-content.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)",
+    "source": "comet-content.css"
+  },
+  {
+    "property": "line-height",
+    "value": "18px",
+    "source": "comet-content.css"
+  },
+  {
+    "property": "font-family",
+    "value": "FK Grotesk Neue,sans-serif",
+    "source": "comet-content.css"
+  },
+  {
+    "property": "font-size",
+    "value": "18px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.6",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "100",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "200",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "300",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "350",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "450",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "700",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "800",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "900",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "100",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "200",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "300",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "350",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "450",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "700",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "800",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "PingFang SC",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "900",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "100",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "200",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "300",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "350",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "450",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "700",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "800",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "Hiragino Sans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "900",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "fkGroteskNeue",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "100 900",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "berkeleyMono",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "pplxSans",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "pplxSansMono",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "pplxSerif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "pplxSerif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "-.025rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".005em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "var(--font-letter-spacing)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "var(--font-letter-spacing)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-normal)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-answer),var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "var(--font-serif-answer-letter-spacing)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "bolder",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "80%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "75%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "100%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang SC,Microsoft YaHei,PingFang TC,PingFang HK,PingFang MO,Microsoft JhengHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang SC,Microsoft YaHei,PingFang TC,PingFang HK,Microsoft JhengHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang TC,Microsoft JhengHei,PingFang HK,PingFang SC,Microsoft YaHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang HK,Microsoft JhengHei,PingFang MO,PingFang TC,PingFang SC,Microsoft YaHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",PingFang MO,Microsoft JhengHei,PingFang HK,PingFang TC,PingFang SC,Microsoft YaHei,Hiragino Sans,Yu Gothic,Meiryo,Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,Yu Gothic,Meiryo,PingFang SC,Microsoft YaHei,Microsoft JhengHei,Apple SD Gothic Neo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Apple SD Gothic Neo,Hiragino Sans,Yu Gothic,Meiryo,PingFang SC,Microsoft YaHei,Microsoft JhengHei",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.6",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "800",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.25em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.1111111",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "900",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.3333333",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.6",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "700",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "700",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "500",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "450",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".9em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.7142857",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.7142857",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "600",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.4285714",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "550",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.7142857",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.2857143em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5555556",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.1428571em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.2",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.4285714em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.4",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.2857143em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5555556",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.4285714",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8571429em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8571429em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".9em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8888889em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8571429em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.6666667",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8571429em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8571429em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.3333333",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-answer),var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "var(--font-micro)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".6875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".68rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".7rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8125rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.2rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "10px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "11px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "44px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "48px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "var(--font-micro)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "10px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": ".625rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "3rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".8rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".85rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.7rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.8rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "10px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "11px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "13px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "16px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.4rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "8px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-normal)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "450",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-bold)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-extrabold)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-extralight)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-light)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-normal)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-semibold)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-semimedium)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-thin)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.2!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.2",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.3",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "12px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "18px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "32px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "48px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "64px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.625",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.375",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".05em!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "-.025em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "-.05em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".025em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".05em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": ".1em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "16px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "400",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0em",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-bold)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.5rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-semibold)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.5rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "3rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.3rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.8rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "80px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "3rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".95rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.4rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.3rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "3.1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.3!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.3rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "2.3rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "2.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "inherit!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-normal)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-serif),ui-serif,Georgia,Cambria,serif",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-mono),ui-monospace,SFMono-Regular,monospace",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--pplx-sans),ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica Neue,Arial,\"Noto Sans\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\",Hiragino Sans,PingFang SC,Apple SD Gothic Neo,Yu Gothic,Microsoft YaHei,Microsoft JhengHei,Meiryo",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": ".875rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-size",
+    "value": "1.125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "var(--font-medium)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.6",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "line-height",
+    "value": "18px",
+    "source": "markdownView.css"
+  },
+  {
+    "property": "font-size",
+    "value": "12px",
+    "source": "markdownView.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--monospace-font-family)",
+    "source": "markdownView.css"
+  },
+  {
+    "property": "font-size",
+    "value": "11px",
+    "source": "markdownView.css"
+  },
+  {
+    "property": "font-size",
+    "value": "10px",
+    "source": "markdownView.css"
+  },
+  {
+    "property": "font-family",
+    "value": "var(--default-font-family)",
+    "source": "markdownView.css"
+  },
+  {
+    "property": "font-size",
+    "value": "12px",
+    "source": "menuItem.css"
+  },
+  {
+    "property": "line-height",
+    "value": "16px",
+    "source": "menuItem.css"
+  },
+  {
+    "property": "font-size",
+    "value": "12px",
+    "source": "menuGroup.css"
+  },
+  {
+    "property": "line-height",
+    "value": "16px",
+    "source": "menuGroup.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "iconButton.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "iconButton.css"
+  },
+  {
+    "property": "line-height",
+    "value": "1.16",
+    "source": "textInput.css"
+  },
+  {
+    "property": "letter-spacing",
+    "value": "0.015em",
+    "source": "textInput.css"
+  },
+  {
+    "property": "font-family",
+    "value": "inherit",
+    "source": "textInput.css"
+  },
+  {
+    "property": "font-size",
+    "value": "inherit",
+    "source": "textInput.css"
+  },
+  {
+    "property": "font-size",
+    "value": "12px",
+    "source": "selectMenuButton.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "bold",
+    "source": "codeHighlighter.css"
+  },
+  {
+    "property": "font-weight",
+    "value": "bold",
+    "source": "codeHighlighter.css"
+  }
+]

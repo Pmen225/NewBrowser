@@ -1,0 +1,153 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:72",
+      "frame_id": "C6BA4A7B4901CFD5AB77DFC3DEBE9A79",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 1382
+      },
+      "click": {
+        "x": 678,
+        "y": 691
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:86",
+      "frame_id": "C6BA4A7B4901CFD5AB77DFC3DEBE9A79",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 925.171875
+      },
+      "click": {
+        "x": 678,
+        "y": 462.5859375
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:88",
+      "frame_id": "C6BA4A7B4901CFD5AB77DFC3DEBE9A79",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 1246,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 1291,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:114",
+      "frame_id": "C6BA4A7B4901CFD5AB77DFC3DEBE9A79",
+      "role": "button",
+      "name": "Click for JS Alert",
+      "bbox": {
+        "x": 30,
+        "y": 290.515625,
+        "w": 357.125,
+        "h": 93
+      },
+      "click": {
+        "x": 208.5625,
+        "y": 337.015625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:116",
+      "frame_id": "C6BA4A7B4901CFD5AB77DFC3DEBE9A79",
+      "role": "button",
+      "name": "Click for JS Confirm",
+      "bbox": {
+        "x": 30,
+        "y": 423.515625,
+        "w": 408.109375,
+        "h": 93
+      },
+      "click": {
+        "x": 234.0546875,
+        "y": 470.015625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:118",
+      "frame_id": "C6BA4A7B4901CFD5AB77DFC3DEBE9A79",
+      "role": "button",
+      "name": "Click for JS Prompt",
+      "bbox": {
+        "x": 30,
+        "y": 556.515625,
+        "w": 397.453125,
+        "h": 93
+      },
+      "click": {
+        "x": 228.7265625,
+        "y": 603.015625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:125",
+      "frame_id": "C6BA4A7B4901CFD5AB77DFC3DEBE9A79",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 626.984375,
+        "y": 890.171875,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 767.7734375,
+        "y": 908.671875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 7,
+    "generated_at": "2026-03-06T19:55:53.076Z"
+  }
+}

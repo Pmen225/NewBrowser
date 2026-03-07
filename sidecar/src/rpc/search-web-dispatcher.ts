@@ -59,6 +59,13 @@ async function queryDuckDuckGo(
   query: string,
   timeoutMs: number
 ): Promise<Pick<SearchWebResultItem, "title" | "url" | "snippet">[]> {
+  // Try HTML search first (returns real web results)
+  const htmlResults = await queryDuckDuckGoHtml(fetchImpl, query, timeoutMs);
+  if (htmlResults.length > 0) {
+    return htmlResults;
+  }
+
+  // Fall back to Instant Answers API for entity lookups
   const url = new URL("https://api.duckduckgo.com/");
   url.searchParams.set("q", query);
   url.searchParams.set("format", "json");
@@ -66,19 +73,13 @@ async function queryDuckDuckGo(
   url.searchParams.set("skip_disambig", "1");
 
   const controller = new AbortController();
-  const timer = setTimeout(() => {
-    controller.abort();
-  }, timeoutMs);
-  if (typeof timer.unref === "function") {
-    timer.unref();
-  }
+  const timer = setTimeout(() => { controller.abort(); }, timeoutMs);
+  if (typeof timer.unref === "function") { timer.unref(); }
 
   try {
     const response = await fetchImpl(url.toString(), {
       method: "GET",
-      headers: {
-        Accept: "application/json"
-      },
+      headers: { Accept: "application/json" },
       signal: controller.signal
     });
 
@@ -90,29 +91,76 @@ async function queryDuckDuckGo(
     const results: Array<Pick<SearchWebResultItem, "title" | "url" | "snippet">> = [];
 
     if (payload.AbstractURL && payload.AbstractText) {
-      results.push({
-        title: payload.Heading || query,
-        url: payload.AbstractURL,
-        snippet: payload.AbstractText
-      });
+      results.push({ title: payload.Heading || query, url: payload.AbstractURL, snippet: payload.AbstractText });
     }
 
     const flattenedTopics: DuckDuckGoTopic[] = [];
     flattenTopics(payload.RelatedTopics, flattenedTopics);
     for (const topic of flattenedTopics) {
-      if (!topic.FirstURL || !topic.Text) {
-        continue;
-      }
-
+      if (!topic.FirstURL || !topic.Text) continue;
       const title = topic.Text.split(" - ")[0]?.trim() || topic.FirstURL;
-      results.push({
-        title,
-        url: topic.FirstURL,
-        snippet: topic.Text
-      });
+      results.push({ title, url: topic.FirstURL, snippet: topic.Text });
     }
 
     return results.slice(0, 5);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function queryDuckDuckGoHtml(
+  fetchImpl: typeof fetch,
+  query: string,
+  timeoutMs: number
+): Promise<Pick<SearchWebResultItem, "title" | "url" | "snippet">[]> {
+  // DuckDuckGo HTML endpoint — returns real organic web results
+  const url = new URL("https://html.duckduckgo.com/html/");
+  url.searchParams.set("q", query);
+  url.searchParams.set("kl", "uk-en");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => { controller.abort(); }, timeoutMs);
+  if (typeof timer.unref === "function") { timer.unref(); }
+
+  try {
+    const response = await fetchImpl(url.toString(), {
+      method: "GET",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml"
+      },
+      signal: controller.signal
+    });
+
+    if (!response.ok) return [];
+
+    const html = await response.text();
+    const results: Array<Pick<SearchWebResultItem, "title" | "url" | "snippet">> = [];
+
+    // Parse result blocks: <div class="result__body"> ... </div>
+    const resultRe = /<a[^>]+class="result__a"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = resultRe.exec(html)) !== null && results.length < 6) {
+      const rawUrl = match[1] ?? "";
+      const rawTitle = match[2]?.replace(/<[^>]+>/g, "").trim() ?? "";
+      const rawSnippet = match[3]?.replace(/<[^>]+>/g, "").trim() ?? "";
+
+      // DDG HTML wraps URLs as /l/?uddg=<encoded>
+      let resolvedUrl = rawUrl;
+      try {
+        const wrapped = new URL(rawUrl, "https://html.duckduckgo.com");
+        const uddg = wrapped.searchParams.get("uddg");
+        if (uddg) resolvedUrl = decodeURIComponent(uddg);
+      } catch {}
+
+      if (!rawTitle || !resolvedUrl) continue;
+      results.push({ title: rawTitle, url: resolvedUrl, snippet: rawSnippet });
+    }
+
+    return results;
+  } catch {
+    return [];
   } finally {
     clearTimeout(timer);
   }

@@ -1,0 +1,2 @@
+import{s as n,A as o,a as m}from"./platform-core-CZ-8UOca.js";const d=async({request:e,reason:s})=>{const{data:a,error:t,response:r}=await n.POST("/rest/media/search-images-for-entry",s,{body:{entry_uuid:e.entry_uuid,read_write_token:e.read_write_token,limit:e.limit,page:e.page},timeoutMs:o.HIGH});if(t)throw new m("API_CLIENTS_ERROR",{cause:t,status:r.status??0});const{media_items:i=[]}=a??{};return{media_items:i}};export{d as g};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/getImagesSearchResults-BSYbPLuB.js.map

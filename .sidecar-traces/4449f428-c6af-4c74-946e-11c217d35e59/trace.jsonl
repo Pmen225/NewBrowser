@@ -1,0 +1,1 @@
+{"timestamp":"2026-03-02T22:32:33.221Z","backend_uuid":"84e73ece-9e76-4cb0-a28b-5c840c0dbcce","run_id":"4449f428-c6af-4c74-946e-11c217d35e59","step_index":1,"request_id":"invalid-request","event":"rpc.error","error":{"code":"INVALID_REQUEST","message":"RPC payload does not match expected shape","retryable":false}}

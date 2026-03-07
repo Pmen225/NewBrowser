@@ -1,0 +1,123 @@
+interactables:
+  - frame_id: "DDED3FA51532320DB51E70EF9C29175F"
+    nodes:
+      - ref_id: "f0:72"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 2880, h: 1382}
+        click: {x: 1440, y: 691}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:81"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 2880, h: 366.39}
+        click: {x: 1440, y: 183.2}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:96"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 2880, h: 366.39}
+        click: {x: 1440, y: 183.2}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:98"
+        role: "generic"
+        bbox: {x: 440, y: 0, w: 2000, h: 64}
+        click: {x: 1440, y: 32}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:101"
+        role: "image"
+        name: "Fork me on GitHub"
+        bbox: {x: 2582, y: 0, w: 298, h: 298}
+        click: {x: 2731, y: 149}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:83"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 2770, y: 20, w: 90, h: 68}
+        click: {x: 2815, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:13"
+        role: "statictext"
+        name: "✦"
+        bbox: {x: 2803.11, y: 36.94, w: 23.8, h: 35}
+        click: {x: 2815.01, y: 54.44}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:102"
+        role: "generic"
+        bbox: {x: 440, y: 64, w: 2000, h: 190.39}
+        click: {x: 1440, y: 159.2}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:104"
+        role: "heading"
+        name: "Dropdown List"
+        bbox: {x: 470, y: 74.8, w: 1940, h: 75.59}
+        click: {x: 1440, y: 112.59}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:74"
+        role: "statictext"
+        name: "Dropdown List"
+        bbox: {x: 470, y: 79.8, w: 376.98, h: 65}
+        click: {x: 658.49, y: 112.3}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:80"
+        role: "combobox"
+        state:
+          expanded: false
+          value: "Please select an option"
+        bbox: {x: 470, y: 177.39, w: 1940, h: 45}
+        click: {x: 1440, y: 199.89}
+        source: "ax"
+        actions: ["click", "type", "key"]
+      - ref_id: "f0:121"
+        role: "generic"
+        bbox: {x: 440, y: 254.39, w: 2000, h: 112}
+        click: {x: 1440, y: 310.39}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:122"
+        role: "generic"
+        bbox: {x: 1106.67, y: 294.39, w: 666.66, h: 72}
+        click: {x: 1440, y: 330.39}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:123"
+        role: "separator"
+        bbox: {x: 1136.67, y: 294.39, w: 606.66, h: 2}
+        click: {x: 1440, y: 295.39}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:76"
+        role: "statictext"
+        name: "Powered by"
+        bbox: {x: 1209.42, y: 331.39, w: 179.56, h: 37}
+        click: {x: 1299.2, y: 349.89}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:125"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1388.98, y: 331.39, w: 281.58, h: 37}
+        click: {x: 1529.77, y: 349.89}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:77"
+        role: "statictext"
+        name: "Elemental Selenium"
+        bbox: {x: 1388.98, y: 331.39, w: 281.58, h: 37}
+        click: {x: 1529.77, y: 349.89}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:124"
+        role: "generic"
+        bbox: {x: 1136.67, y: 334.39, w: 606.66, h: 32}
+        click: {x: 1440, y: 350.39}
+        source: "ax"
+        actions: []

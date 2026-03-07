@@ -1,0 +1,114 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:1688",
+      "frame_id": "3C46F4BFED6562120F069E64B0291973",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1682
+      },
+      "click": {
+        "x": 1680,
+        "y": 841
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1692",
+      "frame_id": "3C46F4BFED6562120F069E64B0291973",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 473.328125
+      },
+      "click": {
+        "x": 1680,
+        "y": 236.6640625
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:1695",
+      "frame_id": "3C46F4BFED6562120F069E64B0291973",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 3250,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 3295,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1687",
+      "frame_id": "3C46F4BFED6562120F069E64B0291973",
+      "role": "spinbutton",
+      "state": {
+        "value": ""
+      },
+      "bbox": {
+        "x": 1210,
+        "y": 268.578125,
+        "w": 940,
+        "h": 64.75
+      },
+      "click": {
+        "x": 1680,
+        "y": 300.953125
+      },
+      "actions": [
+        "click",
+        "type",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1770",
+      "frame_id": "3C46F4BFED6562120F069E64B0291973",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1628.984375,
+        "y": 438.328125,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1769.7734375,
+        "y": 456.828125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 5,
+    "generated_at": "2026-03-06T01:13:57.689Z"
+  }
+}

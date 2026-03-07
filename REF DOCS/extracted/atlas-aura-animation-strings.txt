@@ -1,0 +1,4261 @@
+  This is not really an error: please read the documentation for
+ ${t}`);const a=await r.arrayBuffer(),n=new Uint8Array(a);let e="";for(let t=0;t<n.length;t+=32768)e+=String.fromCharCode(...n.subarray(t,t+32768));return btoa(e)}(assetURL);
+ * Your response will be inserted in its entirety into the text field. Since this is not a chat, do not reiterate the user's question or specify things like "Sure, here's the information you requested", do not ask for clarifying questions (The user will follow up if necessary), do not provide follow up suggestions, do not ask about ways to improve what was written.
+ during archive enqueue
+ extension. Please make sure you have the latest version
+ for location sharing
+ for more helpful responses.
+ impacted navigation during phase 
+ inline, rendering an inline citation instead
+ is not a valid string
+ is temporarily restricted as we review for potential abuse. Please email support@openai.com for help.
+ missing resets after, ignoring
+ present in account ordering missing from account array
+ responses (reason: '
+ this could mean someone is tampering with your device or network. Please try another Wi-Fi network or contact your IT admin for help.
+ unknown keys during decoding
+ without a conversation controller, ignoring
+ without a tab id set, ignoring
+ you consent to OpenAI using your Health information to provide you responses and inform Health memories. If you are under the age of consent, confirm that your parent has consented to your use of Health. Your Health data won
+")),{short:s,full:r.toString()}}(e,{keepKeys:new Set(["q"]),maxLen:120});n+=`<a node_id="${b(t,c(t))}" href="${r(o)}"${u(t)}>`,i+="</a>"}}else{if("img"===e){const e=y(t)?" "+s(t):"",r=u(t);return A(r||e?n+`<img${e}${r}></img>`:n,i,!0)}if("select"===e){n=n+"<select "+s(t)+u(t)+">";for(let e of t.options){let t=r(e.value),i=r(e.label||e.text),o=e.selected?" selected":"";n+=`<option node_id="${b(e,c(e))}" value="${t}"${o}>${i}</option>`}return n+="</select>",A(n,i,!0)}if(t.hasAttribute("contenteditable")&&"false"!==t.getAttribute("contenteditable").toLowerCase()){n=n+"<contenteditable "+s(t)+u(t)+">",i+="</contenteditable>"}else try{if(y(t)){n=n+"<"+e+' node_id="'+b(t,c(t))+'"'+u(t)+">",i="</"+e+">"+i}else{const r=u(t);r&&(n=n+"<"+e+r+">",i="</"+e+">"+i)}}catch(t){}}return d.has(e)&&(n=n+"<"+e+">",i="</"+e+">"+i),A(n,i,!1)}function*_(t){for(const e of t.childNodes)yield e;if(t.shadowRoot)for(const e of t.shadowRoot.childNodes)yield e}function R(t,e){if(t&&e){if(t.nodeType===Node.TEXT_NODE){const n=t.parentElement;if(n){const r=n.getBoundingClientRect();e.isVisibleInViewport(r)&&C(n)&&!S(n)&&e.append(function(t){if(p.has(t))return p.get(t);const e=T(t);return p.set(t,e),e}(t))}return}if(t.nodeType===Node.ELEMENT_NODE){const n=t.getBoundingClientRect(),r=e.isVisibleInViewport(n)&&C(t),i=S(t);if(!r||i){for(let n of _(t)){if(e.hasExceededCharSoftLimit()){e.markAsTruncated();break}R(n,e)}return}let o="",a="";const c=function(t){if(g.has(t))return g.get(t);const e=x(t);return g.set(t,e),e}(t);if(o=c.prefix,a=c.postfix,c.haltTraversal)return void e.append(o+a);e.append(o,!0);for(let n of _(t)){if(e.hasExceededCharSoftLimit()){e.markAsTruncated();break}R(n,e)}return void e.append(a,!0)}}}const L=function(t){const e=new DOMRect(0,0,window.innerWidth,window.innerHeight);h=function(){try{const t=window.getSelection();if(!t||!t.rangeCount)return null;const e=t.getRangeAt(0),n=i(e.startContainer);return n===document||n instanceof ShadowRoot&&n.host?.ownerDocument===document?e:null}catch{return null}}();const n=function(t,e){let n="",r=!1;return{viewport:e,getOutput:()=>n,isVisibleInViewport:t=>!!t&&(!(t.top>e.bottom||t.bottom<e.top||t.left>e.right||t.right<e.left)&&t.width>0&&t.height>0),append:(e,i=!1)=>{i||n.length<t?(e=(e=e.replace(MATCH_WHITESPACE_WITH_NEWLINE,"\n").replace(MATCH_WHITESPACE_NO_NEWLINES," ")).replace(/\n{3,}/g,"\n\n"),n.endsWith("\n\n")&&e.startsWith("\n")&&(e=e.slice(1)),n+=e):r=!0},hasExceededCharSoftLimit:()=>n.length>t,markAsTruncated:()=>r=!0,wasTextTruncated:()=>r}}(t,e);return R(document.body,n),n.getOutput().replace(/\n{3,}/g,"\n\n").trim()}(2e4);return JSON.stringify({dom:L,mapping:w})}();
+"? You can always create a new link by sharing this chat again.
+$__lazy_storage_$_agentStateCoordinator
+$__lazy_storage_$_agentTabGroupServiceManager
+$__lazy_storage_$_appPairingContextProvider
+$__lazy_storage_$_appPairingEnabled
+$__lazy_storage_$_appPairingService
+$__lazy_storage_$_appPairingViewModel
+$__lazy_storage_$_backdropContainerGradientMask
+$__lazy_storage_$_borderLayer
+$__lazy_storage_$_cursorChatViewModel
+$__lazy_storage_$_debounceMilliseconds
+$__lazy_storage_$_debouncer
+$__lazy_storage_$_disableAgentStrictTransitions
+$__lazy_storage_$_disableEcosystemDebounceSafeAreaUpdates
+$__lazy_storage_$_disableEcosystemImproveBannerTiming
+$__lazy_storage_$_displayDuration
+$__lazy_storage_$_eligibleForBazaarOptOut
+$__lazy_storage_$_enableSteering
+$__lazy_storage_$_locationSharingService
+$__lazy_storage_$_maskLayer
+$__lazy_storage_$_maxReferenceDuration
+$__lazy_storage_$_messageInputAppPairingBannerViewModel
+$__lazy_storage_$_messageInputAppPairingButtonViewModel
+$__lazy_storage_$_messageInputAppPairingOverlayViewModel
+$__lazy_storage_$_messageInputInteractionEnabled
+$__lazy_storage_$_normalTabsGradientMask
+$__lazy_storage_$_overlayContainerView
+$__lazy_storage_$_overlayStateManager
+$__lazy_storage_$_overlayWebContentViewModel
+$__lazy_storage_$_presentKeyboardOnForegroundMinDuration
+$__lazy_storage_$_textFadeAnimator
+$__lazy_storage_$_textFadeAnimatorConfiguration
+$__lazy_storage_$_usesHelperAgent
+$s10AuraAgents0A18XPCServerProvidingP
+$s10AuraAgents13AgentEventAPIP
+$s10AuraAgents14AgentWebBridgeP
+$s10AuraAgents15AgentEventQueueP
+$s10AuraAgents16AgentUITransportP
+$s10AuraAgents17AgentEventHandlerP
+$s10AuraAgents17WebSocketWatchdogP
+$s10AuraAgents18DOMActionInvocableP
+$s10AuraAgents19AgentTabGroupHelperP
+$s10AuraAgents19AgentWindowManagingP
+$s10AuraAgents20AgentTabGroupServiceP
+$s10AuraAgents20RemoteBrowserCommandP
+$s10AuraAgents21AgentLifecycleServiceP
+$s10AuraAgents22AgentJavaScriptRuntimeP
+$s10AuraAgents22AgentOverlayTabManagerP
+$s10AuraAgents22AgentStateCoordinatingP
+$s10AuraAgents22AgentViewerTabsTrackerC8DelegateP
+$s10AuraAgents22WebSocketHealthCheckerP
+$s10AuraAgents23AgentWebContentWatchdogC12InfoProviderP
+$s10AuraAgents23AgentWebContentWatchdogC13ConfigurationP
+$s10AuraAgents23EvalModeWindowRecordingP
+$s10AuraAgents24AgentNotificationManagerP
+$s10AuraAgents24AgentTabGroupEnvironmentC8DelegateP
+$s10AuraAgents25TypedRemoteBrowserCommandP
+$s10AuraAgents26AgentTabGroupServicePrunerC8DelegateP
+$s10AuraAgents26AgentWindowManagerDelegateP
+$s10AuraAgents26ComputerUseActionInvocableP
+$s10AuraAgents26WebSocketWatchdogProvidingP
+$s10AuraAgents27AgentTabGroupServiceManagerP
+$s10AuraAgents27AgentTabInteractionAnimatorP
+$s10AuraAgents28AgentTabGroupServiceDelegateP
+$s10AuraAgents28WebSocketHealthConfigurationO6ValuesP
+$s10AuraAgents29AgentTabGroupNavigationPolicyP
+$s10AuraAgents29DefaultWebSocketHealthCheckerC0dE7PingAPIP
+$s10AuraAgents30AgentUIEventPublisherProvidingP
+$s10AuraAgents30WebSocketHealthCheckerDelegateP
+$s10AuraAgents31AgentStateCoordinatingProvidingP
+$s10AuraAgents31WebSocketHealthCheckerProvidingP
+$s10AuraAgents33AgentLiveTabRemoveBehaviorManagerP
+$s10AuraAgents34AgentTabInteractionAnimatorServiceP
+$s10AuraAgents35RemoteCommandWebSocketEventMediatorP
+$s10AuraAgents36AgentTabGroupServiceManagerProvidingP
+$s10AuraWindow26ContentViewOverlayProviderP
+$s10AuraWindow27ContentViewOverlayProvidingP
+$s10Foundation19AttributedStringKeyP
+$s10Kingfisher17NetworkMonitoringP
+$s10Kingfisher25AnimatedImageViewDelegateP
+$s11ChatGPTCore36ConversationOverlayViewModelProtocolP
+$s11ChatGPTCore39SharingCustomShareSheetBuilderProvidingP
+$s11ChatGPTFeed15PulseAppHandlerP
+$s11ChatGPTFeed18PulseAppPresentingP
+$s11ChatGPTFeed24PulseAppHandlerProvidingP
+$s11ChatGPTFeed25PulseFeedbackDependenciesP
+$s11ChatGPTFeed34PulseFeedbackModalBuilderProvidingP
+$s11ChatGPTFeed35PulseFeedbackModalViewModelProtocolP
+$s11ChatGPTFeed39PulseAppOpenConversationPayloadProtocolP
+$s11OAIMarkdown30AttributedStringRepresentationP
+$s12ObjectLoader25FilenameStringConvertibleP
+$s13AuraAgentsAPI16AgentEnvironmentP
+$s13AuraAgentsAPI19AgentDOMEnvironmentP
+$s13AuraAgentsAPI27AgentComputerUseEnvironmentP
+$s13AuraAgentsAPI36AgentComputerUseEnvironmentProvidingP
+$s13Conversations23ProductInteractionEvent33_2E50647C1591879445BC1AEB7FF10E63LLP
+$s13Conversations30ProductInteractionEventMessage33_2E50647C1591879445BC1AEB7FF10E63LLP
+$s13Conversations32ProductInteractionEventWithIndex33_2E50647C1591879445BC1AEB7FF10E63LLP
+$s13Conversations34CustomPrettyDebugStringConvertibleP
+$s13SwiftToolbelt20PagedRequestResponseP
+$s13SwiftToolbelt30RedactedDebugStringConvertibleP
+$s14AuraCursorChat0bC18BrowserIntegrationP
+$s14AuraCursorChat0bC18CompletionProviderP
+$s14ChatGPTWebView14SkybridgeToWebO8ResponseP
+$s14ChatGPTWebView16SkybridgeFromWebO8ResponseP
+$s14OpenAPIRuntime23HTTPResponseConvertibleP
+$s14OpenAPIRuntime23PrettyStringConvertibleP
+$s15ChatGPTLocation31LocationSharingServiceProvidingP
+$s15DatadogInternal24AdditionalContextSharingP
+$s16JSONSafeEncoding36_JSONStringDictionaryEncodableMarker33_7EB351A4FEAF8B0B2FC324B3C615096CLLP
+$s17ChatGPTPairWithAI26AppPairingServiceProvidingP
+$s17ConversationsCore17MixedFeedResponseV0D19ItemContentProtocolP
+$s20ChatGPTNotifications30UNNotificationResponseProtocolP
+$s20ChatGPTNotifications39UNTextInputNotificationResponseProtocolP
+$s3OwlAAO17TabSharingSessionP
+$s5Auth016WebAuthUserAgentP
+$s5Mojom03OwlA0O17TabSharingSessionO6TargetP
+$s6Motion28CAKeyframeAnimationEmittableP
+$s6Motion35CAKeyframeAnimationValueConvertibleP
+$s6Sentry16SwiftIntegrationP
+$s7Account0A32StatusResponseCacheStoreProtocolP
+$s7Account0A33StatusResponseCacheStoreProvidingP
+$s7Factory15AutoRegisteringP
+$s8AuraTabs23AgentWebContentDelegateP
+$s8Markdown21RecurringInlineMarkupP
+$s9AuraMojom9WebBridgeO12AgentHandlerO6TargetP
+$s9AuraMojom9WebBridgeO14AgentUIHandlerO6TargetP
+$s9AuraMojom9WebBridgeO17AgentUIControllerO6TargetP
+$s9AuraMojom9WebBridgeO24SidebarOverlayControllerO6TargetP
+$s9AuraMojom9WebBridgeO28AgentSafeModeSettingsHandlerO6TargetP
+$ss26ExpressibleByStringLiteralP
+$ss27StringInterpolationProtocolP
+$ss32ExpressibleByStringInterpolationP
+&Aring;
+&aring;
+' encountered during conversion
+' not found during swizzling attempt
+**If you believe your child may be at immediate risk,** please call your local emergency services right away.
+, enableFastViewRendering: 
+, maskAllImages: 
+, maskedViewClasses: 
+, recordingDuration: 
+, responseBody: 
+, unmaskedViewClasses: 
+- Output ONLY search terms (no numbering, no quotes, no backticks, no punctuation).
+--owl-scoped-user-agent-additional-hosts=
+--owl-scoped-user-agent-prefix=
+. Please try again later.
+/Users/runner/work/sentry-cocoa/sentry-cocoa/Sources/SentryCrash/Recording/Monitors/SentryCrashMonitor_NSException_StackCursor.m
+12writeContent_Si0A6CursorScCyyt
+13ToWebResponse
+13renderingModet
+15FromWebResponse
+16ResponseEnvelope
+17StringLiteralType
+19StringInterpolation
+24passkeyChallengeResponset
+4dataSS8response
+4rect_So8NSCursorC6cursort
+4rect_So8NSCursorC6cursortG
+4rect_So8NSCursorC6cursortGGGGApQ_AsTtGIegygr_
+4rect_So8NSCursorC6cursortGGGGApQ_AsTt_GSg
+4rect_So8NSCursorC6cursortGGGGArS_AuVtGG_G
+6corner_
+8Duration
+8responseSd9startedAtt
+8response_
+<redacted string of length 
+@"<MTLFunctionHandle>"32@0:8@"NSString"16Q24
+@"<MTLLibrary>"32@0:8@"NSString"16^@24
+@"<MTLLibrary>"40@0:8@"NSString"16@"MTLCompileOptions"24^@32
+@"<NSObject>"48@0:8@"NSString"16@24@"NSOperationQueue"32@?<v@?@"NSNotification">40
+@"<NSSharingServiceDelegate>"32@0:8@"NSSharingServicePicker"16@"NSSharingService"24
+@"<SentrySpan>"24@0:8@"NSString"16
+@"<SentrySpan>"32@0:8@"NSString"16@"NSString"24
+@"MLFeatureValue"24@0:8@"NSString"16
+@"NSArray"24@0:8@"NSSharingServicePicker"16
+@"NSArray"40@0:8@"NSSharingServicePicker"16@"NSArray"24@"NSArray"32
+@"NSAttributedString"
+@"NSAttributedString"16@0:8
+@"NSAttributedString"40@0:8{_NSRange=QQ}16^{_NSRange=QQ}32
+@"NSData"16@?0@"NSString"8
+@"NSData"24@0:8@"NSString"16
+@"NSData"24@?0@8@"NSString"16
+@"NSData"32@0:8@"NSString"16^@24
+@"NSData"32@?0@"NSString"8Q16^@24
+@"NSData"40@0:8@"NSXMLParser"16@"NSString"24@"NSString"32
+@"NSData"40@?0@8@"NSString"16Q24^@32
+@"NSMutableAttributedString"
+@"NSSharingServicePicker"40@0:8@"NSTextView"16@"NSSharingServicePicker"24@"NSArray"32
+@"NSString"
+@"NSString"16@0:8
+@"NSString"24@0:8@"SPUUpdater"16
+@"NSString"32@0:8@"NSFilePromiseProvider"16@"NSString"24
+@"NSString"40@0:8@"NSTextView"16@"NSString"24Q32
+@"NSString"40@0:8Q16^{_NSRange=QQ}24^B32
+@"NSString"56@0:8@"NSView"16q24{CGPoint=dd}32^v48
+@"NSString"8@?0
+@"NSURLSessionDataTask"32@?0@"NSURLSession"8@"NSURL"16@?<v@?@"NSData"@"NSURLResponse"@"NSError">24
+@"NSURLSessionDataTask"32@?0@"NSURLSession"8@"NSURLRequest"16@?<v@?@"NSData"@"NSURLResponse"@"NSError">24
+@"SentryClientInternal"
+@24@0:8@"NSString"16
+@32@0:8@16@"NSString"24
+@880@0:8{SentryCrashStackCursor={?=Q*Q*Q}{?=iB}^?^?[100^v]}16
+ADAParseXLSResponse
+ADAVisualizationChartResponse
+APIClient/APIResponse+ErrorType.swift
+APIResponse
+ASUserAgent
+ATLAS_TAB_AUTO_ORGANIZE_FAILURE_REASON_RESPONSE_DECODE_FAILED
+AVFoundation/arm64e-apple-macos.swiftinterface
+AXStringForRange
+Access to ChatGPT Agent and Sora video generation
+Access to Voice with screen sharing
+Account/AccountStatusResponseCacheStore.swift
+AccountLinkingPreCheckResponse
+AccountLinkingResponse
+AccountPersonalWorkspaceCreationResponse
+AccountScopedResponseCache
+AccountScopedResponseCache.
+AccountSettingsResponse
+AccountStatusResponse
+AccountStatusResponseAccount
+AccountStatusResponseAccountInfo
+AccountStatusResponseCacheStore
+AccountStatusResponseCacheStoreProtocol
+AccountStatusResponseCacheStoreProviding
+AccountStatusResponseEntitlement
+AccountStatusResponseEntitlementSubscriptionPlan
+AccountStatusResponsePlatform
+AccountStatusResponseSubscription
+Active tab unavailable for cursor whisper
+AddConnectorLinkCallbackErrorResponse
+AddConnectorLinkCallbackResponse
+AddConnectorOAuthLinkResponse
+AddEmailBeginResponse
+AddEmailVerifyResponse
+Adding detached overlay view controllers because no parent view controller was found
+AdditionalContextSharing
+AgeDeterminationResponse
+Agent
+Agent download denied by waiter permission check
+Agent download proceeding to path: 
+Agent download requested but empty download path
+Agent download requested but no pending waiters
+Agent file chooser requested but no pending waiters
+Agent is stopped when handling commands
+Agent is using your logged-in accounts
+Agent mode may introduce risk.
+Agent mode uses a remote browser and takes screenshots. You can take control at any time. Agent mode has privacy risks. [Learn
+Agent safe mode updated
+AgentArrowheadStaticOverlayView
+AgentArrowheadThoughtAccessoryRenderer
+AgentClickDOM
+AgentCommandHeartbeat
+AgentCommandHeartbeatManager
+AgentCommandRequest
+AgentCommandResponse
+AgentComputerUseEnvironment
+AgentComputerUseEnvironmentProviding
+AgentControlPanel
+AgentControlPanelInfoButton
+AgentCursor
+AgentCursorCapsuleOrbit
+AgentCursorShowcaseView
+AgentCursorWithLabel
+AgentCustomKeyCommandHandler
+AgentDOMEnvironment
+AgentDebugEvent
+AgentDownloadApprovalResult
+AgentDownloadWaitHandle
+AgentEnvironment
+AgentEnvironmentError
+AgentEnvironmentHelper
+AgentEvent
+AgentEventAPI
+AgentEventHandler
+AgentEventQueue
+AgentEventReceiverToken
+AgentEventResponse
+AgentFeedbackUploadResult
+AgentFeedbackUploadResult_Data
+AgentFeedbackUploadStatus
+AgentFileChooserError
+AgentFileChooserSession
+AgentFileChooserState
+AgentFileChooserWaitHandle
+AgentGetDOM
+AgentGetDOMResult
+AgentHandler
+AgentHandler_AgentConversationStopped_Params
+AgentHandler_AgentConversationStopped_Params_Data
+AgentHandler_ExportAsZip_Params
+AgentHandler_ExportAsZip_Params_Data
+AgentHandler_ExportAsZip_ResponseParams
+AgentHandler_ExportAsZip_ResponseParams_Data
+AgentHandler_GetAgentStatus_Params
+AgentHandler_GetAgentStatus_Params_Data
+AgentHandler_GetAgentStatus_ResponseParams
+AgentHandler_GetAgentStatus_ResponseParams_Data
+AgentHandler_GetClientCapabilityVersion_Params
+AgentHandler_GetClientCapabilityVersion_Params_Data
+AgentHandler_GetClientCapabilityVersion_ResponseParams
+AgentHandler_GetClientCapabilityVersion_ResponseParams_Data
+AgentHandler_GetClientID_Params
+AgentHandler_GetClientID_Params_Data
+AgentHandler_GetClientID_ResponseParams
+AgentHandler_GetClientID_ResponseParams_Data
+AgentHandler_GetCodexTools_Params
+AgentHandler_GetCodexTools_Params_Data
+AgentHandler_GetCodexTools_ResponseParams
+AgentHandler_GetCodexTools_ResponseParams_Data
+AgentHandler_MoveDragonfruitDownloads_Params
+AgentHandler_MoveDragonfruitDownloads_Params_Data
+AgentHandler_MoveDragonfruitDownloads_ResponseParams
+AgentHandler_MoveDragonfruitDownloads_ResponseParams_Data
+AgentHandler_OpenAgentTabs_Params
+AgentHandler_OpenAgentTabs_Params_Data
+AgentHandler_OpenDragonfruitDirectory_Params
+AgentHandler_OpenDragonfruitDirectory_Params_Data
+AgentHandler_OpenDragonfruitDirectory_ResponseParams
+AgentHandler_OpenDragonfruitDirectory_ResponseParams_Data
+AgentHandler_OpenFinder_Params
+AgentHandler_OpenFinder_Params_Data
+AgentHandler_OpenFinder_ResponseParams
+AgentHandler_OpenFinder_ResponseParams_Data
+AgentHandler_TryOpenAgentViewer_Params
+AgentHandler_TryOpenAgentViewer_Params_Data
+AgentHandler_TryOpenAgentViewer_ResponseParams
+AgentHandler_TryOpenAgentViewer_ResponseParams_Data
+AgentHandler_UploadAgentRolloutFeedback_Params
+AgentHandler_UploadAgentRolloutFeedback_Params_Data
+AgentHandler_UploadAgentRolloutFeedback_ResponseParams
+AgentHandler_UploadAgentRolloutFeedback_ResponseParams_Data
+AgentHandler_UserSentMessageInAgentConversation_Params
+AgentHandler_UserSentMessageInAgentConversation_Params_Data
+AgentHandler_UserStoppedAgentConversation_Params
+AgentHandler_UserStoppedAgentConversation_Params_Data
+AgentImageData
+AgentInputCoordinateSpace
+AgentInputEvent
+AgentJavaScriptDisplayOutput
+AgentJavaScriptExecutionResult
+AgentJavaScriptRuntime
+AgentLib
+AgentLibReference
+AgentLibReferenceError
+AgentLifecycleError
+AgentLifecycleService
+AgentLiveTabRemoveBehaviorManager
+AgentMessage
+AgentModeSettingsAction
+AgentModeSettingsView
+AgentModeSettingsViewModel
+AgentModeSubsection
+AgentNavigationPolicy
+AgentNotificationManager
+AgentOverlayTabManager
+AgentOverlayTabState
+AgentReasoning
+AgentRemoteCommandRequest
+AgentRemoteWorkerResponse
+AgentReplyProtocol
+AgentRequest
+AgentRoundedRectangleStrokeOverlay
+AgentRunningModePart
+AgentSafeMode
+AgentSafeModeMenu
+AgentSafeModeNuxModal
+AgentSafeModeSettingsHandler
+AgentSafeModeSettingsHandler_GetAgentSafeModeState_Params
+AgentSafeModeSettingsHandler_GetAgentSafeModeState_Params_Data
+AgentSafeModeSettingsHandler_GetAgentSafeModeState_ResponseParams
+AgentSafeModeSettingsHandler_GetAgentSafeModeState_ResponseParams_Data
+AgentSafeModeSettingsHandler_UpdateAgentSafeModeHasSeenNux_Params
+AgentSafeModeSettingsHandler_UpdateAgentSafeModeHasSeenNux_Params_Data
+AgentSafeModeSettingsHandler_UpdateAgentSafeMode_Params
+AgentSafeModeSettingsHandler_UpdateAgentSafeMode_Params_Data
+AgentSafeModeSettingsSnapshot
+AgentScrollDOM
+AgentSessionMode
+AgentSettings
+AgentShader-1024-NE
+AgentShader-1024-NW
+AgentShader-1024-SE
+AgentShader-1024-SW
+AgentShaderPerformanceSample
+AgentShaderView
+AgentShimmerRenderer
+AgentState
+AgentStateCoordinating
+AgentStateCoordinatingProviding
+AgentStaticShaderFallback
+AgentStatus
+AgentStrokeOverlay
+AgentTabCloseConfirmationDialog
+AgentTabGroupData
+AgentTabGroupDataAttribute
+AgentTabGroupEnvironment
+AgentTabGroupHelper
+AgentTabGroupNavigationPolicy
+AgentTabGroupOverlayViewModelCache
+AgentTabGroupPolicy
+AgentTabGroupPolicyState
+AgentTabGroupService
+AgentTabGroupServiceCreationConfiguration
+AgentTabGroupServiceDelegate
+AgentTabGroupServiceManager
+AgentTabGroupServiceManagerProviding
+AgentTabGroupServicePruner
+AgentTabGroupServiceState
+AgentTabInfo
+AgentTabInteractionAnimator
+AgentTabInteractionAnimatorService
+AgentTabScreenshotCapture
+AgentTabState
+AgentTabStateData
+AgentTabStateDataAttribute
+AgentTag
+AgentTurnMetrics
+AgentTurnSummary
+AgentUIController
+AgentUIController_Display_Params
+AgentUIController_Display_Params_Data
+AgentUIError
+AgentUIEvent
+AgentUIEventPublisher
+AgentUIEventPublisherProviding
+AgentUIHandler
+AgentUIHandler_OnUIEvent_Params
+AgentUIHandler_OnUIEvent_Params_Data
+AgentUIManager
+AgentUITransport
+AgentViewerCodingKeys
+AgentViewerTabData
+AgentViewerTabsTracker
+AgentWebBridge
+AgentWebContentDelegate
+AgentWebContentWatchdog
+AgentWebSocketService
+AgentWindowManager
+AgentWindowManagerDelegate
+AgentWindowManaging
+Agents and deep research
+AlertBridge_Show_ResponseParams
+AlertBridge_Show_ResponseParams_Data
+All past chats will inform responses, not just saved memories.
+Allow ChatGPT to reference relevant memories and chats when sharing data with 
+Allow ChatGPT to remember details like events, preferences, and tasks from the content you browse to give smarter responses and suggestions.
+An error occurred during fetching values for the user. 
+An error occurred during sending events to server. 
+An error occurred while archiving this conversation. Please try again.
+An error occurred while deleting this conversation. Please try again.
+An error occurred while deleting this project. Please try again.
+An error occurred while importing this file. Please try again.
+An error occurred while moving this conversation. Please try again.
+An error occurred while preparing the video for playback
+An error occurred while previewing this file. Please try again.
+An error occurred while removing this file. Please try again.
+An error occurred while renaming this conversation. Please try again.
+An error occurred while renaming. Please try again.
+An error occurred while saving the project. Please try again.
+An error occurred while saving your changes. Please try again.
+An error occurred while trying to load the content. Please try again.
+An error occurred while uploading this file. Please try again.
+An error occurred. Please try again.
+An unknown error occurred during parsing.
+An unknown error occurred. Please try again later
+An unknown error while occurred capturing a screenshot of the selected app. Please try again.
+An update is already being downloaded. Please wait for it to complete.
+AnalyticsEvents_V1_AtlasAgentReportScreenSize
+AnalyticsEvents_V1_ChatgptImageHomeFirstInteraction
+AnalyticsEvents_V1_ChatgptImageHomeFirstInteractionType
+AnalyticsEvents_V1_ChatgptProductInteractionEvent
+AnalyticsEvents_V1_ChatgptProductInteractionEventType
+AnalyticsEvents_V1_ChatgptPulseCardOpened
+AnalyticsEvents_V1_ChatgptPulseCardViewed
+AnalyticsEvents_V1_ChatgptPulseOnboardingConnectorInfo
+AnalyticsEvents_V1_ChatgptPulseOnboardingEvent
+AnalyticsEvents_V1_ChatgptPulseOnboardingEventType
+AnalyticsEvents_V1_InitiateAtlasAgent
+AnalyticsEvents_V1_InitiateAtlasAgentSource
+AnimateInOnAppear
+AnimatedFrame
+AnimatedImageView
+AnimatedImageViewDelegate
+AnimatedIrisIcon
+AnimatedMeshGradientView
+AnnouncementStrings
+App backgrounded during screen-sharing, will not interrupt session regardless of setting.
+App extension file monitoring was cancelled unexpectedly
+AppHangTracking paused. Ignoring reported app hang.
+AppPairing
+AppPairingApplication
+AppPairingApplicationIcon
+AppPairingApplicationIconStack
+AppPairingApplicationPermissionState
+AppPairingApplicationRow
+AppPairingApplicationSettingsContentView
+AppPairingCapabilities
+AppPairingCapabilitiesManifest
+AppPairingContent
+AppPairingConversationObserver
+AppPairingDefaultOnNUX
+AppPairingDefaultOnNUXButtonStyle
+AppPairingEvent
+AppPairingFocusedContentPopover
+AppPairingHeaderPart
+AppPairingOSMonitor
+AppPairingOverlayApplicationRow
+AppPairingOverlayApplicationState
+AppPairingOverlayItemID
+AppPairingRunningApplication
+AppPairingService
+AppPairingServiceProviding
+AppPairingSettingsView
+AppPairingSettingsViewModel
+AppPairingTextHelpers
+AppPairingVoiceContext
+AppPairingVoiceContextProvider
+Apple Intelligence resources are still preparing. Try again shortly.
+Aring
+Ask ChatGPT to focus on a topic, or use a specific style for responses in this project.
+AssetResponse
+AsyncAlgorithms/DebounceStorage.swift
+AsyncDebounceSequence
+AtlasAppContentProvider_Resolve_ResponseParams
+AtlasAppContentProvider_Resolve_ResponseParams_Data
+AtlasAppResponse
+AtlasAppResponse_Data
+AttachmentResponse
+Attempt to load more history when there is no next cursor
+Attempt to load more preferences when there is no next cursor
+Attempted to load next page without a cursor
+Attempted to recreate agent content view without an agent window
+AttestationChallengeResponse
+AttributedString
+AttributedStringAttachmentCell
+AttributedStringRepresentation
+AttributedString_Data
+Audience (aud) claim must be a string or array of strings present in the ID token
+AudioActivityObserver already started. Ignoring start().
+AudioWaveformView
+Aura/Icons/New/Default/agent
+Aura/Icons/New/Default/disabled-cursor
+Aura/Icons/New/Default/lightbulb-glow
+Aura/Icons/New/Default/pencil-sparkle
+Aura/Icons/New/Default/pulse
+Aura/Icons/New/Default/sparkle
+Aura/Icons/New/Default/stop-sharing
+Aura/Icons/New/Medium/cursor-chat
+Aura/Icons/New/Small/agent-cursor
+Aura/Icons/badge-rings
+Aura/Onboarding/Illustrations/Colors/backgroundOverlay
+Aura/Onboarding/Illustrations/cursor-chat-logo
+Aura/Onboarding/Illustrations/cursor-chat-nubbin
+Aura/Onboarding/Illustrations/cursor-new
+Aura/Onboarding/Illustrations/cursor-old
+Aura/Suggestions/agent
+Aura/elevatedBorder
+Aura/gradientSliderBlackThemeTint
+Aura/keyCapBorder
+Aura/tabBordersDefault
+Aura/tabVisorBorder
+AuraAgentConfig
+AuraAgents
+AuraAgents.AgentTabGroupPolicy
+AuraAgents.SubsectionAgentTabGroupHelper
+AuraAgents/AgentEventAPI.swift
+AuraAgents/AgentLifecycleService.swift
+AuraAgents/AgentNotificationManager.swift
+AuraAgents/AgentReplyProtocol.swift
+AuraAgents/AgentShaderView+macOS.swift
+AuraAgents/AgentTabGroupEnvironment.swift
+AuraAgents/AgentTabGroupPolicy.swift
+AuraAgents/AgentTabGroupServiceManager.swift
+AuraAgents/AgentTabGroupServicePruner.swift
+AuraAgents/AgentTurnMetrics.swift
+AuraAgents/AgentViewerTabsTracker.swift
+AuraAgents/AgentWebContentWatchdog.swift
+AuraAgents/AgentWebSocketService.swift
+AuraAgents/AgentWindowManager+macOS.swift
+AuraAgents/BrowseCotLoadingRow.swift
+AuraAgents/CompoundDOMActionCommand.swift
+AuraAgents/CreateTabsCommand.swift
+AuraAgents/DefaultAgentTabGroupService+macOS.swift
+AuraAgents/InitializeBrowserCommand.swift
+AuraAgents/KeyCommandHandler.swift
+AuraAgents/LoadPageCommand.swift
+AuraAgents/OperatorAgentOverlayViewModel.swift
+AuraAgents/PostActionWaitTimer.swift
+AuraAgents/RemoteBrowserCommand.swift
+AuraAgents/RemoteBrowserCommandHandler.swift
+AuraAgents/RemoteCommandWebSocketEventMediator.swift
+AuraAgents/SafeDNSPolicy.swift
+AuraAgents/URLRelevancyNavigationPolicy.swift
+AuraAgents/WebSocketHealthChecker.swift
+AuraAgents/WebsocketRemoteAgentEventQueue.swift
+AuraAgents/resource_bundle_accessor.swift
+AuraAgentsAPI
+AuraAgentsStatsigFeatureFlag
+AuraCursorChat
+AuraCursorChat.Coordinator
+AuraCursorChat/CursorChatCompletionProvider.swift
+AuraCursorChat/CursorChatViewModel.swift
+AuraHoverCardOverlayModifier
+AuraOnPageSuggestionsResponse
+AuraSuggestionsResponse
+AuraTabs/LiveTab+AgentDOM.swift
+AuraTabs/WebContentOwl+AgentEnvironment.swift
+AuraWindow default.metallib not found. Ensure BackgroundShimmer.metal is under Sources/AuraWindow and clean build.
+AuraWindow.OverlayPanel
+AuraWindow.SparkleDelegate
+AuraWindow/BackgroundShimmerRenderer.swift
+AuraWindow/BackgroundShimmerWindowManager.swift
+AuraWindow/ChatGPTAgentHandler.swift
+AuraWindow/ChatGPTAgentSafeModeSettingsHandler.swift
+AuraWindow/ChatGPTSidebarOverlayController.swift
+AuraWindow/TabSharingMenuViewModel.swift
+Aura_AuraAgents.bundle
+Auth0.ASUserAgent
+AuthStepResponse
+Authenticator app enrollment response missing secret
+Authorized Party (azp) claim must be a string present in the ID token when Audience (aud) claim has multiple values
+Auto generated transaction exceeded the max duration of %f seconds. Not capturing transaction.
+AutoOrganizeFloatingOverlayView
+AutoRegistering
+AutocompletionsResponse
+AutofillControllerHost_GetAddressList_ResponseParams
+AutofillControllerHost_GetAddressList_ResponseParams_Data
+AutofillControllerHost_GetCreditCardList_ResponseParams
+AutofillControllerHost_GetCreditCardList_ResponseParams_Data
+AutomaticAppPairingHint
+AutomationCreateResponse
+AutomationResponse
+AvatarFocusFadeOutModifier
+AvatarFocusFadeOutOverridePreferenceKey
+AvatarOrbAudioSnapshot
+AvatarOrbStateModel
+AvatarOrbView
+AvatarOverlayLayoutPreferenceKey
+AvatarOverlayModifier
+B20@?0@"NSString"8B16
+B28@?0@8@"NSString"16B24
+B32@0:8@"NSApplication"16@"NSString"24
+B32@0:8@"NSData"16@"NSString"24
+B32@0:8@16@"NSString"24
+B32@?0@"NSString"8@"NSData"16@"NSDictionary"24
+B32@?0@"NSString"8Q16^@24
+B40@0:8@"NSControl"16@"NSString"24@"NSString"32
+B40@?0@8@"NSString"16@"NSData"24@"NSDictionary"32
+B40@?0@8@"NSString"16Q24^@32
+B48@0:8@"NSTextView"16{_NSRange=QQ}24@"NSString"40
+B56@0:8@"NSTextView"16@"<NSTextAttachmentCell>"24Q32@"NSPasteboard"40@"NSString"48
+BackgroundShimmerRenderer
+BackgroundShimmerWindowManager
+BazaarFeedbackFormResponse
+BazaarHistoryResponse
+BazaarPreferencesResponse
+BeaconHomeResponse
+BeaconUIResponse
+Bezier
+BezierFunction
+Blocking sidebar overlay for Aura home page due to unhealthy NTP content
+BloopState
+BloopVectorColors
+BlurImageProcessor
+BlurredBackgroundModalViewModifier
+BlurredBackgroundView
+BlurredBarBackground
+BlurredBarBackgroundRepresentable
+BookmarkModel_AddFolder_ResponseParams
+BookmarkModel_AddFolder_ResponseParams_Data
+BookmarkModel_AddURL_ResponseParams
+BookmarkModel_AddURL_ResponseParams_Data
+BookmarkModel_GetBookmarks_ResponseParams
+BookmarkModel_GetBookmarks_ResponseParams_Data
+BootstrapImagesResponse
+Border
+BorderImageProcessor
+BottomMacCameraOverlay
+Briefly use your previous response to answer the user prompt. Don't think or call tools.
+Bring All to Front
+Bring ChatGPT with you across the web for instant answers, smarter suggestions, and help with tasks.
+Bring your bookmarks and browsing history over from 
+Bring your browsing data over from Chrome to pick up where you left off.
+Bring your browsing data over from Safari to pick up where you left off.
+Bring your health data together
+Bring your ideas to life with images
+Bring your saved passwords, bookmarks, extensions, and browsing history over from 
+Bring your saved passwords, bookmarks, extensions, site data, and browsing history over from 
+Bring your saved passwords, extensions, bookmarks, and browsing history over from 
+Bring your saved passwords, site data, extensions, bookmarks, and browsing history over from 
+BrowserMemoriesResponse
+BrowsingHistoryQueryResponse
+ByteString
+ByteString_Data
+CAKeyframeAnimationEmittable
+CAKeyframeAnimationValueConvertible
+CFBundleShortVersionString
+CFRelease
+CFString
+CFStringCreateWithCStringNoCopy
+CFStringGetCString
+CFStringGetTypeID
+CHATGPT_AVATAR_VISUALIZATION_STYLE_ORB
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_CONNECTOR_SCREEN_CLOSED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_CONNECTOR_SCREEN_CONNECT_CLICKED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_CONNECTOR_SCREEN_CONNECT_SUCCESS
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_CONNECTOR_SCREEN_SHOWN
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_CONNECTOR_SCREEN_SKIP_CLICKED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_HERO_SCREEN_CLOSED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_HERO_SCREEN_GET_STARTED_CLICKED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_HERO_SCREEN_SHOWN
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_INTEREST_SCREEN_CLOSED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_INTEREST_SCREEN_DONE_CLICKED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_INTEREST_SCREEN_ITEM_TAPPED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_INTEREST_SCREEN_NEXT_CLICKED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_INTEREST_SCREEN_SHOWN
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_LOADING_SCREEN_AUTO_REDIRECT_FEED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_LOADING_SCREEN_CLOSED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_LOADING_SCREEN_NOTIFICATION_SETTINGS_CLICKED
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_LOADING_SCREEN_SHOWN
+CHATGPT_PULSE_ONBOARDING_EVENT_TYPE_UNSPECIFIED
+CHATGPT_TURN_ERROR_TYPE_EMPTY_RESPONSE
+CITestIntegration
+CMSampleTimingInfo
+Calling removeTab in response to WebContentDelegate.didClose
+Camera access is restricted on this device. Please check your parental control or system settings.
+Can use memory and custom instructions to shape responses.
+Can't format number string(
+Cannot convert the input object to a `Data` object when storing it to disk cache. 
+CapsulePerimeterOrbit
+Capturing session with status: %@
+Capturing system audio is only supported after macOS 14.2
+ChatGPT can now do more work for you with agent mode.
+ChatGPT can now reference your emails and calendar events in responses. [Learn more](
+ChatGPT can now remember your recent chats to better personalize its responses. Want to update what it knows about you? Just ask. [Learn
+ChatGPT didn't quite catch that. Please try again.
+ChatGPT learns from the content you browse to give more helpful responses and timely suggestions.
+ChatGPT remembers and automatically manages useful information from chats, making responses more relevant and personal. [Learn more](
+ChatGPTAgentHandler
+ChatGPTAgentSafeModeSettingsHandler
+ChatGPTAgentUIHandler
+ChatGPTAvatar/BloopColors.swift
+ChatGPTFrontendHost_GetAccountID_ResponseParams
+ChatGPTFrontendHost_GetAccountID_ResponseParams_Data
+ChatGPTFrontendHost_SendMessage_ResponseParams
+ChatGPTFrontendHost_SendMessage_ResponseParams_Data
+ChatGPTFrontend_SendMessage_ResponseParams
+ChatGPTFrontend_SendMessage_ResponseParams_Data
+ChatGPTLocation/LocationSharingService.swift
+ChatGPTMessageInput.AttributedStringAttachmentCell
+ChatGPTMessageInput/AttributedStringAttachmentCell.swift
+ChatGPTMessages/ConversationOverlayViewModel.swift
+ChatGPTMessages/MessageRowFooterUpgradedResponsePart.swift
+ChatGPTMessages/ReadOnlyMessagesViewModel+MessageSliceAttachmentResponse.swift
+ChatGPTPairWithAI/AppPairingApplication.swift
+ChatGPTPairWithAI/AppPairingDefaultOnNUX.swift
+ChatGPTPairWithAI/AppPairingOSMonitor.swift
+ChatGPTPairWithAI/AppPairingService.swift
+ChatGPTPairWithAI/AppPairingTextHelpers.swift
+ChatGPTPairWithAI/MessageInputAppPairingButton.swift
+ChatGPTPairWithAI/MessageInputAppPairingButtonViewModel.swift
+ChatGPTPairWithAI/MessageInputAppPairingOverlay.swift
+ChatGPTPairWithAI/MessageInputAppPairingOverlayViewModel.swift
+ChatGPTPairWithAI/MessageInputCurrentlySharingBannerRedesign.swift
+ChatGPTPairWithAI/MessageInputCurrentlySharingBannerRedesignViewModel.swift
+ChatGPTProjects/ProjectSharingViewModel.swift
+ChatGPTSettings/AppPairingSettingsView.swift
+ChatGPTSharing
+ChatGPTSharing/API+Share.swift
+ChatGPTSharing/SharingModels.swift
+ChatGPTSharing/StatsigExperimentLayer+Sharing.swift
+ChatGPTSidebarOverlayController
+ChatGPTVoice/BloopColors.swift
+Choose the profiles you want to bring along
+ClampedBlurProcessor
+Clearing all conversations
+ClickCapturingView
+ClickCapturingViewRepresentable
+Clinical Engineering
+Closing this tab will stop the Agent and end its task.
+CoTOverlayItem
+CoTOverlaySearchBar
+CoTOverlayView
+CoTOverlayViewContainer
+Code entered is not a 6-digit numeric code. Please enter a valid 6-digit code.
+CodeAttributedString
+Codex is preparing the full task summary.
+CodexAttachmentResponse
+CodexBestOfNOrdering
+CodexCreateTaskResponse
+CodexPullRequestResponse
+CodexTaskResponse
+CodexTaskTurnResponse
+CodexTaskTurnsResponse
+CollectionViewIsReconfiguringItemsAssociatedObjectKey
+ColorPairing
+Colorbox
+CompleteShoppingCheckoutSessionResponse
+ComplianceAcceptTermsOfUseResponse
+ComplianceResponse
+CompositeAgentEventQueue
+CompressedStrings
+Configuring continuous launch profile v2.
+Connect your wellness apps and medical records for more personalized responses from ChatGPT.
+ConnectorAppResponse
+ConnectorBlurb
+ConnectorBlurbsResponse
+ConnectorLinkApprovedContextScopesPatchResponse
+ConnectorLinkToolSettingsPatchResponse
+ConnectorLinksResponse
+ConnectorsResponse
+Contains No Renderable Response
+Content-Disposition: form-data; name="sentry[release]"
+ContentCornerCutout
+ContentOverlaysView
+ContentOverlaysViewModel
+ContentViewOverlayProvider
+ContentViewOverlayProviderConfig
+ContentViewOverlayProviding
+ConversationBranchingResponse
+ConversationConfirmationStrings
+ConversationContinuationResponse
+ConversationController_HandleAgentRequest_Params
+ConversationController_HandleAgentRequest_Params_Data
+ConversationController_PerformHandshake_ResponseParams
+ConversationController_PerformHandshake_ResponseParams_Data
+ConversationController_RequestCompletion2_ResponseParams
+ConversationController_RequestCompletion2_ResponseParams_Data
+ConversationController_SetAgentSafeModeHasSeenNux_Params
+ConversationController_SetAgentSafeModeHasSeenNux_Params_Data
+ConversationController_SetAgentSafeMode_Params
+ConversationController_SetAgentSafeMode_Params_Data
+ConversationController_ShowNavigationSidebarAsOverlay_Params
+ConversationController_ShowNavigationSidebarAsOverlay_Params_Data
+ConversationCoordinatorBanner
+ConversationListResponse
+ConversationListResponseItem
+ConversationOverlayPresenterModifier
+ConversationOverlayProvider
+ConversationOverlayProviderFactory
+ConversationOverlayTemplate
+ConversationOverlayTransientMessage
+ConversationOverlayView
+ConversationOverlayViewModel
+ConversationOverlayViewModelProtocol
+ConversationResponse
+ConversationResponseContent
+ConversationResponseNode
+ConversationResponseOwner
+ConversationStreamStatusResponse
+ConversationStreamStringError
+Conversations/MessageSearchProductInteractionEvents.swift
+Corner
+CornerAsset
+CornerCircleMask
+Could not append string element
+Could not delete conversation. Please try again later.
+Could not find the tab to take when configuring window launch destination
+Could not migrate session init, because storing the updated envelope failed: 
+Could not reset memory. Please try again later.
+Could not start string element
+Could not unarchive conversation. Please try again later.
+Could not update account settings. Please try again later.
+Could not update the memory setting. Please try again later.
+Could not update the naughty chats setting. Please try again later.
+Couldn't convert the cString image name to an NSString. This could be due to a different encoding than NSUTF8StringEncoding of the cString..
+Countries could not be fetched. Please check your internet connection and restart the app. 
+CountriesResponse
+Crash reporter was not initialized before checking if app crashed during last launch
+CrashpadMinidumpUploader: Failed to open directory for monitoring
+CrashpadMinidumpUploader: Invalid upload response
+Create a breathtaking image in a hand-painted, storybook-inspired animation style, featuring a magical landscape with rolling green hills dotted with wildflowers, ancient trees with twisted branches, floating islands connected by stone bridges, and a quaint village nestled in the valley below. If you know my location or favorite places, incorporate elements that would resonate with me personally. Emphasize soft watercolor-like textures, gentle linework, warm golden sunlight filtering through leaves, airy clouds, and small, whimsical forest spirits drifting in the scene. Include a distant character in flowing clothes that might reflect my personality or interests. Use vibrant yet harmonious colors, subtle atmospheric haze, and an overall sense of wonder and tranquility.
+Create a spectacular cyberpunk cityscape set in a dystopian future version of my city or a metropolis that would appeal to me based on what you know about my preferences. The scene should feature towering neon-lit skyscrapers stretching into a smoggy sky, with holographic advertisements floating between buildings in multiple languages that might include references to my interests or background. Include flying cars with glowing trails weaving between structures, rain-slicked streets reflecting the neon colors in vibrant purples, blues, and pinks, and shadowy figures in futuristic clothing walking below. Add atmospheric details like steam rising from manholes, massive digital billboards displaying content that would catch my attention, drone surveillance units, and the glow of artificial intelligence interfaces. The overall mood should be dark yet visually stunning, capturing that iconic blend of high technology and urban decay.
+Create an epic fantasy battle scene featuring armored warriors on a dramatic battlefield, incorporating elements that would resonate with my interests in fantasy, gaming, or storytelling preferences if you know them. Show knights in gleaming plate armor wielding enchanted swords that glow with magical energy, facing off against mythical creatures like dragons breathing fire, massive trolls wielding crude weapons, and dark sorcerers casting spells with swirling magical auras. If you know my favorite fantasy worlds, games, or books, subtly incorporate visual elements from those universes. Set the scene on a mountainous landscape with ancient ruins, storm clouds gathering overhead with lightning crackling through the sky, and magical portals opening in the background. Include dynamic action poses, flowing capes and banners with symbols that might reflect my personality, sparks flying from clashing weapons, and magical energy effects creating dramatic lighting throughout the composition.
+Create an image of a photorealistic magazine cover for "CUTE ANIMALS," featuring three impossibly cute and stylishly accessorized pets, with realistic, catchy headlines and teaser text.
+CreateAccountResponse
+CreateBrowserHistoryTenantResponse
+CreateResponse
+CreateSharedLinkResponse
+CreateShoppingCheckoutSessionResponse
+CreditUsageEventsResponse
+Cursor
+Cursor chat coordinator error
+CursorChatBrowserIntegration
+CursorChatCompletionProvider
+CursorChatCompletionProviderError
+CursorChatCompletionRequest
+CursorChatComposer
+CursorChatComposerEvent
+CursorChatContextProvider
+CursorChatEvent
+CursorChatFloatingTextField
+CursorChatHoverDetectorView
+CursorChatIllustration
+CursorChatManualPosition
+CursorChatOnboardingStepView
+CursorChatOverlayStateManager
+CursorChatSymbolID
+CursorChatView
+CursorChatViewModel
+CursorChatViewModelAttribute
+CursorClickRippleTargetView
+CursorClickView
+CursorOverlayModifier
+CursorOverlayNSView
+CursorOverlayView
+CursorOverlayViewMode
+CursorPlacement
+CursorRegionNSView
+CursorRegionView
+CursorShape
+CursorState
+CursorType
+Cursor_Data
+CustomLocalizedStringKey
+CustomPrettyDebugStringConvertible
+CustomizationsEnabledResponse
+CustomizationsResponse
+DILWebViewFromWebResponse
+DILWebViewSetIntrinsicHeightParams
+DILWebViewToWebResponse
+DILWebViewWidgetActionResponse
+DILWidgetRefreshResponse
+DNSResponse
+DSN string is nil
+DallePromptsResponse
+Data passed to userSentMessageInAgentConversation is invalid
+DataUsageForTrainingResponse
+DebounceStateMachine
+DebounceStorage
+Debouncer
+Decrease Quantity
+DefaultAgentEventHandler
+DefaultAgentLifecycleService
+DefaultAgentLiveTabRemoveBehaviorManager
+DefaultAgentNotificationManager
+DefaultAgentOverlayTabManager
+DefaultAgentStateCoordinator
+DefaultAgentTabGroupHelper
+DefaultAgentTabGroupService
+DefaultAgentTabGroupServiceManager
+DefaultContentViewOverlayProvider
+DefaultCursorChatBrowserIntegration
+DefaultCursorChatCompletionProvider
+DefaultIntroOfferOverridesProvider
+DefaultPagedRequestResponse
+DefaultTabSharingSession
+Deserialized session doesn't contain a release name. Dropping it.
+DesktopSidebarController_CanHideHeader_ResponseParams
+DesktopSidebarController_CanHideHeader_ResponseParams_Data
+Detected dangling agent viewer on account bootstrap. Cleaning up
+DevToolsResizerOverlay
+DeviceDependent<RectangleCornerRadii>
+DiarizedTranscriptionResponse
+Dictionary keys must be Strings to be represented in JSON
+Dictionary<String, Any>
+Dictionary<String, Sendable>
+Did we get it wrong? Please tell us by giving this response a thumbs down.
+DismissedSuggestionKey.FilenameStringConvertible
+Dive deep into the documents and files I've been working with recently. What subtle patterns, recurring themes, or overlooked details can you identify? Are there strategic implications I might have missed? What actionable insights can you extract that could influence my decision-making or future projects?
+Do not use ChatGPT for Clinicians to analyze medical images, signals from in vitro diagnostic devices (such as genomic sequences), or patterns/signals from signal acquisition systems (such as an ECG or EEG waveforms or similar inputs).
+Do not use ChatGPT for Healthcare to analyze medical images, signals from in vitro diagnostic devices (such as genomic sequences), or patterns/signals from signal acquisition systems (such as an ECG or EEG waveforms or similar inputs).
+DownLeftVectorBar
+DownRightVectorBar
+DownloadManager_GetAllDownloads_ResponseParams
+DownloadManager_GetAllDownloads_ResponseParams_Data
+DraggableOverlayHandleModifier
+DraggableOverlayViewModifier
+Duration
+Duration is missing
+Duration must be greater than 0
+DurationCodingKeys
+During a page fault, indicates that the page was rejected as a result of a signature check.
+During a page fault, the memory object indicated that the data could not be returned.
+During a page fault, the target address refers to a memory object that has been destroyed.
+EdgeBorderShape
+EdgeFadedScrollView
+ElideWithGradientMaskModifier
+Empty response body.
+Empty response from DNS query
+EmptyString
+Enable Agent Mode
+Enable automatic app pairing
+EnableAgentModeCodingKeys
+Enabling Spotlight for a release build. We recommend running Spotlight only for local development.
+Enjoy faster responses, more advanced reasoning, higher file upload limits, and expanded image creation 
+EnrollFinishErrorResponse
+EnrollFinishSuccessResponse
+EnrollStartErrorResponse
+EnrollStartSuccessResponse
+Entering critical memory pressure state.
+Entering grace period for 
+Error caching account status response
+Error capturing photo
+Error capturing screenshot for window identifier 
+Error cleaning up the orb data recorder
+Error comparing VSCode extension versions
+Error creating orb data snapshot
+Error creating pull request. Please try again later.
+Error decoding DNS response
+Error decoding JSONPatch delta during streaming
+Error deleting account status response
+Error deleting all memories. Please try again later.
+Error deleting cached models response
+Error deleting data. Please try again later.
+Error deleting memory. Please try again later.
+Error deleting response cache
+Error during polling for microphone permission.
+Error during polling for system audio permission.
+Error during sleep for schedule
+Error during switching accounts in multi SSO flow
+Error formatting attributed string for pasteboard
+Error initializing orb data recorder
+Error loading SmallStrings cache
+Error loading account information. Please try again later.
+Error loading cached models response
+Error loading customizations. Please try again later.
+Error loading response from cache
+Error migrating account status response cache
+Error parsing update custom instructions error response
+Error prioritizing memory. Please try again later.
+Error processing remote command. agent_id=
+Error reading user-scoped account status response during migration
+Error reading user-scoped cached current user during migration
+Error receiving response from API. 
+Error registering hotkey 
+Error removing tab groups while restoring windows
+Error retrieving account status response
+Error saving cached models response
+Error saving response to cache
+Error sharing task. Please try again later.
+Error starting task. Please try again later.
+Error storing image in cache
+Error updating pull request. Please try again later.
+Error updating setting. Please try again later
+Error updating setting. Please try again later.
+Error updating state for customizations. Please try again later.
+ErrorAttachmentResponse
+ErrorBoundary
+ErrorPageOverlay
+EventMonitorBox
+EventTypeMask
+Expected a text response
+Expected date string to be ISO8601-formatted.
+Expected string for message body, but got '
+ExtensionApiDecisionResponse
+ExtensionApiDecisionResponse_Data
+ExtensionResponseError
+ExtensionServiceClient_HandleTabsCreate_ResponseParams
+ExtensionServiceClient_HandleTabsCreate_ResponseParams_Data
+ExtensionServiceClient_HandleTabsDiscard_ResponseParams
+ExtensionServiceClient_HandleTabsDiscard_ResponseParams_Data
+ExtensionServiceClient_HandleTabsDuplicate_ResponseParams
+ExtensionServiceClient_HandleTabsDuplicate_ResponseParams_Data
+ExtensionServiceClient_HandleTabsGoBack_ResponseParams
+ExtensionServiceClient_HandleTabsGoBack_ResponseParams_Data
+ExtensionServiceClient_HandleTabsGoForward_ResponseParams
+ExtensionServiceClient_HandleTabsGoForward_ResponseParams_Data
+ExtensionServiceClient_HandleTabsGroup_ResponseParams
+ExtensionServiceClient_HandleTabsGroup_ResponseParams_Data
+ExtensionServiceClient_HandleTabsHighlight_ResponseParams
+ExtensionServiceClient_HandleTabsHighlight_ResponseParams_Data
+ExtensionServiceClient_HandleTabsMove_ResponseParams
+ExtensionServiceClient_HandleTabsMove_ResponseParams_Data
+ExtensionServiceClient_HandleTabsReload_ResponseParams
+ExtensionServiceClient_HandleTabsReload_ResponseParams_Data
+ExtensionServiceClient_HandleTabsRemove_ResponseParams
+ExtensionServiceClient_HandleTabsRemove_ResponseParams_Data
+ExtensionServiceClient_HandleTabsUngroup_ResponseParams
+ExtensionServiceClient_HandleTabsUngroup_ResponseParams_Data
+ExtensionServiceClient_HandleTabsUpdate_ResponseParams
+ExtensionServiceClient_HandleTabsUpdate_ResponseParams_Data
+ExtensionServiceClient_HandleWindowsCreate_ResponseParams
+ExtensionServiceClient_HandleWindowsCreate_ResponseParams_Data
+ExtensionServiceClient_HandleWindowsRemove_ResponseParams
+ExtensionServiceClient_HandleWindowsRemove_ResponseParams_Data
+ExtensionServiceClient_HandleWindowsUpdate_ResponseParams
+ExtensionServiceClient_HandleWindowsUpdate_ResponseParams_Data
+ExtensionService_GetInstalledExtensions_ResponseParams
+ExtensionService_GetInstalledExtensions_ResponseParams_Data
+ExtensionService_GrantPermissionsAndEnableExtension_ResponseParams
+ExtensionService_GrantPermissionsAndEnableExtension_ResponseParams_Data
+ExtensionService_InstallExtensionById_ResponseParams
+ExtensionService_InstallExtensionById_ResponseParams_Data
+ExtensionService_OpenExtensionSidebar_ResponseParams
+ExtensionService_OpenExtensionSidebar_ResponseParams_Data
+ExtensionStatusResponse
+ExternalInitializeResponse
+FadeOutModifier
+Failed preparing conversation
+Failed restoring cached account info response
+Failed to add Account ExtraInfo because no Account Info exist yet. Please call `setAccountInfo` first.
+Failed to allocate string buffer of size %ul
+Failed to attach primary content to agent tab
+Failed to call NetworkService as it has been released
+Failed to convert HTML to NSAttributedString
+Failed to convert backtrace symbol to NSString.
+Failed to create URL with cursor: 
+Failed to create a formatted time string from hourValue(
+Failed to create an URL with the string '/'.
+Failed to create attributed string with error: 
+Failed to create upload URL from string
+Failed to decode AutomationCreateResponse
+Failed to decode DNS response
+Failed to disconnect connector. Please try again later.
+Failed to encode WindowType data to string
+Failed to fetch conversation via remote ID batch fallback: conversation missing from response (remoteId=
+Failed to format ISO8601 date string(
+Failed to initialize mic audio capturing.
+Failed to initialize system audio capturing.
+Failed to load duration
+Failed to load persisted recording duration
+Failed to parse hour and minute from server time string: 
+Failed to post steering request
+Failed to promote conversation after agent ended on about:blank
+Failed to prune agent window tab groups
+Failed to read orb data file: 
+Failed to resend the verification code. Please try again later.
+Failed to select tab during tab cycling
+Failed to send app pairing context
+Failed to send command response
+Failed to start Sparkle updater
+Failed to start agent monitoring
+Failed to update user data. Please try again.
+Failed to upload file. Please try again.
+Failure during scheduled token refresh
+FeedConfigResponse
+FeedEntrypointResponse
+FeedHistoryResponse
+FeedOnboardingSavePreferencesResponse
+FeedResponse
+FieldMaskError
+File upload timed out. Please try again.
+FileResponseStatus
+FileServiceDownloadResponse
+FileServiceFileInfoResponse
+FileServiceFilesResponse
+FileServiceMarkAsUploadedResponse
+FileServiceProcessUploadStreamResponseEvent
+FileServiceSedimentGenericDownloadResponse
+FileServiceSedimentUploadResponse
+FilenameStringConvertible
+Filtering sample as it came before start time to begin slicing.
+FinanceResponse
+For help, please see the [phone verification guide](
+For more information about this notification, please visit our [Help Center](
+ForecastResponse
+Found mismatched userIDs during migration
+Foundation/arm64e-apple-macos.swiftinterface
+FromWebRequest FromWebResponse FromWebMessage ToWebRequest ToWebResponse
+GIFAnimatedImage
+GSgGAFGAHyAoFGGGABy_ACy_ADy_SaySo18NSAttributedStringCGAFGAHyAvFGGGABy_AKGACy_ADy_Say
+GSgSo18NSAttributedStringCSb
+Generate a mesmerizing image of an advanced underwater civilization deep beneath the ocean surface, incorporating elements that connect to my interests, background, or places I've lived near water if you know them. Show magnificent coral cities with bioluminescent architecture that glows in blues, greens, and purples, inhabited by elegant merpeople with flowing hair and shimmering scales that might reflect characteristics or colors I'm drawn to. Include massive sea creatures like whales and giant octopi swimming peacefully among the structures, schools of tropical fish creating living murals of color, and ancient underwater temples covered in sea vegetation that could subtly reference architectural styles from places meaningful to me. Add mystical elements like floating jellyfish lanterns, crystal formations that emit soft light in colors I prefer, underwater gardens with exotic sea plants, and mysterious portals leading to other aquatic realms. The water should have beautiful caustic light patterns dancing across all surfaces.
+Generate an image of what you imagine I might look like as an animated character based on what you know about me.
+Generic pulse-per-second
+GenericInterface_AcceptMessage_ResponseParams
+GenericInterface_AcceptMessage_ResponseParams_Data
+Get more access with advanced intelligence and agents.
+Get more personalized responses in Health, where ChatGPT has access to more of your health and wellness data.
+GetSharedConversationResponse
+GetTokenResponse
+GizmoAboutResponse
+GizmoDiscoveryCutResponse
+GizmoDiscoveryLandingResponse
+GizmoFileResponse
+GizmoResponse
+GizmoReviewResponse
+GizmoSharing
+GizmoSidebarResponse
+GizmoToolResponse
+GizmosBootstrapResponse
+Google_Protobuf_Duration
+Google_Protobuf_FieldMask
+Google_Protobuf_StringValue
+Got unknown response from 
+HTTPCookieStringPolicy
+HTTPResponse
+HTTPResponseConvertible
+HTTPResponseStatusCode
+Have fun exploring the web with ChatGPT by your side, all while staying in control of your data and privacy.
+Help me think through a decision I'm facing by analyzing the pros and cons from multiple perspectives. Ask me about the decision, then provide structured analysis considering short-term and long-term consequences, potential risks and benefits, and alternative approaches I might not have considered.
+HexString
+Highlightr.CodeAttributedString
+HistoriesResponse
+Hive Audio Tap - Self Capturing
+I prefer this response
+I took control of the virtual browser. If you're unsure what changed, ask for more context. If the task is complete, just acknowledge and wrap it up. Otherwise, please proceed.
+IBeamCursor
+ICloudKeychainPasskeyBridge_GetAssertionAuthorizeIfNecessary_ResponseParams
+ICloudKeychainPasskeyBridge_GetAssertionAuthorizeIfNecessary_ResponseParams_Data
+ICloudKeychainPasskeyBridge_GetCredentials_ResponseParams
+ICloudKeychainPasskeyBridge_GetCredentials_ResponseParams_Data
+ICloudKeychainPasskeyBridge_MakeCredentialAuthorizeIfNecessary_ResponseParams
+ICloudKeychainPasskeyBridge_MakeCredentialAuthorizeIfNecessary_ResponseParams_Data
+IDTokenExchangeResponse
+INITIATE_ATLAS_AGENT_SOURCE_NTP
+INITIATE_ATLAS_AGENT_SOURCE_SIDE_CHAT
+INITIATE_ATLAS_AGENT_SOURCE_SITE
+INITIATE_ATLAS_AGENT_SOURCE_UNSPECIFIED
+IPCAgentUITransport
+ISOLatin1String
+If the user's text insertion cursor is present, it will be marked with <user__cursor />.
+If the user's text insertion cursor is present, it will be marked with <user__cursor />. If the user has selected text, it
+If you believe this was done in error, please reach out to our support team.
+Ignoring .DS_Store file when building envelopes path at path: %@
+Ignoring ANR because the app is in the background
+Ignoring ANR because the delta is too big: %f.
+Ignoring CFC verification message with type 
+Ignoring PTT start because not connected: 
+Ignoring PTT stop because not connected: 
+Ignoring a generated title for another conversation 
+Ignoring a gizmo review for another conversation 
+Ignoring call to startConnect() as connection is already started
+Ignoring completion error received while no longer waiting for completion
+Ignoring conversation update because api connection state is 
+Ignoring didBecomeActive notification because it was already called.
+Ignoring didOpen for cancelled connection; closing stale task.
+Ignoring forced PTT stop because not connected: 
+Ignoring invalid product image aspect ratio values
+Ignoring non directory when deleting old envelopes at path: %@
+Ignoring old extension version 
+Ignoring product image with invalid dimensions for aspect ratio calculation
+Ignoring remote state update to '
+Ignoring request to mute video because there is no active video track
+Ignoring speaking update because api connection state is 
+Ignoring stale ads content event
+Ignoring stale message complete ads event
+Ignoring streaming message update because api connection state is 
+Ignoring user activity, handoff is disabled
+Ignoring vscode extension with unexpected marketplace ID: 
+ImageGalleryLightboxBottomMenuOverlay
+ImageGenHomeResponse
+ImageGenRendering
+ImageGenerationPromptsResponse
+ImageShareAttachmentResponse
+Important safety notice: Please review this time-sensitive information about 
+In Agent mode, ChatGPT can perform complex tasks in the browser for you.
+In-app purchases are currently unavailable. Please try again later.
+Increase Quantity
+IncrementInvocationResponse
+Infectious Disease
+Initiating agent for side chat but URL is blocked
+InterpreterDownloadResponse
+Introducing agent mode
+Invalid base64-encoded string (first 128 bytes): '
+Invalid color hex string
+Invalid date format. The Date must either be a Double/TimeInterval representing the timeIntervalSince1970 or it can be a ISO 8601 formatted String.
+Invalid date format. The following string doesn't represent a valid ISO 8601 date string: '
+Invalid decimal string: 
+Invalid hex color string. Please provide a valid hex color (e.g., #FF0000 or FF0000).
+Invalid theme. Please provide one of the following: 
+Issuer (iss) claim must be a string present in the ID token
+It looks like camera access is disabled. Please enable camera access in Settings to continue
+JSONString
+JS_STRING
+KFAnimatedImage
+KFAnimatedImageViewRepresenter
+KnownAccountStatusResponseFeature
+KnownAllowedSharingRecipient
+KnownPulseOverlayType
+Latency waiting for response: 
+LauncherChatResetDuration
+LeaseRenewal
+LeftDownVectorBar
+LeftUpVectorBar
+LeftVectorBar
+Let ChatGPT reference key details from your web browsing. Disable page visibility for websites to keep ChatGPT from remembering the contents of those webpages or seeing them in chats.
+Let ChatGPT work alongside you using your logged in accounts. While ChatGPT is built to protect you, attackers on websites may succeed in using ChatGPT in Agent mode to access your data or take actions as you on logged in sites.
+LiftFade
+LightboxImageGalleryBottomMenuOverlay
+LinkWebSession response missing URL or header fields for token 
+ListPromptsResponse
+Listening task cancelled during setup. state: 
+LitePostResponse
+LitePostWithLiteProfileResponse
+LiteProfileResponse
+LoadingOverlay
+LocalAgentSessionIDSubsectionAttribute
+LocalToolHandler_CallLocalTool_ResponseParams
+LocalToolHandler_CallLocalTool_ResponseParams_Data
+LocalToolHandler_GetToolNames_ResponseParams
+LocalToolHandler_GetToolNames_ResponseParams_Data
+LocalToolHandler_StopLocalTool_ResponseParams
+LocalToolHandler_StopLocalTool_ResponseParams_Data
+LocalToolResponseMessage
+LocalToolResponseMessage_Data
+Location Sharing Failed
+Location Sharing Request
+Location Sharing Success
+LocationSharingService
+LocationSharingServiceProviding
+LocationSharingUpdateResult
+Long press to dictate, release to send.
+Longer memory for more personalized responses
+MFAEnrollmentResponse
+MFAStatusResponse
+MRectCorner
+MTMathColorbox
+MXHangDiagnostic hangDuration:
+MagicEditWritingBlockResponse
+Make your cursor a collaborator
+Measuring span %@; description %@; operation: %@
+MediaGenerationAttachmentResponse
+MemberSettingsResponse
+Memories and your chat history are used to give you more relevant responses and web searches. Want to change what ChatGPT remembers? Just ask.
+Memories and your chat history are used to give you more relevant responses. Want to change what ChatGPT remembers? Just ask.
+MemoryEntriesResponse
+MemoryHistoryErrorBanners
+MemoryStorageResponse
+Message failed, please try again
+Message too large: Bytes and Strings have a max size of 2GB.
+MessageFeedbackResponse
+MessageImageResponse
+MessageInputAppPairingButton
+MessageInputAppPairingButtonPopover
+MessageInputAppPairingButtonViewModel
+MessageInputAppPairingOverlay
+MessageInputAppPairingOverlayViewModel
+MessageInputCurrentlySharingBanner
+MessageInputCurrentlySharingBannerRedesign
+MessageInputCurrentlySharingBannerRedesignContent
+MessageInputCurrentlySharingBannerRedesignViewModel
+MessageInputSharingBannerContentItem
+MessageInputVoiceScreenSharingButtonPart
+MessageRowAppPairingHeaderPart
+MessageRowAutomationCreatedPulseCard
+MessageRowFooterUpgradedResponsePart
+MessageSliceAttachmentResponse
+MessageToolEcosystemConnectSheetResponseType
+Messages sent or received after sharing your link won't be shared. Anyone with the URL will be able to view your shared chat.
+MinimalPostResponse
+Missing audio and/or orb data snapshots
+Missing conversation ID during image feedback
+Missing message ID during image feedback
+Missing required response body
+MixedFeedConfigResponse
+MixedFeedResponse
+ModalResponse
+Model limit missing model slug, ignoring
+ModelsResponse
+ModelsResponseCategory
+ModelsResponseInternalGroup
+ModelsResponseVersion
+ModerationResponse
+Motion.SpringAnimation
+NCFStringRef
+NNSAttributedStringDocumentAttributeKey
+NNSAttributedStringDocumentReadingOptionKey
+NNSAttributedStringDocumentType
+NNSAttributedStringKey
+NNSEventMask
+NNSHTTPCookieStringPolicy
+NNSModalResponse
+NNSStringEnumerationOptions
+NNSURLSessionResponseDisposition
+NNSWindowStyleMask
+NSAttributedString
+NSCFConstantString
+NSCFString
+NSSharingServicePickerDelegate
+NSString
+NTP preload retry limit reached; entering cooldown
+NativeWidgetNSWindowHost_DispatchKeyEventRemote_ResponseParams
+NativeWidgetNSWindowHost_DispatchKeyEventRemote_ResponseParams_Data
+NativeWidgetNSWindowHost_DispatchKeyEventToMenuControllerRemote_ResponseParams
+NativeWidgetNSWindowHost_DispatchKeyEventToMenuControllerRemote_ResponseParams_Data
+NativeWidgetNSWindowHost_DispatchMonitorEvent_ResponseParams
+NativeWidgetNSWindowHost_DispatchMonitorEvent_ResponseParams_Data
+NativeWidgetNSWindowHost_ExecuteCommand_ResponseParams
+NativeWidgetNSWindowHost_ExecuteCommand_ResponseParams_Data
+NativeWidgetNSWindowHost_GetAlwaysRenderWindowAsKey_ResponseParams
+NativeWidgetNSWindowHost_GetAlwaysRenderWindowAsKey_ResponseParams_Data
+NativeWidgetNSWindowHost_GetCanWindowBecomeKey_ResponseParams
+NativeWidgetNSWindowHost_GetCanWindowBecomeKey_ResponseParams_Data
+NativeWidgetNSWindowHost_GetDialogButtonInfo_ResponseParams
+NativeWidgetNSWindowHost_GetDialogButtonInfo_ResponseParams_Data
+NativeWidgetNSWindowHost_GetDoDialogButtonsExist_ResponseParams
+NativeWidgetNSWindowHost_GetDoDialogButtonsExist_ResponseParams_Data
+NativeWidgetNSWindowHost_GetHasMenuController_ResponseParams
+NativeWidgetNSWindowHost_GetHasMenuController_ResponseParams_Data
+NativeWidgetNSWindowHost_GetHitTestResult_ResponseParams
+NativeWidgetNSWindowHost_GetHitTestResult_ResponseParams_Data
+NativeWidgetNSWindowHost_GetIsFocusedViewTextual_ResponseParams
+NativeWidgetNSWindowHost_GetIsFocusedViewTextual_ResponseParams_Data
+NativeWidgetNSWindowHost_GetRootViewAccessibilityToken_ResponseParams
+NativeWidgetNSWindowHost_GetRootViewAccessibilityToken_ResponseParams_Data
+NativeWidgetNSWindowHost_GetSheetOffsetY_ResponseParams
+NativeWidgetNSWindowHost_GetSheetOffsetY_ResponseParams_Data
+NativeWidgetNSWindowHost_GetShouldShowWindowTitle_ResponseParams
+NativeWidgetNSWindowHost_GetShouldShowWindowTitle_ResponseParams_Data
+NativeWidgetNSWindowHost_GetTooltipTextAt_ResponseParams
+NativeWidgetNSWindowHost_GetTooltipTextAt_ResponseParams_Data
+NativeWidgetNSWindowHost_GetWidgetIsModal_ResponseParams
+NativeWidgetNSWindowHost_GetWidgetIsModal_ResponseParams_Data
+NativeWidgetNSWindowHost_GetWindowFrameTitlebarHeight_ResponseParams
+NativeWidgetNSWindowHost_GetWindowFrameTitlebarHeight_ResponseParams_Data
+NativeWidgetNSWindowHost_HandleAccelerator_ResponseParams
+NativeWidgetNSWindowHost_HandleAccelerator_ResponseParams_Data
+NativeWidgetNSWindowHost_OnWindowCloseRequested_ResponseParams
+NativeWidgetNSWindowHost_OnWindowCloseRequested_ResponseParams_Data
+NativeWidgetNSWindowHost_ValidateUserInterfaceItem_ResponseParams
+NativeWidgetNSWindowHost_ValidateUserInterfaceItem_ResponseParams_Data
+NativeWidgetNSWindowHost_WillExecuteCommand_ResponseParams
+NativeWidgetNSWindowHost_WillExecuteCommand_ResponseParams_Data
+NativeWidgetNSWindow_InitCompositorView_ResponseParams
+NativeWidgetNSWindow_InitCompositorView_ResponseParams_Data
+NativeWidgetNSWindow_ReleaseCapture_Params
+NativeWidgetNSWindow_ReleaseCapture_Params_Data
+NativeWidgetNSWindow_SetCursor_Params
+NativeWidgetNSWindow_SetCursor_Params_Data
+NativeWidgetNSWindow_SetTransitionsToAnimate_Params
+NativeWidgetNSWindow_SetTransitionsToAnimate_Params_Data
+NavigationSidebarController_GetSidebarVisibility_ResponseParams
+NavigationSidebarController_GetSidebarVisibility_ResponseParams_Data
+NavigationSidebarOverlayVisibility
+NetworkMonitoring
+NextEventsResponse
+No URL response received. Task: 
+No audio detected. Please check your microphone or audio settings.
+No response was returned from our CLI command
+No session token cookie(s) found in LinkWebSession response for token 
+No sign in info found. Please sign in.
+No state scoped group for tab with agent viewer
+No user messages payload provided to userSentMessageInAgentConversation
+No values returned with initialize response
+NoOpAgentUITransport
+Non string found in fingerprint array, returning only string elements
+NonAnimatedHighlightButtonStyle
+Nonce (nonce) claim must be a string present in the ID token
+NoopPulseAppHandler
+Not an HTTP response
+Not capturing transaction because finish was not called before timing out.
+Not enough samples in profile during the transaction
+NotificationResponse
+NotificationResponseKey
+NotificationResponseSource
+NotificationSettingsResponse
+OAIMarkdown/TextFadeAnimator.swift
+OAuthCallbackResponse
+OAuthRedirectResponse
+ObjectLoader/AccountScopedResponseCache.swift
+ObjectLoader/FilenameStringConvertible.swift
+Occasionally, the model generates the best response without any details.
+OnboardLoginResponse
+OnboardingGenerateInterestsResponse
+OnboardingOverlayWebView
+OnboardingSaveInterestsResponse
+OnboardingStepsResponse
+Once memory is full, responses may feel less personalized. Delete existing memories to free up space.
+Once memory is full, responses may feel less personalized. Upgrade to expand memory, or delete existing memories.
+One or more of your workspaces does not yet have access to ChatGPT Atlas. Please contact your workspace owners or admins to enable access.
+Only instances of NSString and NSRegularExpression are supported inside failedRequestTargets.
+Only instances of NSString and NSRegularExpression are supported inside tracePropagationTargets.
+Open Cursor Chat
+OperatorAgentOverlay
+OperatorAgentOverlayViewModel
+Optional<String>
+Orb data is missing
+OrbData
+OrbDataReader
+OrbDataRecorder
+OrbDataRecorderError
+OrderDetailsResponse
+OrderDetailsResponseView
+OrderingBehavior
+OrderingKey
+OrdersResponse
+Organization Id (org_id) claim must be a string present in the ID token
+Organization Name (org_name) claim must be a string present in the ID token
+OrganizeTabsResponse
+OverlayAnimation
+OverlayCommand
+OverlayContentContainerView
+OverlayImageProcessor
+OverlayPanel
+OverlayPresenter
+OverlaySheet
+OverlaySheetScrollState
+OverlayState
+OverlayView
+PageContentUploadResponse
+PageLoad.InteractiveTiming.FirstInputDelay4
+PageLoad.PaintTiming.NavigationToFirstContentfulPaint
+PageLoad.PaintTiming.NavigationToFirstPaint
+PageLoad.PaintTiming.NavigationToLargestContentfulPaint2
+PageSummaryUploadResponse
+PagedRequestResponse
+PaginatedCollectionResponse
+PairingError
+PartialKeyPath<Case<AttachmentResponse>>
+PartialStringPolicy
+ParticleLayer
+ParticleLayerBackgroundModifier
+ParticleLayerContents
+ParticleLayerNames
+ParticleLayerOverlayModifier
+ParticleLayerPreferenceKey
+Passkey enrollment start response missing expected fields
+PasskeyEnrollmentStartResponse
+Pending ads content never published, clearing
+PendingAgentDownloadWaiter
+PendingAgentFileChooserWaiter
+PendingResponse
+Persisted recording has invalid or indefinite duration for 
+Persisted recording has non-finite duration for 
+PersonaAgeVerificationInquiryResponse
+PersonalityOnboardingResponse
+PersonalitySettingsImpressionResponse
+PhoneSendVerifyResponse
+PinnedItemResponse
+Placeholder summary entry outlining secondary adjustments that Codex is preparing.
+Please add the selected text to my saved memory
+Please check your connection and try again
+Please check your internet connection and retry.
+Please choose a valid date for your birthday.
+Please contact your workspace admin to retain access to your account
+Please enable microphone access in System Settings to use Voice.
+Please enter your feedback before sending the report.
+Please file a bug report to the SentryCrash project.
+Please log in again, then return here to continue.
+Please make sure this feature is enabled for your account.
+Please make this response longer and more detailed.
+Please make this response more concise and brief.
+Please provide a phone number for verification.
+Please start a new conversation
+Please try again
+Please try again later.
+Please try again. 
+PrefetchedStatusResponse
+PrefetchedStatusResponseError
+PrepareConversationResponse
+Preparing task
+Presenting agent viewer. reason=
+PressBounceButtonStyle
+PrettyStringConvertible
+PriceResponse
+ProductInteractionContentReferenceType
+ProductInteractionEvent
+ProductInteractionEventLogger
+ProductInteractionEventMessage
+ProductInteractionEventWithIndex
+ProductInteractionPayload
+ProductQueryResponseStreamPayload
+ProfileManager: Ignoring updateProfile() due to recent logout
+Profile_AddSearchKeyword_ResponseParams
+Profile_AddSearchKeyword_ResponseParams_Data
+Profile_ClearBrowsingData_ResponseParams
+Profile_ClearBrowsingData_ResponseParams_Data
+Profile_CreateBookmarkModel_ResponseParams
+Profile_CreateBookmarkModel_ResponseParams_Data
+Profile_DeleteCookie_ResponseParams
+Profile_DeleteCookie_ResponseParams_Data
+Profile_FlushCookies_ResponseParams
+Profile_FlushCookies_ResponseParams_Data
+Profile_GetAddressList_ResponseParams
+Profile_GetAddressList_ResponseParams_Data
+Profile_GetAllCookies_ResponseParams
+Profile_GetAllCookies_ResponseParams_Data
+Profile_GetCookies_ResponseParams
+Profile_GetCookies_ResponseParams_Data
+Profile_GetCreditCardList_ResponseParams
+Profile_GetCreditCardList_ResponseParams_Data
+Profile_GetDefaultDownloadsLocation_ResponseParams
+Profile_GetDefaultDownloadsLocation_ResponseParams_Data
+Profile_GetFaviconForPageUrl_ResponseParams
+Profile_GetFaviconForPageUrl_ResponseParams_Data
+Profile_GetFaviconFromFaviconUrl_ResponseParams
+Profile_GetFaviconFromFaviconUrl_ResponseParams_Data
+Profile_GetTypedUrls_ResponseParams
+Profile_GetTypedUrls_ResponseParams_Data
+Profile_GetWebPreferences_ResponseParams
+Profile_GetWebPreferences_ResponseParams_Data
+Profile_ImportChromePasswords_ResponseParams
+Profile_ImportChromePasswords_ResponseParams_Data
+Profile_ImportHistory_ResponseParams
+Profile_ImportHistory_ResponseParams_Data
+Profile_MergeCookies_ResponseParams
+Profile_MergeCookies_ResponseParams_Data
+Profile_MergeLocalStorage_ResponseParams
+Profile_MergeLocalStorage_ResponseParams_Data
+Profile_Ping_ResponseParams
+Profile_Ping_ResponseParams_Data
+Profile_QueryHistory_ResponseParams
+Profile_QueryHistory_ResponseParams_Data
+Profile_ResetProfileSettings_ResponseParams
+Profile_ResetProfileSettings_ResponseParams_Data
+Profile_SetCookie_ResponseParams
+Profile_SetCookie_ResponseParams_Data
+ProjectConnectorScopesResponse
+ProjectCreateUpdateResponse
+ProjectEditorButtonStyle
+ProjectLeaveResponse
+ProjectSharingLevel
+ProjectSharingLevelLabel
+ProjectSharingLevelPicker
+ProjectSharingScreen
+ProjectSharingScreenContent
+ProjectSharingViewModel
+PromptLibraryResponse
+ProtobufString
+PublishSharedLinkResponse
+PulseAppHandler
+PulseAppHandlerProviding
+PulseAppOpenConversationPayload
+PulseAppOpenConversationPayloadProtocol
+PulseAppOpenSharePayload
+PulseAppPresenting
+PulseFeedbackDependencies
+PulseFeedbackModalBuilderProviding
+PulseFeedbackModalTemplate
+PulseFeedbackModalViewModelProtocol
+PulseOverlayType
+Push registration token user_id couldn't be converted to String
+Q32@0:8@"NSString"16@"NSPasteboard"24
+QueryHistoryResponse
+QueryHistoryResponse_Data
+RateLimitBoostService: Could not parse expiry date string to date: 
+Rebound agent viewer web content
+Received ExtensionResponseError, forwarding as ApplyError
+Received ads SSE stream but feature flag is off, ignoring
+Received ads not following an assistant message, ignoring
+Received an account response missing the current active account ID
+Received gizmo inline review not following a message, ignoring
+Received gizmo inline review with no ID or conversation ID, ignoring
+Received moderation response without message ID
+Received response status code: %li
+Received title generation with no title or conversation ID, ignoring
+Recommend holiday activities I might love. If you have information about me already, use it. If you need to, ask any questions you need to know about me or my preferences so you are highly confident you can provide a personalized, tailored response.
+Recreated agent window
+Recreating agent content view with non-zero claim count
+RectCorner
+RecurringInlineMarkup
+RedactedDebugStringConvertible
+RefreshDeviceCheckResponse
+RefreshPreauthDeviceCheckResponse
+RegisterPushNotificationTokenResponse
+RegisterPushToStartTokenResponse
+Release name of the options of the client is nil. Not starting a session.
+Release to cancel
+Release when done talking
+RemoteBrowserCommandAgentContext
+RemoteBrowserCommandInactiveAgentContext
+RemoteBrowserResponsePayload
+RenderingView
+Replacing existing agent file chooser session
+ReportContentReasonsResponse
+ReportContentResponse
+RepostFormWarningResponse
+Request or Response are null, not capturing HTTP Client errors.
+Request response: %@
+Request url isn't within the request targets, not capturing HTTP Client errors.
+RequestEnvelope ResponseEnvelope
+RequestResponse
+Requesting permission for location sharing
+Required information could not be fetched. Please check your internet connection and restart the app. (
+ResendVerificationEmailResponse
+Response
+Response is nil. Stopping sending and not deleting envelope. Will retry sending envelope later.
+Response is not nil. We only care about the response and assume the envelope arrived at Sentry. Ignoring the error: %@
+Response isn't a known type, not capturing HTTP Client errors.
+Response status code isn't within the allowed ranges, not capturing HTTP Client errors.
+ResponseCodingKeys
+ResponseDisposition
+ResponseErrorReason
+ResponseType
+Responses may take a moment to load.
+Responses shouldn
+Restoring original handler.
+RightDownVectorBar
+RightUpVectorBar
+RightVectorBar
+RingBurst
+RippleTargetViewCenterAnchor
+RoundCornerImageProcessor
+RunResponseMessageParams
+SDySo8NSCursorCABG
+SS14expectedStatus_yp8responset
+STRING
+STRING_PIECE
+SVG parsing error. No oval radial gradients supported
+SVGAttribute.parse(string:context:) should be overwritten by inheritor
+SVGRadialGradient
+SVGView.SVGRadialGradient
+SVGView/MBezierPath+Extension_macOS.swift
+SafeAreaInsetMaskViewModifier
+SanitizedModelsResponse
+SavedMessagesResponse
+SaySo16AVAudioPCMBufferC6buffer_Sd9startTimeSd8durationtG
+SaySo16NSSharingServiceCG
+SaySo8NSStringCG
+SaySo8NSStringCGIeghg_
+Sayy13RenderingView
+Sb17deliveringQuietly_t
+Sb4tint_t
+Sb8animated_t
+SbSaySo8NSStringCGYbScMYccSg
+Screen sharing is not supported on this platform
+Screensharing on macOS is not supported
+ScrollViewBounceIfNeeded
+SearchHoldoutStatusResponse
+SearchResponseItemRow
+SelectFileDialog_Show_ResponseParams
+SelectFileDialog_Show_ResponseParams_Data
+Sensitive mode allows ChatGPT to work only while you are actively viewing this tab. This adds protection, but agent actions may still involve sensitive data and elevated risk.
+Sentry.SentryMetricKitIntegration
+SentryClientInternal
+SentryCrashMonitor_NSException_StackCursor.m
+SentryCrashReportFilterDataToString
+SentryCrashReportFilterStringToData
+SentryLogBuffer: Delegate not set, not capturing logs data.
+SentryMetricKitIntegration
+SentrySwiftIntegrationInstaller
+ServerBasicResponse
+ServerGetContentResponse
+ServerStatusResponse
+Session has no release name. Won't send it.
+SessionStatusResponse
+Session_GetWebViewsMemoryUsage_ResponseParams
+Session_GetWebViewsMemoryUsage_ResponseParams_Data
+Session_Ping_ResponseParams
+Session_Ping_ResponseParams_Data
+Session_SetInternalURLs_Params
+Session_SetInternalURLs_Params_Data
+Session_StartTracing_ResponseParams
+Session_StartTracing_ResponseParams_Data
+Session_StopTracing_ResponseParams
+Session_StopTracing_ResponseParams_Data
+SetIntrinsicHeightParams
+SettingsHandler_GetAdultSearchSetting_ResponseParams
+SettingsHandler_GetAdultSearchSetting_ResponseParams_Data
+SettingsHandler_UpdateAdultSearchSetting_ResponseParams
+SettingsHandler_UpdateAdultSearchSetting_ResponseParams_Data
+Sg12cornerRadius_t
+Sg14initialMaskURL_AB0a7PreviewC0t
+SgSo13NSURLResponseCSg
+SgSo18NSAttributedStringCSgIggyno_
+Sg_So13NSURLResponseCSg
+SharedConversationLinksResponse
+SharedTextdocsResponse
+Sharing
+Sharing another tab
+Sharing data includes:
+Sharing this tab
+SharingCustomShareSheetBuilderProviding
+SharingCustomShareSheetTemplate
+SharingError
+SharingMultimodal
+SharingMultimodalLayerParameter
+SharingServiceInvisiblePickerPresentationSourceView
+SharingSubjectRow
+SharingTarget
+Shimmer
+ShimmerMultilineText
+ShimmerText
+ShimmeringLabel
+ShimmeringTextView
+ShoppingCartResponse
+Should not be able to set location sharing when flag is off
+Show Upgraded Response Label
+Showing agent file chooser with ID: 
+SiSg12responseCode_t
+SideChatAgentWebBridge
+SidebarOffscreenSelectionIndicatorOverlay
+SidebarOverlayController
+SidebarOverlayController_DidCloseSidebarOverlay_Params
+SidebarOverlayController_DidCloseSidebarOverlay_Params_Data
+SidebarSelectionOverlay
+SimpleSuccessResponse
+SiteStatusResponse
+Skybridge failed to decode incoming payload as request/response 
+Skybridge method disabled; not registering
+Skybridge received error response
+SkybridgeFromWebRPCResponse
+SkybridgePulseAppParams
+SkybridgeSetIntrinsicHeightParams
+SkybridgeToWebRPCResponse
+SmallStrings
+So12NSURLRequestCSo6NSDataCSgSo13NSURLResponseCSgSo7NSErrorCSgIeyByyy_SgSo0A8DataTaskCIetCyyyya_
+So13NSURLResponseC
+So13NSURLResponseC8response_t
+So13NSURLResponseCSg
+So15NSMutableStringC
+So16AVAudioPCMBufferC6buffer_Sd9startTimeSd8durationt
+So17NSHTTPURLResponseC
+So17NSHTTPURLResponseC8response_t
+So17NSHTTPURLResponseCSg
+So18NSAttributedStringC
+So18NSAttributedStringC5input_Sb15whisperIsActiveSb018autocompletePickereF0Sb0C15AndUploadsEmptyt
+So18NSAttributedStringCSg
+So18NSAttributedStringCSgyYbScMYcc
+So18NSAttributedStringCSgz_Xx
+So18NSAttributedStringC_Sb9streamingSDy
+So20MPSImageGaussianBlurCSg
+So20SentryClientInternalC
+So21CAMediaTimingFunctionC
+So22NSSharingServicePickerCSgXw
+So25NSMutableAttributedStringC
+So26SUUpdatePermissionResponseCIeyBhy_
+So5NSURLCSo6NSDataCSgSo13NSURLResponseCSgSo7NSErrorCSgIeyByyy_SgSo0A8DataTaskCIetCyyyya_
+So6NSDataCSgSo13NSURLResponseCSgSo7NSErrorCSgIeyByyy_
+So7NSCacheCySo8NSStringC
+So7NSImageC9maskImage_AB07previewC0t
+So8NSCursorC
+So8NSCursorCAaCIegygdo_
+So8NSCursorCSg
+So8NSStringC
+So8NSStringCSgIeyBy_
+So8NSStringCSo6NSDataCSgIeyBya_
+So8NSStringCSo6NSDataCSo12NSDictionaryC
+So8NSStringC_Sbt
+Something went wrong while deleting your post. Please try again later.
+Something went wrong. Please make sure your device date and time is correct, and that 'Set Automatically' is toggled on under 'Settings 
+Something went wrong. Please restart the app, or sign out and try again.
+Something went wrong. Please try again.
+Something went wrong. The account has already been created but could not be refreshed. Please sign out and sign back in.
+SonicAttributionsResponse
+SonicNavLinksResponse
+SparkleDelegate
+Speaking update is missing the response and/or the duration
+SpecsResponse
+Spring
+SpringAnimation
+SpringAnimator
+SpringFunction
+StandaloneAgentWebBridge
+StandardErrorBannerView
+StatscFlushResponse
+Stop Screen Sharing
+Stop sharing screen
+Storing the renewed credentials failed.
+StreamedResponse
+Streaming message update is missing the response
+String16
+String16_Data
+StringBuilder
+StringCodingKey
+StringEncodedDecimal
+StringEncodedOptionalDecimal
+StringInterpolation
+StringKey
+StringLiteralType
+StringSchema
+Strings
+StubAgentJavaScriptRuntime
+StubAgentTabInteractionAnimator
+StubContentViewOverlayProvider
+StyleMask
+Styleguide.BlurredBackgroundView
+Styleguide/BlurredBarBackground.swift
+Subject (sub) claim must be a string present in the ID token
+Subscription charge failed. Please update your payment method.
+SubscriptionCustomerPortalResponse
+SubscriptionResponse
+SubscriptionValuePropositionsBorderViewModifier
+SubsectionAgentTabGroupHelper
+SuggestAgentTool
+SuggestedActionResponse
+SuggestedActionRunsResponse
+SuggestionsCacheKey.FilenameStringConvertible
+SummaryResponse
+SunsetResponse
+Swift/arm64e-apple-macos.swiftinterface
+SwiftIntegration
+SwiftUIToolbelt/View+ReadSizeIgnoringSafeArea.swift
+SystemHintsResponse
+T@"NSArray",&,N,V_doNotIntrospectClasses
+T@"NSAttributedString",&,N,V_attributedString
+T@"NSAttributedString",N,&
+T@"NSString",&
+T@"NSString",&,N,V_basePath
+T@"NSString",&,N,V_bundleName
+T@"NSString",&,N,V_className
+T@"NSString",&,N,V_colorString
+T@"NSString",&,N,V_diagnosis
+T@"NSString",&,N,V_environment
+T@"NSString",&,N,V_latex
+T@"NSString",&,N,V_leftDelimiter
+T@"NSString",&,N,V_name
+T@"NSString",&,N,V_previousClassName
+T@"NSString",&,N,V_replayId
+T@"NSString",&,N,V_rightDelimiter
+T@"NSString",&,N,V_sampled
+T@"NSString",&,N,V_separatorFmt
+T@"NSString",&,N,V_type
+T@"NSString",&,N,V_value
+T@"NSString",?,R
+T@"NSString",?,R,C
+T@"NSString",C
+T@"NSString",C,N
+T@"NSString",C,N,V_abnormalSessionFilePath
+T@"NSString",C,N,V_appHangEventFilePath
+T@"NSString",C,N,V_appStateFilePath
+T@"NSString",C,N,V_basePath
+T@"NSString",C,N,V_breadcrumbsFilePathOne
+T@"NSString",C,N,V_breadcrumbsFilePathTwo
+T@"NSString",C,N,V_category
+T@"NSString",C,N,V_codeFile
+T@"NSString",C,N,V_contextLine
+T@"NSString",C,N,V_cookies
+T@"NSString",C,N,V_crashedSessionFilePath
+T@"NSString",C,N,V_currentScreen
+T@"NSString",C,N,V_currentSessionFilePath
+T@"NSString",C,N,V_debugID
+T@"NSString",C,N,V_desc
+T@"NSString",C,N,V_dist
+T@"NSString",C,N,V_domain
+T@"NSString",C,N,V_envelopesPath
+T@"NSString",C,N,V_environment
+T@"NSString",C,N,V_eventsPath
+T@"NSString",C,N,V_fileName
+T@"NSString",C,N,V_fragment
+T@"NSString",C,N,V_function
+T@"NSString",C,N,V_helpLink
+T@"NSString",C,N,V_imageAddress
+T@"NSString",C,N,V_imageVmAddress
+T@"NSString",C,N,V_instructionAddress
+T@"NSString",C,N,V_lastInForegroundFilePath
+T@"NSString",C,N,V_logger
+T@"NSString",C,N,V_message
+T@"NSString",C,N,V_method
+T@"NSString",C,N,V_module
+T@"NSString",C,N,V_name
+T@"NSString",C,N,V_nucleus
+T@"NSString",C,N,V_operation
+T@"NSString",C,N,V_origin
+T@"NSString",C,N,V_package
+T@"NSString",C,N,V_platform
+T@"NSString",C,N,V_previousAppStateFilePath
+T@"NSString",C,N,V_previousBreadcrumbsFilePathOne
+T@"NSString",C,N,V_previousBreadcrumbsFilePathTwo
+T@"NSString",C,N,V_profileSessionID
+T@"NSString",C,N,V_queryString
+T@"NSString",C,N,V_queueAddress
+T@"NSString",C,N,V_releaseName
+T@"NSString",C,N,V_sentryPath
+T@"NSString",C,N,V_serverName
+T@"NSString",C,N,V_spanDescription
+T@"NSString",C,N,V_symbolAddress
+T@"NSString",C,N,V_timezoneOffsetFilePath
+T@"NSString",C,N,V_transaction
+T@"NSString",C,N,V_type
+T@"NSString",C,N,V_url
+T@"NSString",C,N,V_value
+T@"NSString",C,V_city
+T@"NSString",C,V_countryCode
+T@"NSString",C,V_distString
+T@"NSString",C,V_email
+T@"NSString",C,V_environmentString
+T@"NSString",C,V_ipAddress
+T@"NSString",C,V_name
+T@"NSString",C,V_region
+T@"NSString",C,V_userId
+T@"NSString",C,V_username
+T@"NSString",N,C
+T@"NSString",N,R
+T@"NSString",R
+T@"NSString",R,C
+T@"NSString",R,C,N
+T@"NSString",R,C,N,V_contentType
+T@"NSString",R,C,N,V_filename
+T@"NSString",R,C,N,V_formatted
+T@"NSString",R,C,N,V_operation
+T@"NSString",R,C,N,V_path
+T@"NSString",R,C,N,V_spanDescription
+T@"NSString",R,C,N,V_type
+T@"NSString",R,N
+T@"NSString",R,N,V_envName
+T@"NSString",R,N,V_environment
+T@"NSString",R,N,V_name
+T@"NSString",R,N,V_publicKey
+T@"NSString",R,N,V_releaseName
+T@"NSString",R,N,V_replayId
+T@"NSString",R,N,V_sampleRand
+T@"NSString",R,N,V_sampleRate
+T@"NSString",R,N,V_sampled
+T@"NSString",R,N,V_transaction
+T@"NSString",R,N,V_userId
+T@"SentryClientInternal",&,V_client
+TB,N,V_monitoringFromUninstalledToRestore
+TB,N,VenableFastViewRendering
+TB,N,VmaskAllImages
+TB,N,VmaskAllText
+TODO: BridgedWindowController.setTransitionsToAnimate
+TODO: showDictionaryOverlay
+TODO: showDictionaryOverlayForSelection
+TODO: showSharingServicePicker
+TYPE_STRING
+TabAttributesMask
+TabContentMask
+TabContentOverlayPanel
+TabContentOverlayStyle
+TabOrganizationResponse
+TabSharingBadgeIcon
+TabSharingButtonState
+TabSharingMenuViewModel
+TabSharingSession
+TabSharingSessionButtonState
+TabSharingSession_StartSharingThisTab_Params
+TabSharingSession_StartSharingThisTab_Params_Data
+TabSharingSession_StopTabSharing_Params
+TabSharingSession_StopTabSharing_Params_Data
+TabSharingTabRole
+Take ChatGPT with you across the web for instant answers, smarter suggestions, and your own personal agent.
+Take snapshot for agent failed 
+Tap Upgraded Response Get Go
+Tap Upgraded Response Get Plus
+Tap Upgraded Response Get Pro
+Tap Upgraded Response Label
+Task Sharing Cancelled
+TaskPauseSurveyResponse
+TaskPauseSurveyResponseRequest
+Td,N,R,Vduration
+Td,N,V_timeoutInterval
+Td,N,VappHangTimeoutInterval
+Td,N,VerrorReplayDuration
+Td,N,VmaximumDuration
+Td,N,VsessionSegmentDuration
+TemplatedPromptsResponse
+TextFadeAnimator
+TextInputHost_GetAttributedSubstringForRange_Params
+TextInputHost_GetAttributedSubstringForRange_Params_Data
+TextInputHost_GetAttributedSubstringForRange_ResponseParams
+TextInputHost_GetAttributedSubstringForRange_ResponseParams_Data
+TextInputHost_GetCompositionTextRange_ResponseParams
+TextInputHost_GetCompositionTextRange_ResponseParams_Data
+TextInputHost_GetFirstRectForRange_ResponseParams
+TextInputHost_GetFirstRectForRange_ResponseParams_Data
+TextInputHost_GetSelectionRange_ResponseParams
+TextInputHost_GetSelectionRange_ResponseParams_Data
+TextInputHost_GetSelectionText_ResponseParams
+TextInputHost_GetSelectionText_ResponseParams_Data
+TextInputHost_HasClient_ResponseParams
+TextInputHost_HasClient_ResponseParams_Data
+TextInputHost_HasCompositionText_ResponseParams
+TextInputHost_HasCompositionText_ResponseParams_Data
+TextInputHost_HasInputContext_ResponseParams
+TextInputHost_HasInputContext_ResponseParams_Data
+TextInputHost_IsRTL_ResponseParams
+TextInputHost_IsRTL_ResponseParams_Data
+TextInputHost_IsTextEditCommandEnabled_ResponseParams
+TextInputHost_IsTextEditCommandEnabled_ResponseParams_Data
+The HTTP status code in response is invalid. Code: 
+The SDK is disabled, so addBreadcrumb doesn't work. Please ensure to start the SDK before adding breadcrumbs.
+The SDK is disabled, so setUser doesn't work. Please ensure to start the SDK before setting the user.
+The URL response is invalid: 
+The application was not able to find a textfield with that identifier. Please provide a valid textfield identifier.
+The code you entered is invalid. Please try again.
+The downloading task is cancelled by the downloader delegate. Response: 
+The file download failed. Please try again later.
+The purchase was unsuccessful. Please try again later.
+The recording could not be processed. Please check your internet connection. (
+The response is invalid. Please try again.
+The server is having problems. Please try again later. (
+The server is overloaded. Please try again later.
+The user has stopped the agent and all tool calls will be ignored. End the agent turn.
+The user is referring to this in particular:
+There is a problem with the server. Please try again later.
+There was a problem clearing sign in info. Please try again.
+There was a problem contacting Apple servers. Please try again. (
+There was a problem saving sign in info. Please try again.
+There was a problem with your internet connection. Please try again. (
+There was a problem. Please restart the app.
+There was an error decoding a response from the extension.
+There was an error preparing the conversation.
+There was an error sharing the conversation.
+There was an error updating your notification settings. Please try again later.
+There was an error with your account deletion. Please try again. If the problem continues, please visit us at help.openai.com.
+There was an issue connecting to audio. Please check your settings and try again. 
+ThinBorderWidth
+This content may violate our content policy. Please try again with different content.
+This file contains too much text content. Please try again with a smaller file.
+This file is corrupted. Please ensure the file is not corrupted and try again.
+This file is encrypted or requires a password to access. Please try again with an unencrypted file.
+This official app is free, syncs your history across devices, and brings you the latest model improvements from OpenAI.
+This tab has a running Agent
+Ti,N,V_monitoring
+Ti,N,V_monitoringWhenUninstalled
+Timeout for DNS response
+Timeout waiting for account settings response with disclosure status
+TintImageProcessor
+To share your screen, please enable macOS permissions for ChatGPT.
+To take a screenshot, please enable macOS permissions for ChatGPT.
+ToWebRPCResponse
+TopCornersRoundedRectangle
+TopMacCameraOverlay
+TopRightCursorShape
+Touch Moved During Release to Send
+TraitTypesListResponse
+TransceiverSignalingResponse
+TranscriptUploadStreamingResponse
+TrendingTopicSuggestionsResponse
+TriggeringProduct
+UNNotificationResponse
+UNNotificationResponseProtocol
+UNTextInputNotificationResponse
+UNTextInputNotificationResponseProtocol
+URLLoaderClient_OnResponse_Params
+URLLoaderClient_OnResponse_Params_Data
+URLProtocol:didReceiveResponse:cacheStoragePolicy:
+URLRelevancyResponse
+URLResponse
+URLResponse_Data
+URLSession:dataTask:didReceiveResponse:completionHandler:
+URLSession:dataTask:willCacheResponse:completionHandler:
+URLSession:task:didReceiveInformationalResponse:
+URLSessionDidFinishEventsForBackgroundURLSession:
+URLWithString:
+UTF8String
+UUIDString
+Unable to cast the retrieved items to a [[String: Any]] value
+Unable to convert color to hex string
+Unable to convert the retrieved item to a String value
+Unable to create selected tab for agent
+Unable to decode date string
+Unable to decode user messages for userSentMessageInAgentConversation
+Unable to delete ad data. Please try again later.
+Unable to determine duration from persisted recording. Marking recording as missing for 
+Unable to extract the detail context during image feedback
+Unable to extract the file ID during image feedback
+Unable to extract the generation ID during image feedback
+Unable to get text field content when fetching app pairing apply context
+Unable to make a GPT action response message
+Unable to parse date timestamp string
+Unable to rebind agent viewer web content; no selected agent viewer tab available
+Unable to update ad personalization. Please try again later.
+Unable to update ad preferences. Please try again.
+Unexpected call while agent viewer is active!
+Unexpected response body, expected content type: 
+Unexpected response, expected status code: 
+Unexpected source during image feedback
+Unexpectedly got camera access .notDetermined after acquiring access
+Unrecognized CreateAccountResponse
+Unrecoverable failure, clearing configuration to force reconnect with next URL
+UpdateConversationResponse
+UpdateCustomizationsErrorResponse
+UpdateShoppingCheckoutSessionResponse
+Upgraded response
+UpgradedResponseIndicatorPart
+UpgradedResponseInfoSheet
+UploadTiming
+Uring
+Use "logged out" mode to have Agent mode use sites without being logged in as you. You can still log ChatGPT agent into individual sites, allowing it to use just those sites logged in.
+Use your ads history, interests, and current chat, including model responses, to make the ads you see more relevant. [Learn more](
+Use your ads history, interests, past and current chats, including model responses, to make the ads you see more relevant. [Learn more](
+User-Agent
+UserActionSettingsResponse
+UserFeedbackSubmitResponse
+UserResponse
+UserSiteSettingsPatchResponse
+UserSiteSettingsResponse
+VerifyAttestationResponse
+VerticalScrollCapturingView
+ViewOnlyIndicatorButton
+Visit your settings to delete any memories saved during this chat.
+Voice activity detection crashed, please reboot the app.
+VoiceCallQualityFeedbackOptionsResponse
+VoiceConversationFeedbackResponse
+VoiceFeatureOverlayCloseButton
+VoiceFeatureOverlayCloseButtonStyle
+VoiceListResponse
+VoiceOrbAudioSnapshot
+VoiceStatusResponse
+Waiting for agent file chooser
+WatchdogClient_Ping_ResponseParams
+WatchdogClient_Ping_ResponseParams_Data
+We could not complete your request. Please try again.
+We could not send a verification code. Please try again.
+We could not send your feedback. Please try again.
+We could not verify that code. Please try again.
+We could not verify that code. Try entering the latest code from your authenticator app.
+We couldn't send another code. Please try again later.
+We couldn't verify that code. Please check your code and try again.
+We were unable to process your export at this time. Please try again later.
+WebAuthUserAgent
+WebContentClient_StartNativeDrag_ResponseParams
+WebContentClient_StartNativeDrag_ResponseParams_Data
+WebContentRendererClient_DisplayCursor_Params
+WebContentRendererClient_DisplayCursor_Params_Data
+WebContentRendererClient_DisplayPopupMenu_ResponseParams
+WebContentRendererClient_DisplayPopupMenu_ResponseParams_Data
+WebContentRendererClient_SetCursorLockedUnacceleratedMovement_Params
+WebContentRendererClient_SetCursorLockedUnacceleratedMovement_Params_Data
+WebContentRendererClient_SetCursorLocked_Params
+WebContentRendererClient_SetCursorLocked_Params_Data
+WebContentRendererClient_ShowDictionaryOverlayForSelection_Params
+WebContentRendererClient_ShowDictionaryOverlayForSelection_Params_Data
+WebContentRendererClient_ShowDictionaryOverlay_Params
+WebContentRendererClient_ShowDictionaryOverlay_Params_Data
+WebContentRendererClient_ShowSharingServicePicker_Params
+WebContentRendererClient_ShowSharingServicePicker_Params_Data
+WebContentRendererClient_ShowSharingServicePicker_ResponseParams
+WebContentRendererClient_ShowSharingServicePicker_ResponseParams_Data
+WebContentRenderer_ForwardKeyboardEventWithCommandsAndAck_ResponseParams
+WebContentRenderer_ForwardKeyboardEventWithCommandsAndAck_ResponseParams_Data
+WebContentRenderer_GetCharacterIndexAtPoint_ResponseParams
+WebContentRenderer_GetCharacterIndexAtPoint_ResponseParams_Data
+WebContentRenderer_GetFirstRectForRange_ResponseParams
+WebContentRenderer_GetFirstRectForRange_ResponseParams_Data
+WebContentRenderer_GetWebContentRendererAccessibilityToken_ResponseParams
+WebContentRenderer_GetWebContentRendererAccessibilityToken_ResponseParams_Data
+WebContentRenderer_IsSpeaking_ResponseParams
+WebContentRenderer_IsSpeaking_ResponseParams_Data
+WebContentRenderer_IsWidgetForMainFrame_ResponseParams
+WebContentRenderer_IsWidgetForMainFrame_ResponseParams_Data
+WebContentRenderer_LookUpDictionaryOverlayAtPoint_Params
+WebContentRenderer_LookUpDictionaryOverlayAtPoint_Params_Data
+WebContentRenderer_LookUpDictionaryOverlayFromRange_Params
+WebContentRenderer_LookUpDictionaryOverlayFromRange_Params_Data
+WebContentRenderer_PingHostView_ResponseParams
+WebContentRenderer_PingHostView_ResponseParams_Data
+WebContentRepostFormDialogResponse
+WebPrepareConversationResponse
+WebSocketRegisterResponse
+WebViewClient_AllowAgentDownload_Params
+WebViewClient_AllowAgentDownload_Params_Data
+WebViewClient_AllowAgentDownload_ResponseParams
+WebViewClient_AllowAgentDownload_ResponseParams_Data
+WebViewClient_CanDeleteHistory_ResponseParams
+WebViewClient_CanDeleteHistory_ResponseParams_Data
+WebViewClient_EnterFullScreen_ResponseParams
+WebViewClient_EnterFullScreen_ResponseParams_Data
+WebViewClient_RemoveTabSharingButtons_Params
+WebViewClient_RemoveTabSharingButtons_Params_Data
+WebViewClient_RunBeforeUnloadDialog_ResponseParams
+WebViewClient_RunBeforeUnloadDialog_ResponseParams_Data
+WebViewClient_RunJavaScriptDialog_ResponseParams
+WebViewClient_RunJavaScriptDialog_ResponseParams_Data
+WebViewClient_SelectClientCert_ResponseParams
+WebViewClient_SelectClientCert_ResponseParams_Data
+WebViewClient_ShowFileDialog_ResponseParams
+WebViewClient_ShowFileDialog_ResponseParams_Data
+WebViewClient_ShowRepostFormWarningDialog_ResponseParams
+WebViewClient_ShowRepostFormWarningDialog_ResponseParams_Data
+WebViewClient_ShowTabSharingButtons_Params
+WebViewClient_ShowTabSharingButtons_Params_Data
+WebViewGroupClient_ValidateNavigation_ResponseParams
+WebViewGroupClient_ValidateNavigation_ResponseParams_Data
+WebViewGroup_CreateWebView_ResponseParams
+WebViewGroup_CreateWebView_ResponseParams_Data
+WebViewGroup_EnableAgentModeRestrictions_Params
+WebViewGroup_EnableAgentModeRestrictions_Params_Data
+WebViewPoolLeaseToken
+WebViewSessionDataDecoder_Decode_ResponseParams
+WebViewSessionDataDecoder_Decode_ResponseParams_Data
+WebView_CaptureCopy_ResponseParams
+WebView_CaptureCopy_ResponseParams_Data
+WebView_CountFindMatches_ResponseParams
+WebView_CountFindMatches_ResponseParams_Data
+WebView_EvaluateJavaScript_ResponseParams
+WebView_EvaluateJavaScript_ResponseParams_Data
+WebView_ExtractAnnotatedText_ResponseParams
+WebView_ExtractAnnotatedText_ResponseParams_Data
+WebView_ExtractSerializedDomElementInfo_ResponseParams
+WebView_ExtractSerializedDomElementInfo_ResponseParams_Data
+WebView_ExtractSerializedDom_ResponseParams
+WebView_ExtractSerializedDom_ResponseParams_Data
+WebView_FetchCertificateChain_ResponseParams
+WebView_FetchCertificateChain_ResponseParams_Data
+WebView_GenerateHeapSnapshotForMainFrame_ResponseParams
+WebView_GenerateHeapSnapshotForMainFrame_ResponseParams_Data
+WebView_GetDiagnostics_ResponseParams
+WebView_GetDiagnostics_ResponseParams_Data
+WebView_GetLinkToHighlight_ResponseParams
+WebView_GetLinkToHighlight_ResponseParams_Data
+WebView_InsertViaPaste_ResponseParams
+WebView_InsertViaPaste_ResponseParams_Data
+WebView_LoadNavigationEntries_ResponseParams
+WebView_LoadNavigationEntries_ResponseParams_Data
+WebView_TakeSnapshotWithOptions_ResponseParams
+WebView_TakeSnapshotWithOptions_ResponseParams_Data
+WebsocketRemoteAgentEventQueue
+What are the most talked-about TV shows, movies, and entertainment trends right now? Give me a comprehensive overview of recent releases, critical reviews, and audience reactions across different streaming platforms.
+When formatting your response, remember that this is going to be written directly into the text field. Respect the following rules:
+When triggering a login, active account must not be nil
+When triggering a login, loginSession must not be nil
+When trying to complete the action, the application responded with an invalid response
+Which response do you prefer?
+WhisperContentProvider_GetTabContext_ResponseParams
+WhisperContentProvider_GetTabContext_ResponseParams_Data
+WhisperContentProvider_GetTabScreenshot_ResponseParams
+WhisperContentProvider_GetTabScreenshot_ResponseParams_Data
+WhisperContentProvider_GetWhisperContent_ResponseParams
+WhisperContentProvider_GetWhisperContent_ResponseParams_Data
+WhisperOverlayPart
+WhisperSpeechToTextResponse
+WindowRoundedCornerSize
+Won't apply scope to a crash event. This is not allowed as crash events are from a previous run of the app and the current scope might have different data than the scope that was active during the crash.
+WorkspaceGroupsSearchResponse
+WorkspaceSearchResponseItem
+WorkspaceUsersSearchResponse
+WrappedEntrypointResponse
+WritingBlockFeedbackResponse
+Wrong DidSaveCallback passed to saveMask
+You can choose to connect your wellness apps for more personalized responses from ChatGPT.
+You can opt-out of sharing at any time in [settings](
+You're submitting feedback too quickly. Please try again shortly.
+You're trying codes too often. Please wait and try again.
+You've made too many code verification requests. Please try again later.
+You've made too many requests. Please try again later. (429, 
+You've sent too many requests. Please try again later.
+Your account could not be created. Please try again. 
+Your email is not yet verified. Please check your email inbox.
+Your feedback is too long. Please limit it to 
+Your session has expired. Please close this window and try again.
+Your version of ChatGPT is no longer supported and needs to be updated. Please visit the App Store to download the newest build of the app.
+Your workspace does not yet have access to ChatGPT Atlas. Please contact your workspace owners or admins to enable access.
+[AgentJavaScriptRuntime][
+[AgentTabGroupServiceManager] Failed to enqueue preinitialize browser command
+[AgentWebContentWatchdog][
+[Data Store] Error on clearing all data for `
+[MTMathColorbox initWithType:value:] cannot be called. Use [MTMathColorbox init] instead.
+[Statsig]: Failed to create URL with StatsigOptions.api. Please check if it's a valid URL
+[Statsig]: Failed to create URL with StatsigOptions.eventLoggingApi. Please check if it's a valid URL
+[response code: 
+[slice %@] Could not find any%@ sample taken during the transaction (first sample taken at: %llu; last: %llu; transaction start: %llu; end: %llu; first sample relative to transaction start: %lld; last: %lld).
+\colorbox
+_16ResponseEnvelope
+_CFURLStringType
+_Concurrency/arm64e-apple-macos.swiftinterface
+_JSONStringDictionaryEncodableMarker
+_So13NSURLResponseCSgt
+_So13NSURLResponseCt
+_So17NSHTTPURLResponseCt
+_So18NSAttributedStringCtc
+_So18NSAttributedStringCtcSg
+_TtC10AuraAgents14AgentUIManager
+_TtC10AuraAgents16AgentTurnMetrics
+_TtC10AuraAgents16DOMActionHandler
+_TtC10AuraAgents18AgentWindowManager
+_TtC10AuraAgents19AgentTabGroupPolicy
+_TtC10AuraAgents19IPCAgentUITransport
+_TtC10AuraAgents20AgentShimmerRenderer
+_TtC10AuraAgents21AgentWebSocketService
+_TtC10AuraAgents22AgentViewerTabsTracker
+_TtC10AuraAgents22SideChatAgentWebBridge
+_TtC10AuraAgents23AgentWebContentWatchdog
+_TtC10AuraAgents24AgentTabGroupEnvironment
+_TtC10AuraAgents24AgentTabGroupPolicyState
+_TtC10AuraAgents24CompositeAgentEventQueue
+_TtC10AuraAgents24ComputerUseActionHandler
+_TtC10AuraAgents24DefaultAgentEventHandler
+_TtC10AuraAgents24DefaultWebSocketWatchdog
+_TtC10AuraAgents24StandaloneAgentWebBridge
+_TtC10AuraAgents26AgentTabGroupServicePruner
+_TtC10AuraAgents26DefaultAgentTabGroupHelper
+_TtC10AuraAgents26StubEvalModeWindowRecorder
+_TtC10AuraAgents27DefaultAgentTabGroupService
+_TtC10AuraAgents27RemoteBrowserCommandHandler
+_TtC10AuraAgents28AgentCommandHeartbeatManager
+_TtC10AuraAgents28DefaultAgentLifecycleService
+_TtC10AuraAgents28DefaultAgentStateCoordinator
+_TtC10AuraAgents29DefaultAgentOverlayTabManager
+_TtC10AuraAgents29DefaultWebSocketHealthChecker
+_TtC10AuraAgents29OperatorAgentOverlayViewModel
+_TtC10AuraAgents29SubsectionAgentTabGroupHelper
+_TtC10AuraAgents30RuntimeJavaScriptResourceCache
+_TtC10AuraAgents30WebsocketRemoteAgentEventQueue
+_TtC10AuraAgents31DefaultAgentNotificationManager
+_TtC10AuraAgents34AgentTabGroupOverlayViewModelCache
+_TtC10AuraAgents34DefaultAgentTabGroupServiceManager
+_TtC10AuraAgents40DefaultAgentLiveTabRemoveBehaviorManager
+_TtC10AuraAgents42DefaultRemoteCommandWebSocketEventMediator
+_TtC10AuraAgentsP33_22FB0AE6E4FA9AA26CEA695F92CF8AA012BundleFinder
+_TtC10AuraTabsUIP33_A4F20044158F56E5EA0207A90FC376BF18ClickCapturingView
+_TtC10AuraWindow19ChatGPTAgentHandler
+_TtC10AuraWindow21ChatGPTAgentUIHandler
+_TtC10AuraWindow23TabSharingMenuViewModel
+_TtC10AuraWindow24ContentOverlaysViewModel
+_TtC10AuraWindow25BackgroundShimmerRenderer
+_TtC10AuraWindow30BackgroundShimmerWindowManager
+_TtC10AuraWindow31ChatGPTSidebarOverlayController
+_TtC10AuraWindow33DefaultContentViewOverlayProvider
+_TtC10AuraWindow35ChatGPTAgentSafeModeSettingsHandler
+_TtC10AuraWindowP33_B7A5110285520D8562089DB832DB2F0E15SparkleDelegate
+_TtC10AuraWindowP33_EFDF47A2408BFCD811B0BB7F2618069412OverlayPanel
+_TtC10Highlightr20CodeAttributedString
+_TtC10Kingfisher16GIFAnimatedImage
+_TtC10Kingfisher17AnimatedImageView
+_TtC10Styleguide21BlurredBackgroundView
+_TtC11DatadogCore17CITestIntegration
+_TtC11OAIMarkdown16TextFadeAnimator
+_TtC12AuraToolbelt14SpringAnimator
+_TtC12AuraToolbelt18CursorRegionNSView
+_TtC12AuraToolbeltP33_00C03BF93562D80192EE4F89B64CE8E927VerticalScrollCapturingView
+_TtC12ChatGPTVoice13OrbDataReader
+_TtC12ChatGPTVoice15OrbDataRecorder
+_TtC12Localization12SmallStrings
+_TtC13ChatGPTAvatar19AvatarOrbStateModel
+_TtC13SwiftToolbelt9Debouncer
+_TtC14AuraCursorChat19CursorChatViewModel
+_TtC14AuraCursorChat25CursorChatContextProvider
+_TtC14AuraCursorChat29CursorChatOverlayStateManager
+_TtC14AuraCursorChat35DefaultCursorChatBrowserIntegration
+_TtC14AuraCursorChat35DefaultCursorChatCompletionProvider
+_TtC14AuraCursorChatP33_48F2A4DE9A35E20EE85492E180C40E2114InputTextState
+_TtC14ChatGPTSharing19SharedPostViewModel
+_TtC14ChatGPTWebView21WebViewPoolLeaseToken
+_TtC15ChatGPTLocation22LocationSharingService
+_TtC15ChatGPTMessages28ConversationOverlayViewModel
+_TtC15ChatGPTProjects23ProjectSharingViewModel
+_TtC15ChatGPTSettings27AppPairingSettingsViewModel
+_TtC17ChatGPTPairWithAI17AppPairingService
+_TtC17ChatGPTPairWithAI19AppPairingOSMonitor
+_TtC17ChatGPTPairWithAI30AppPairingVoiceContextProvider
+_TtC17ChatGPTPairWithAI37MessageInputAppPairingButtonViewModel
+_TtC17ChatGPTPairWithAI38MessageInputAppPairingOverlayViewModel
+_TtC17ChatGPTPairWithAI51MessageInputCurrentlySharingBannerRedesignViewModel
+_TtC19ChatGPTConversation30AppPairingConversationObserver
+_TtC19ChatGPTMessageInput30AttributedStringAttachmentCell
+_TtC24ChatGPTSubscriptionsCore34DefaultIntroOfferOverridesProvider
+_TtC26AuraSettingsImplementation26AgentModeSettingsViewModel
+_TtC5Auth011ASUserAgent
+_TtC6Sentry31SentrySwiftIntegrationInstaller
+_TtC7Account31AccountStatusResponseCacheStore
+_TtC7SVGView17SVGRadialGradient
+_TtC7Statsig13ErrorBoundary
+_TtC8Platform6Cursor
+_TtCC10Kingfisher17AnimatedImageView11TargetProxy
+_TtCC10Kingfisher17AnimatedImageView8Animator
+_TtCC15ChatGPTLocation22LocationSharingService17PropertyPublisher
+_TtCC17ChatGPTPairWithAI37MessageInputAppPairingButtonViewModel17PropertyPublisher
+_TtCC17ChatGPTPairWithAI38MessageInputAppPairingOverlayViewModel17PropertyPublisher
+_TtCC3Owl21WebContentPopupWindowP33_53F78053025FF8CBC8583E7383C8EBA915EventMonitorBox
+_TtCOO5Mojom8OwlMojom17TabSharingSession10Dispatcher
+_TtCOO5Mojom8OwlMojom17TabSharingSession5Proxy
+_TtCOO9AuraMojom9WebBridge12AgentHandler10Dispatcher
+_TtCOO9AuraMojom9WebBridge12AgentHandler5Proxy
+_TtCOO9AuraMojom9WebBridge14AgentUIHandler10Dispatcher
+_TtCOO9AuraMojom9WebBridge14AgentUIHandler5Proxy
+_TtCOO9AuraMojom9WebBridge17AgentUIController10Dispatcher
+_TtCOO9AuraMojom9WebBridge17AgentUIController5Proxy
+_TtCOO9AuraMojom9WebBridge24SidebarOverlayController10Dispatcher
+_TtCOO9AuraMojom9WebBridge24SidebarOverlayController5Proxy
+_TtCOO9AuraMojom9WebBridge28AgentSafeModeSettingsHandler10Dispatcher
+_TtCOO9AuraMojom9WebBridge28AgentSafeModeSettingsHandler5Proxy
+_TtCV12ChatGPTVoice24PrefetchedStatusResponseP33_0D17344B054CC06842EF5724927B295818ConsumeCoordinator
+_TtCV12NSUIToolbelt51SharingServiceInvisiblePickerPresentationSourceView11Coordinator
+_TtCV14AuraCursorChat27CursorChatHoverDetectorView11Coordinator
+_TtCV14AuraCursorChat27CursorChatHoverDetectorView17HoverTrackingView
+_TtCVV9HTTPTypes12HTTPResponse18PseudoHeaderFieldsP33_0EA32804A8AC66CDB96B1432D911B51C8_Storage
+__Key_auraControlAccentBorderColor
+__Key_avatarFocusFadeOutOverride
+__Key_avatarOverlayIsEnabled
+__Key_draggableOverlayGestureProvider
+__Key_draggableOverlayHandleAttachment
+__Key_draggableOverlayIsMinimized
+__Key_isAnimatedSideMenuBackgroundHighlightEnabled
+__NSCFConstantString
+__NSCFString
+__cursor
+__overlayMode
+__tsan_release
+__voiceListResponse
+_actualAgentStatus
+_agentAlertState
+_agentID
+_agentModeSettingsViewModel
+_agentSafeModeSelection
+_agentState
+_agentTabGroupService
+_agentTabs
+_allowAppPairingDefaultOn
+_angularVelocity
+_animateOnPageSuggestionChanges
+_appPairingEnabled
+_appPairingFocusedContent
+_appPairingFocusedContentInactivityTimeout
+_appPairingSetting
+_appPairingSettingEnabled
+_attributedString
+_audioUploadDurationMs
+_autoPairingAppHint
+_avatarFocusFadeOutOverride
+_avatarOverlayIsEnabled
+_avatarVelocity
+_birthdayErroring
+_bloopState
+_blurbs
+_blurredBaseURL
+_blurredOverlayOpacity
+_blurredOverlayURL
+_borderVisible
+_borderWidth
+_bounceOffset
+_cachedAccountSettingsResponse
+_cachedDataUsageForTrainingResponse
+_cachedNotificationSettingsResponse
+_cachedResponse
+_canDragCloseSideOverlay
+_chatResetDuration
+_checkoutResponseTag
+_clearOverlayOpacity
+_clearOverlayURL
+_colorString
+_controlAccentBorderColor
+_conversationOverlayBuilder
+_conversationOverlayViewModel
+_copyURLToastBounce
+_cornerRadius
+_cursorChatEnabled
+_cursorColor
+_cursorPhaseOffset
+_cursorPosition
+_cursorSize
+_debounceShowSubmenuTask
+_debouncedIsLoading
+_desiredAgentStatus
+_distString
+_doNotIntrospectClasses
+_dragTetherVelocity
+_duration
+_durationMs
+_enableAppPairingAutoApplyPatches
+_enableAppPairingBannerRedesign
+_enableAppPairingDefaultOn
+_enableAppPairingHintsUsingVision
+_environmentString
+_errorCapturingScreenshot
+_erroring
+_estimatedReasoningDuration
+_execute(payload:agentContext:)
+_filterValueString
+_finalOverlayOpacity
+_finalOverlayURL
+_firstNameErroring
+_focusFadeOutOverride
+_focusScaleVelocity
+_forceCursorOverlay
+_getTokenResponseEndTime
+_getTokenResponseStartTime
+_hasResponseQualityIssues_p
+_hasSeenAgentSafeModeNuxSetting
+_hasTriggeredFeaturedLiveDismissDuringActiveDrag
+_hideDefaultAgentSuggestion
+_hovering
+_hoveringCommand
+_hoveringContent
+_hoveringFrame
+_hoveringIndex
+_iconNeedsBorder
+_imageCornerRadius
+_immediatelyHideCursor
+_inputCornerRadii
+_isAccessoryButtonHovering
+_isAgentRunning
+_isAnimatedSideMenuBackgroundHighlightEnabled
+_isAppPairingEnabled
+_isCursorVisible
+_isHovering
+_isHoveringAskChatButton
+_isHoveringBookmarkButton
+_isHoveringButton
+_isHoveringCancelButton
+_isHoveringChip
+_isHoveringComposerMenuButton
+_isHoveringDefaultBrowserBanner
+_isHoveringEnterButton
+_isHoveringOnActionSuggestionButton
+_isHoveringOnSideChatButton
+_isHoveringOverBackground
+_isHoveringPendingProtocolHandlerButton
+_isHoveringPopupBackground
+_isHoveringRateLimitBoostPopover
+_isHoveringSafeModeIndicator
+_isHoveringSiteSettingsButton
+_isHoveringUnavailableOverlay
+_isHoveringUndoButton
+_isHoveringUndoToast
+_isOverlayMinimized
+_isPresentingAgentSafeModeMenu
+_isPulse
+_isRendering
+_isRestoringPurchases
+_isScreenSharing
+_isSteeringEnabled
+_isStreamingResponseInBackground
+_isWaitingForResponse
+_javaStringCheckUtf8
+_lastAPIResponse
+_lastBlurredImage
+_lastNameErroring
+_launcherChatResetDuration
+_mask
+_modelResponseCount
+_monitoring
+_monitoringFromUninstalledToRestore
+_monitoringWhenUninstalled
+_orbDataRecorder
+_overlayHeight
+_overlayIsHovered
+_overlaySize
+_overlayState
+_pGSo13NSURLResponseCAD_pIeghHnrozo_
+_pG_So13NSURLResponseCt
+_pG_So13NSURLResponseCtAB_pG
+_pG_So13NSURLResponseCtAB_pGSg
+_pG_So13NSURLResponseCtAC_pG
+_pG_So13NSURLResponseCtAC_pGSg
+_pG_So13NSURLResponseCtAC_pGSgG
+_pG_So17NSHTTPURLResponseCt
+_pG_So17NSHTTPURLResponseCtAC_pIeghHyrzo_
+_particleLayerNames
+_pendingAgentSafeModeCommit
+_phoneNumberErroring
+_preferredAgentSafeModeSetting
+_pressScaleVelocity
+_previousBloopState
+_previousCursor
+_pulseScale
+_queryString
+_recordDurationMs
+_recordedDuration
+_releaseName
+_removeAppPairingHintsOnInputChanged
+_renderingError
+_renderingProgress
+_responseCode
+_retentionDuration
+_rippleCenterUV
+_rippleTrigger
+_selectionIndicatorBorderWidth
+_sessionDurationMs
+_sharingServicePickerIsPresented
+_shouldAnimate
+_shouldAnimateChange
+_shouldAnimateCurrentFocusTransition
+_shouldAnimateTitleChange
+_shouldShowAppPairingBanner
+_shouldShowAppPairingButton
+_shouldShowAppPairingFeatureToggle
+_shouldShowErrorBorder
+_showAgentSafeModeNUX
+_showDisabledChatGPTWebLoginOverlay
+_showTabSharingButton
+_stringValue
+_submit(_:systemHints:with:clearUploadsAfterSubmit:triggeringSystemHintSuggestion:targetedReplyLabelOverride:isFirstMessageRetry:fromCommandReturn:submissionTrigger:)
+_sunsetResponse
+_tabOverlay
+_tabOverlayAnimation
+_tabSharingMenuIsVisible
+_tabSharingMenuViewModel
+_tabSharingSession
+_taskDuration
+_thinBorderWidth
+_timeoutInterval
+_trimDuration
+_userAgent
+_velocity
+_voiceListResponse
+_voiceTransitionOverlayVisible
+_whatsappSharingLayer
+_workspaceSearchResponseItems
+` (please disambiguate: 
+absoluteString
+acceptAutoPairingAppHint
+acceptAutoPairingAppHint()
+accessibilityAttributedStringForRange:
+accessoryCornerRadius
+accountOrdering
+accountStatusResponseCacheStore
+activateAgentLockdown:
+activateIgnoringOtherApps:
+activateSpan:duringBlock:
+activeAgentIDsSubject
+activeBloopState
+activeDurationSinceLastCrash
+activeDurationSinceLaunch
+activeLeaseCount
+addBorder
+addCursorRect:cursor:
+addLatestAppPairingStateToTurnContext(context:)
+addLocalMonitorForEventsMatchingMask:handler:
+addThemedBorder
+advanceDuration
+agcRelease
+agent
+agent unexpectedly running during cleanup
+agent-command-heartbeat
+agent-command-response
+agent-disclosure
+agent@chatgpt:/$ 
+agentClickDOM
+agentClientCommandHandler
+agentCommandHeartbeat
+agentCommandResponse
+agentConnectionEstablished
+agentContext
+agentEnvironment
+agentEventHandler
+agentEventQueue
+agentFileChooserError
+agentFileChooserSession
+agentFinalAnswer
+agentFinalAnswerWithConfirmation
+agentFinalAnswerWithLogin
+agentFinalAnswerWithTakeover
+agentGetDOM
+agentID
+agentId
+agentInstructionsMessage
+agentInteractionsAllowed
+agentIsRunning
+agentJavaScriptRuntime
+agentLibrary
+agentLifecycleService
+agentLocalSafeMode
+agentMessage
+agentMode
+agentModeAnnouncementBanner
+agentModeRestrictionsEnabled
+agentNUXVideoRemoteURL
+agentReasoning
+agentSafeModeActiveSubject
+agentSafeModeNux
+agentSafeModeSelection
+agentSafeModeSettingsSnapshot
+agentScrollDOM
+agentSessionMode
+agentState
+agentStateCancellable
+agentStateCoordinator
+agentStatusSubject
+agentStopped
+agentTabGroupHelper
+agentTabGroupService
+agentTabGroupServiceManager
+agentTakeControlTreatment
+agentUIController
+agentUIEventPublisher
+agentUIManager
+agentViewer
+agentViewerHiddenWebContent
+agentViewerWebContentSubscriptions
+agentVisibilityProvider
+agentWebContentDelegate
+agentWebSocket
+agentWindow
+agentWindowTabGroup
+agent_background_notification_success
+agent_id
+agent_instructions_message
+agent_message
+agent_mode_announcement
+agent_reasoning
+agent_session_mode_$value
+agent_test_api_key
+agent_window
+agentid
+allBordered
+allowAgentDownload(guid:)
+alwaysPrintInt64sAsNumbers
+animate
+animateIcon
+animateIn
+animateOnPageSuggestionChanges
+animateOut
+animated
+animatedColors
+animatedFrames
+animatedImageIndicatorView
+animates
+animationDuration
+answeringWillKickoffATask
+app-pairing-whisper
+appHangTimeoutInterval
+appHintInteraction
+appPairing
+appPairingBanner
+appPairingButton
+appPairingCancellable
+appPairingContent
+appPairingDefaultOn
+appPairingDefaultOnNUXShown
+appPairingEnabled
+appPairingFocusedContentInactivityTimeout
+appPairingMetadata
+appPairingOverlayViewModel
+appPairingService
+appPairingSettings
+app_hang_duration
+app_pairing
+app_pairing_content
+app_pairing_extensions
+appendAttributedString:
+appendBezierPath:
+appendBezierPathWithArcFromPoint:toPoint:radius:
+appendBezierPathWithArcWithCenter:radius:startAngle:endAngle:clockwise:
+appendString:
+archivedDataWithRootObject:requiringSecureCoding:error:
+aring
+arrowCursor
+assertResolvedReusePolicyConsistency(resolvedReusePolicy:leaseToken:webView:)
+asset_loader_retrieve_attachment_duration
+attemptExtractEstuaryUploadParameters(from:uploadResponse:fileName:)
+attributedString
+attributedStringValue
+attributedStringWithAttachment:
+attributedStringWithAttachment:attributes:
+attributedSubstringForProposedRange:actualRange:
+attributedSubstringFromRange:
+audioProcessingRelease
+audioUploadDuration
+audio_upload_duration_ms
+aura-agent
+aura-agent-take-control-treatment
+aura-codex-agent
+aura-cursor-chat
+aura_agents_cot_clicked
+aura_agents_cot_reloaded
+aura_agents_cot_scrolled
+aura_agents_cot_typed
+aura_cursor_chat_generate_suggestions
+autoPairingAppHint
+autoPlayAnimatedImage
+autoRegistering
+automationResponse
+autorelease
+autorelease pool page
+avatarOrbAudioProcessor
+avatarOrbSampleRate
+avatar_secret_agent.png
+awaitingResponse
+awaitingResponse(.
+awaiting_response
+backToCapturingTab
+backgroundColorButtonShapes
+backgroundCornerRadius
+backgroundDurationSinceLastCrash
+backgroundDurationSinceLaunch
+backgroundShimmerWindowManager
+badResponse
+badgeBorderColor
+base64String
+basic_string
+beaconUIResponse
+beaconUiResponse
+beacon_ui_response
+bezier
+bezierPath
+bezierPathWithRect:
+bezierPathWithRoundedRect:xRadius:yRadius:
+bioResponse
+blendedOverlay
+blockingDuration
+blocking_duration
+bloopVectorColors
+blur
+blurFilter
+blurRadius
+blurbs
+blurbsErrorAlert
+blurred
+border
+borderColor
+borderVisibility
+borderWidth
+bordered
+bottomFadeOutHeight
+bottomOverlay
+bottomOverlayConstraints
+bounce
+bringPanelToFrontIfNeeded
+buffering
+bufferingNewest
+bufferingOldest
+buildFromString:
+buildFromString:error:
+buttonBorder
+buttonCornerRadius
+cStringUsingEncoding:
+cacheDuration
+cacheResponse(_:)
+cachedAgentUIController
+cachedDataUsageForTrainingResponse
+cachedModelsResponse()
+cachedTaskDuration
+cachedTermsOfServiceResponses
+callDuration
+callStackReturnAddresses is empty, capturing current thread stack trace
+canCloseOverlay
+canShowAnimatedGradient
+cancel(remoteIDString:browserContextID:contentID:)
+captureFailedRequestsEnabled is disabled, not capturing HTTP Client errors.
+captureOutput:didFinishCapturingDeferredPhotoProxy:error:
+captureOutput:didFinishProcessingLivePhotoToMovieFileAtURL:duration:photoDisplayTime:resolvedSettings:error:
+capturingTab
+capturingTabID
+castBlur
+cellRenderersByOverlayView
+cellSizeForBounds:
+charactersIgnoringModifiers
+chatgpt-desktop-agent-navigation-policy-config
+chatgpt-desktop-allow-app-pairing-default-on
+chatgpt-desktop-allow-app-pairing-hints-using-vision
+chatgpt-desktop-control-overlay
+chatgpt-desktop-enabled-app-pairing-m1
+chatgpt-desktop-kaur1br5-agent-config
+chatgpt-desktop-remove-app-pairing-hints-on-input-changed
+chatgpt-ecosystem-skybridge-disable-pulse-app
+chatgpt-ios-agent-disable-strict-transitions
+chatgpt-ios-agent-enable-nux
+chatgpt-ios-disable-ecosystem-debounce-safe-area-updates
+chatgpt-ios-disable-ecosystem-improved-banner-timing
+chatgpt-ios-disable-helper-launch-agent
+chatgpt-ios-disable-image-sharing-notice
+chatgpt-ios-disable-rich-image-sharing
+chatgpt-ios-enable-codex-task-sharing
+chatgpt-ios-enable-steering
+chatgpt-ios-voice-enable-background-screen-sharing-inactivity-session-end
+chatgpt-pulse-task-cardgen-ios
+chatgpt_agent
+chatgpt_ios_fix_whatsapp_sharing
+chatgpt_sharing_multimodal
+checkSpellingOfString:startingAt:language:wrap:inSpellDocumentWithTag:wordCount:
+checkString:range:types:options:inSpellDocumentWithTag:orthography:wordCount:
+checkout_response_tag
+chrome://agentviewer
+classifierResponse
+cleanUpDanglingAgentViewerTabs()
+cleaning up agent
+cleanupTab(id:agentTabGroupService:)
+clearBorderWidth
+clearingInputFromSubmit
+clickRippleActive
+clickRippleCenterUV
+clickRippleCenterUVState
+clickRippleDuration
+clickRippleStartRealTime
+clickRippleTrigger
+clinical_engineering
+closedHandCursor
+codeCornerRadius
+codexTasks(limit:filter:cursor:)
+colorFromHexString:
+colorString
+colorbox
+com.onevcat.Kingfisher.BlurImageProcessor(
+com.onevcat.Kingfisher.BorderImageProcessor(
+com.onevcat.Kingfisher.OverlayImageProcessor(
+com.onevcat.Kingfisher.RoundCornerImageProcessor
+com.onevcat.Kingfisher.TintImageProcessor(
+com.openai.chatgpt.ClampedBlurProcessor(radius: 
+command.steps.capture_screenshot.duration
+command.steps.download.duration
+command.steps.execute.agent_stopped.count
+command.steps.execute.duration
+command.steps.get_dom.duration
+command.steps.send_response.duration
+compatibleWithOverlayScrollers
+completionsForPartialWordRange:inString:language:inSpellDocumentWithTag:
+componentsJoinedByString:
+componentsSeparatedByString:
+compressedStringsBundle
+computeLayout(scrollOffsetPolicy:tabWidthsPolicy:ensuringTabVisible:)
+configuring
+confirmationDuration
+connectDuration
+const e=document.activeElement;return!!e&&(selector==function(e){if(!e)return"";if(e.id)return`#${e.id}`;const t=(e.className||"").toString().trim().split(/\s+/).filter(Boolean);return t.length?`${e.tagName.toLowerCase()}.${t.join(".")}`:e.tagName.toLowerCase()}(e)&&document.execCommand("undo"));
+const t=["img","video","canvas","svg","picture","iframe"],i=window.innerWidth,n=window.innerHeight;if(0===i||0===n)return 0;const e=i*n;let o=0;for(const e of t)document.querySelectorAll(e).forEach(t=>{const e=t.getBoundingClientRect();if(e.width<=0||e.height<=0)return;const r=window.getComputedStyle(t);if("hidden"===r.visibility||"none"===r.display)return;const c=Math.max(e.left,0),d=Math.max(e.top,0),h=Math.min(e.right,i)-c,a=Math.min(e.bottom,n)-d;h>0&&a>0&&(o+=h*a)});return(100*o/e).toString();
+const t=document.activeElement,e="<user_selection>",n="</user_selection>",r="<user_insertion_point/>";function s(t){if(!t)return"";if(t.id)return`#${t.id}`;const e=(t.className||"").toString().trim().split(/\s+/).filter(Boolean);return e.length?`${t.tagName.toLowerCase()}.${e.join(".")}`:t.tagName.toLowerCase()}function o(t,s){let i="";return t.childNodes.forEach(function(t){t.nodeType===Node.TEXT_NODE?i+=function(t,s){let o=t.nodeValue;return s?t===s.startContainer&&t===s.endContainer?s.collapsed?o.slice(0,s.startOffset)+r+o.slice(s.startOffset):o.slice(0,s.startOffset)+e+o.slice(s.startOffset,s.endOffset)+n+o.slice(s.endOffset):t===s.startContainer?o.slice(0,s.startOffset)+e+o.slice(s.startOffset):t===s.endContainer?o.slice(0,s.endOffset)+n+o.slice(s.endOffset):o:o}(t,s):t.nodeType===Node.ELEMENT_NODE&&(i+=function(t,e){let n=t.tagName.toLowerCase(),r="";for(let e=0;e<t.attributes.length;e++){let n=t.attributes[e];r+=" "+n.name+'="'+n.value.replace(/"/g,"&quot;")+'"'}return"<"+n+r+">"+o(t,e)+"</"+n+">"}(t,s))}),i}if(!t)return null;if("TEXTAREA"===t.tagName||"INPUT"===t.tagName&&"text"===t.type){const e=t.value,n=t.selectionStart;return{content_type:"text",content:e.slice(0,n)+r+e.slice(n),selector:s(t)}}if(t.isContentEditable){const e=window.getSelection();if(!e.rangeCount)return null;const n=e.getRangeAt(0);if(!t.contains(n.startContainer)||!t.contains(n.endContainer))return null;return{content_type:"html",content:o(t,n),selector:s(t)}}return null;
+consumeMfaDeeplink
+contactBlur
+containsNoRenderableResponse
+containsString:
+contains_no_renderable_response
+contentViewOverlayProvider
+control:didFailToFormatString:errorDescription:
+control:didFailToValidatePartialString:errorDescription:
+controlAccentBorderColorSubject
+conversationOverlayBuilder
+conversationOverlayProvider
+conversationOverlayView
+conversationOverlayViewModel
+conversationResponseError
+conversation_rendering.last_rendered_message_is_user_after_stream_closed
+convertToString
+cookiesWithResponseHeaderFields:forURL:
+coordinatorBag
+copyURLToastBounceTask
+copyableTranscriptsString
+cornerButtons
+cornerRadii
+cornerRadius
+corner_radius_$value
+countOfResponseBodyBytesAfterDecoding
+countOfResponseBodyBytesReceived
+countOfResponseHeaderBytesReceived
+createSessionDebugString:
+crossFadeDuration
+currentCursor
+currentGreyTintAmount
+currentMaskAnimating
+currentMaskProgress
+currentSharingLevel
+currentUniformTintAmount
+cursor
+cursor:extension/
+cursorChat
+cursorChatEdit
+cursorChatEdit()
+cursorChatWrite
+cursorChatWrite()
+cursorColor
+cursorControl
+cursorHidden
+cursorImage
+cursorLocation
+cursorOffset
+cursorOverride
+cursorOverrides
+cursorPosition
+cursorSize
+cursorTrackingArea
+cursorUpdate:
+cursor_c
+cursor_chat
+cursor_chat.completion_failed
+cursor_chat_completion
+cursor_position_$value
+customBorderColor
+customCursorOverrides
+customTimings
+custom_timings
+d like ChatGPT to consider in its response.
+dalle_agent
+damping
+dampingRatio
+dateFromString:
+debounceIntervalSeconds
+debounceMilliseconds
+decrease
+decreasedFont
+defaultAgentLifecycleServiceFactory
+defaultCrossfadeDuration
+defaultEstimatedDuration
+defaultMaxDuration
+default_agent_suggestion
+default_estimated_duration
+default_max_polling_duration
+delimToString:
+delimiterNameForBoundaryAtom:
+delivering_quietly
+desktopCapturing
+didCloseSidebarOverlay()
+didDragDuringSingleClick
+didPasteStrings
+dil-widget-action-response
+disableAgentStrictTransitions
+disableEcosystemDebounceSafeAreaUpdates
+disableEcosystemImproveBannerTiming
+disableTinting
+disallowed_event_substrings
+displayDuration
+display_duration_seconds
+distString
+doNotIntrospectClasses
+domainLookupDuration
+download:decideDestinationUsingResponse:suggestedFilename:completionHandler:
+dragGestureMask
+draggingSession:sourceOperationMaskForDraggingContext:
+draggingSourceOperationMask
+drawingRectForBounds:
+duration
+duration(in:key:defaultValue:)
+durationFromCrashStateInitToLastCrash
+durationMs
+durationRange
+durationS
+durationSeconds
+duration_ms
+ear.badge.waveform
+editedMask
+eligibleAnnouncementStrings
+eligibleForBazaarOptOut
+emojiString
+emptyResponse
+empty_response
+enableAgentMode
+enableAppPairingAutoApplyPatches
+enableAppPairingBannerRedesign
+enableFastViewRendering
+enableScreenSharingSubject
+enable_agent_mode
+encodedJSONString(options:)
+endTakeoverFromAgent
+enqueue(remoteIDString:browserContextID:contentID:)
+enumerateMatchesInString:options:range:usingBlock:
+enumerateRenderingAttributesFromLocation:reverse:usingBlock:
+enumerateSubstringsFromLocation:options:usingBlock:
+environmentString
+error transitioning from paused to agent viewer
+errorBinaryImages
+errorBoundary
+errorOverlay
+errorPageOverlay
+errorReplayDuration
+errorSharingTask
+error_decoding_response
+escapedPatternForString:
+estimatedDuration
+estimatedDurationBySlug
+estimatedDurationSeconds
+estimatedReasoningDuration
+estimated_duration_by_slug
+eventMask
+exceededMaxDuration
+execute(actions:agentEnvironment:log:remoteConfigManager:tab:trace:takeScreenshot:)
+execute(payload:inactiveAgentContext:)
+executeCommand(payload:agentID:requestID:attempt:sentAt:isPreinitialize:requestIndex:skipShouldHandleCommandsCheck:)
+expression is not a literal string value
+extensionResponseError
+extraSharingServices
+extractDOM(agentTabGroupService:)
+fade
+fadeAnimation
+fadeAnimatorConfiguration
+fadeAnimatorsByLocation
+fadeInAnimation
+fadeInDelay
+fadeInDuration
+fadeLength
+fadeOutAnimation
+fadedLength
+failed to remove agent tab state data
+failed to update tab state when popping agent viewer
+failedToConvertDataToString
+failedToDecodeStringConvertibleValue
+failedWithResponseTooLarge
+failed_with_response_too_large
+fallbackTint
+featureFlagsDidChange(isAppPairingEnabled:visionEnabled:allowAppPairingDefaultOn:denylist:)
+featureValueWithString:
+feedCardStreamingConversation(cardID:request:additionalHeaders:taskDelegate:timeoutInterval:)
+feedEntrypoint(countLimit:timeoutInterval:)
+feedFeedbackStreamingConversation(cardID:automationID:request:additionalHeaders:taskDelegate:timeoutInterval:)
+feedURLStringForUpdater:
+fetchBlurbsTask
+fetchConnectorBlurbs(for:)
+fetchConnectorScopes(projectID:limit:cursor:)
+fetchProjectConversations(for:cursor:)
+fetchSharedPosts(limit:cursor:)
+fieldMaskConversion
+fileResponseType
+fileServiceProcessUploadStream(request:timeoutInterval:)
+fillCornerRadius
+filter_value_string
+finalCrossfadeDuration
+finalImageFailureLog(_:duringPrefetch:)
+finalImageFailureLog(duringPrefetch:)
+finalRevealDurationMultiplier
+findGlyphForBoundary:withHeight:
+findGlyphForCharacterAtIndex:inString:
+findMatchesForString:relativeToMatch:findOptions:maxResults:resultCollector:
+finishPasskeyEnrollment(mfaRequestID:passkeyCreationResponse:token:)
+finished_preparing
+firstMatchInString:options:range:
+flushDurationThreshold
+fontDescriptorByAddingAttributes:
+forbes.com
+forbidden
+forcedStyleAndLayoutDuration
+forced_style_and_layout_duration
+format of your response
+formattedDuration
+formattedRecordedDuration
+fpartint
+fullscreenOverlayWidgetId
+geocodeAddressString:completionHandler:
+getAppPairingApplyContext(for:runningApplications:)
+getAppPairingWorkspaces(focusedContent:)
+getAutomations(cursor:filter:)
+getBreadcrumbLevel:responseStatusCode:
+getDOMForAgent()
+getEventIdString:
+getInitializeResponseJson()
+getIntForKey:defaultValue:
+getInterElementSpace:right:
+getNullableStringForKey:defaultValue:
+getObjectValue:forString:errorDescription:
+getOverlayViewModel
+getSdkVersionString
+getStringForKey:defaultValue:
+get_token_response_end_time
+get_token_response_start_time
+get_type_string_func
+gizmoConversations(for:cursor:limit:)
+gizmoDiscoveryCut(_:cursor:limit:locale:)
+google.protobuf.Duration
+google.protobuf.FieldMask
+google.protobuf.StringValue
+gradientMaskLayer
+gradientOverlayView
+greyTintAmount
+gridImageCornerRadius
+handleAccountCreatedResponse(_:with:)
+handleHTTPRedirection(for:response:newRequest:)
+handleMoreDetails(for:attributedString:)
+handleRequestCompletionFailureAfterResponse(origin:)
+handleSpeakingUpdate(text:duration:)
+handleWorkerResponse(_:)
+handledNotificationResponses
+handling agent state request 
+hangDuration
+hapticFadeIn
+hapticFadeInCount
+hapticFadeOutIntensity
+hardcodedResponse
+hasBorder
+hasFocusRing
+hasRippleedThisSession
+hasSeenAgentSafeModeNuxSetting
+has_response_quality_issues
+has_seen_agent_safe_mode_nux
+heartbeatInterval
+hide_default_agent_suggestion
+history(cursor:)
+horbar
+hovering
+hoveringIndexPath
+hoveringItemID
+hoveringTrackingArea
+http.response.status_code
+httpResponse
+https://help.openai.com/articles/11752874-chatgpt-agent#h_beedf96566
+iconNeedsBorder
+iconOverlay
+imageCornerRadius
+imageForBounds:attributes:location:textContainer:
+imageOrColorButton
+impulseCount
+incognitoAgentStateCoordinator
+incognitoAgentUIEventPublisher
+increase
+increaseContrastEnabled
+increase_contrast_enabled
+increasedFont
+indentString
+infectious_disease
+init(__markdownString:options:baseURL:)
+init(accountID:dependencies:conversationContext:noAuthBehavior:modelContext:restoresAndPersistsNewThreadDrafts:allowVoice:voiceSession:canFocusInput:presentedImageGalleryViewModel:navigationHandler:explicitActions:overridePlaceholderText:disallowedInlineButtonActions:disallowedContextCellActions:conversationOverlayBuilder:streamingEndpoint:disableModelSelection:chatgptSdkFocusedMessageID:needsInitialRefresh:anchorsMessagesToTop:didSubmitMessage:)
+init(attributedString:)
+init(auraService:agentID:tabGroupID:)
+init(contentRect:styleMask:backing:defer:)
+init(contents:transform:opaque:opacity:clip:mask:)
+init(serverTimeString:)
+init(string:)
+init(string:attributes:)
+init(transform:opaque:opacity:clip:mask:id:)
+initWithAttributedString:
+initWithContentRect:styleMask:backing:defer:
+initWithEnableViewRendererV2:enableFastViewRendering:maskAllText:maskAllImages:maskedViewClasses:unmaskedViewClasses:excludedViewClasses:includedViewClasses:
+initWithEnvironment:releaseName:cacheDirectoryPath:sendDefaultPii:
+initWithMarkdownString:options:baseURL:error:
+initWithPath:height:width:duration:frameCount:frameRate:start:end:fileSize:screens:
+initWithReleaseName:distinctId:
+initWithReleaseName:osVersion:vendorId:isDebugging:systemBootTimestamp:
+initWithRequest:cachedResponse:client:
+initWithSessionSampleRate:onErrorSampleRate:maskAllText:maskAllImages:enableViewRendererV2:enableFastViewRendering:
+initWithString:
+initWithString:attributes:
+initWithString:didFailWithError:
+initWithString:position:range:font:atoms:
+initWithStringArray:
+initWithTimeoutInterval:
+initWithTimeoutInterval:crashWrapper:dispatchQueueWrapper:threadWrapper:
+initWithTimestamp:segmentId:size:duration:encoding:container:height:width:frameCount:frameRateType:frameRate:left:top:
+initWithTraceId:publicKey:releaseName:environment:transaction:sampleRate:sampleRand:sampled:replayId:
+initWithTraceId:publicKey:releaseName:environment:transaction:sampleRate:sampled:replayId:
+initWithUUIDString:
+initWithUserID:email:ip:country:locale:appVersion:custom:privateAttributes:customIDs:userAgent:
+initialCursorBottomPadding
+initialLayoutAttributesForAppearingItemAtIndexPath:
+initialLayoutAttributesForAppearingSupplementaryElementOfKind:atIndexPath:
+initialVelocity
+innerCornerRadius
+input of String.init(cString:encoding:) must be null-terminated
+inputEventLatencyRenderingScheduledImplComponent
+inputEventLatencyRenderingScheduledMainComponent
+insertAttributedString:atIndex:
+interpolatedStrokes
+interpolationCount
+interruptShimmerWhenDisabled
+invalidAcceptSubstring
+invalidBase64String
+invalidResponse
+invalidStringEncoding
+invalidURLResponse
+invalidateCursorRectsForView:
+invalidationContextForBoundsChange:
+ios.auth.log_out_tasks_duration
+ios.conversation_rendering
+ios.messages.image_sharing_format
+ios.rendering_duration
+isAdvancedBloop
+isAgent
+isBlur
+isBuffering
+isCompatibleWithOverlayScrollers
+isDeliveringQuietly
+isEnabledForImageSharing
+isEnteringProximity
+isEqualToString:
+isFiltering
+isHovering
+isHoveringChipView
+isHoveringCloseButton
+isHoveringOverAddressBarBackground
+isLocalToolResponse
+isNewBloop
+isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:
+isPulse
+isRendering
+isScreensharing
+isSettingUpAgentTabGroup
+isShimmering
+isSimulatorBuild
+isStreamingResponseInBackground
+isString
+isStylusEnteringProximity
+isWaitingForResponse
+isXrOverlay
+is_enabled_for_image_sharing
+itemCornerRadius
+itemProgressOverlaySize
+java_string_check_utf8
+jawboneResponse
+jobsAgent
+jsString
+keepWhenEnteringBackground
+keyEquivalentModifierMask
+keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:
+keyReleased
+labelWithString:
+lastAccountSettingsResponse
+lastAccountStatusResponse
+lastAgentMessage
+lastClickRippleTrigger
+lastCursorLocation
+lastFadedPartEndLocation
+lastInteraction
+lastInteractionDate
+lastNotificationSettingsResponse
+lastObservedURLString
+lastOverlayDisplayedAt
+lastResponseLatency
+lastSystemHintsResponse
+last_account_info_response
+last_account_info_response.
+last_current_user_response
+last_current_user_response.
+latestAgentToolSessionSubject
+launchExtensionManagementInternal(for:)
+launcherChatResetDuration
+leaseRenewal
+leaseToken
+line.3.horizontal.decrease
+lineAnimationDuration
+listConversationFiles(conversationId:limit:cursor:)
+listInterItemSpacing
+listLibraryFiles(limit:cursor:category:state:)
+ll keep trying this method, or you can update it now. To continue accessing your workspace, please take action by 
+llcorner
+load(url:agentTabGroupService:)
+loadHTMLString:baseURL:
+loadHistory(cursor:)
+loadPreferences(cursor:)
+loadRecordingDuration(from:)
+loadTabs(payload:agentContext:timeout:)
+loading(_:overlayView:overlayColor:shineColor:redacted:preserveViewIdentity:)
+loadingBranchesListStubResponse
+loadingEnvironmentListStubResponse
+loadingStubResponse
+localizedStringByJoiningStrings:
+localizedStringForCalendarIdentifier:
+localizedStringForDate:relativeToDate:
+localizedStringForKey:value:table:
+localizedStringForLocaleIdentifier:
+localizedStringForStatusCode:
+localizedStringFromNumber:numberStyle:
+locationManager:didStartMonitoringForRegion:
+locationManager:monitoringDidFailForRegion:withError:
+locationSharingFailed
+locationSharingRequest
+locationSharingService
+locationSharingSuccess
+location_sharing_failed
+location_sharing_request
+location_sharing_success
+logCompletionEnded(for:with:allowEmptyResponse:appState:)
+logEvent:stringValue:
+logEvent:stringValue:metadata:
+logHttpResponseErrorWithStatusCode:envelope:request:
+loginWindowOverlayPanel
+loopDuration
+lowerUrlAsString
+lowercaseString
+lrcorner
+machdep.cpu.brand_string
+mainResponseMessage
+makeAssertionInternal(for:taskDelegate:attempt:challengeFetchAttemptCount:serverChallengeResponse:serverChallengeSource:serverChallengePrefetchTrigger:serverChallengeStartInstant:serverChallengeReadyInstant:)
+makeTextFadeAnimator
+makeToolActionResponseMessage(with:confirmsActionWithConnection:rememberAnswer:)
+malformedDuration
+malformedFieldMask
+malformedString
+mapStackEntryWithCursor:
+markAsPausedAgentTab(_:)
+markVoiceListResponseSeen(_:)
+markdownEditAskChatGPTAction(for:selectionRange:attributedString:)
+markdownEditMoreDetailsAction(for:selectionRange:attributedString:)
+mask
+mask-user-input
+maskAll
+maskAllImages
+maskAllInputs
+maskAllText
+maskDisallowed
+maskDuringRipple
+maskFileId
+maskLayer
+maskNonBundledOnly
+maskNone
+maskPlaceholder
+maskSensitiveInputs
+maskTransitionDurationActive
+maskTransitionDurationInitializing
+maskUserInput
+maskWidth
+mask_all
+mask_all_inputs
+mask_disallowed
+mask_non_bundled_only
+mask_none
+mask_placeholder
+mask_sensitive_inputs
+maskedViewClasses
+masksInHorizontalMode
+matchesInString:options:range:
+mathListToString:
+maxDuration
+maxPollDurationSeconds
+maxProgressDuration
+maxRecordingDuration
+maxReferenceDuration
+maxResponseCount
+maxRevealDuration
+maxVideoDuration
+max_duration
+maximumCursorSize
+maximumDuration
+mediumspringgreen
+messageInputAppPairingBannerViewModel
+messageInputInteractionEnabled
+minClipDuration
+minDuration
+minRevealDuration
+minVideoDuration
+minimumBackgroundDuration
+minimumBackgroundDurationForForcedStateReset
+minimumBackgroundDurationForStateResetAttempt
+minimumDuration
+minimumImportDuration
+minimumTranscriptDurationSeconds
+minimumVisibleDuration
+minimum_background_duration
+minimum_background_duration_for_forced_state_reset
+minimum_background_duration_for_state_reset_attempt
+mismatchedAudString
+missingGPTActionResponseMessage
+missingRequiredResponseBody
+missingResponse
+missing_action_response_message
+model_slug_max_polling_durations
+moderationResponse
+modifierMask
+monitoring
+monitoringCancellable
+monitoringFromUninstalledToRestore
+monitoringTask
+monitoringTimer
+monitoringWhenUninstalled
+mouseReleasedEvent
+moveSubsection(_:with:to:covering:processingTabs:)
+myImages(limit:cursor:useRecentMediaGenerationEndpoint:)
+nameStringId
+navigateToAgentConversation(conversationID:)
+nearing
+nextCursor
+nextEventMatchingMask:untilDate:inMode:dequeue:
+nextInterfaceID
+no url for the agent's selected tab when pushing an agent viewer
+noHTTPResponse
+noURLResponse
+no_http_response
+normalTabsGradientMaskLocations
+notBorderedButtonBackgroundColor
+notHTTPResponse
+noteClientStringWillChange
+notificationResponseQueue
+notificationResponseWithNotification:
+numberFromString:
+numberOfMatchesInString:options:range:
+numberString
+oai/apps/hasSeenAgentModeAnnouncementBanner
+oai/apps/hasSeenAppPairingOnboarding
+offeringID
+offeringNotFound
+offsetIntoBinaryTextSegment
+onMaximumDurationReached
+onRelease
+onResponseReceived
+onUploadTimingCollected
+openAgentTabs(agentid:urls:)
+openCursorChat
+openHandCursor
+openPulseOverlay
+openPulseShare
+open_cursor_chat
+operatingSystemVersionString
+operationMask
+operationNotAllowedCursor
+orbData
+orbDataIndex
+orbDataMissing
+orbDataTime
+orbDataURL
+orbitz.com
+orderingBehavior
+outputFormatForBus:
+overlay
+overlayAlpha
+overlayComposerMessageInputDependencies
+overlayComposerModelContext
+overlayConstraints
+overlayContent
+overlayFrame
+overlayLabel
+overlayMask
+overlayPadding
+overlayPlacementProgress
+overlayViews
+overlayWebContent
+overlayWebContentAction
+overlayWebContentActionEnabled
+overlayWebContentView
+overlaysViewModel
+owl.mojom.TabSharingSession
+parseISO8601DateString(_:supportsRelativeFormat:)
+partialStringPolicy
+particle
+passkeyChallengeResponse
+passkeyCreationResponse
+passkey_challenge_response
+passkey_creation_response
+pauseAgent
+pauseDuration
+pause_duration
+pausedAgentID
+pausedForBackground
+peerConnection:didChangeIceGatheringState:
+penSpark
+pendingAgentDownloadWaiters
+pendingAgentFileChooserWaiter
+pendingAgentUIControllerReceiver
+pendingAgentViewerTabID
+pendingResponses
+perChunkDisplayDuration
+perCoordinatorBag
+perSearchChunkDisplayDuration
+performWaitActionDuration(remoteConfigManager:)
+pingResponseSubject
+platformCursor
+playerDurationKVOObservation
+plus_offering_id
+pointingHandCursor
+pointint
+polaroidInnerCornerRadius
+polaroidOuterCornerRadius
+popAllAgentViewers(isPausing:)
+popoverLayoutMargins
+popupOverlay
+postInterval
+postSteeringRequest(_:additionalHeaders:)
+postsCursor
+preferences(cursor:)
+preferredAgentSafeModeSetting
+preferredAgentWindowAppearance
+preferred_agent_safe_mode
+prefetchedStatusResponse(remoteConversationId:gizmoID:createNewSession:createNewConversation:fromVoicePicker:jobsMockInterviewConfig:)
+preparing
+preparing assertion
+presentInternalModelsPicker
+presentIntroToPlusCarouselDisclosureIfNeeded()
+pressedOverlay
+prevCursor
+prevRippleActive
+prevRippleElapsedForClamp
+preventRefreshingDuringStreams
+prevent_refreshing_during_streams
+previousBloopState
+previousResponseCode
+primaryContentOverlay
+primaryDevToolsOverlay
+privacyFilteringEnabled
+processExternalPairingRequest(forApp:inWorkspace:)
+processString:
+produceFinalResponse(for:skipShouldHandleCommandsCheck:)
+profilesForBrowser
+progressOverlay
+projectSharing
+projectsResponse
+protobuf_analytics_events.v1.AtlasAgentReportScreenSize
+protobuf_analytics_events.v1.ChatgptImageHomeFirstInteraction
+protobuf_analytics_events.v1.ChatgptProductInteractionEvent
+protobuf_analytics_events.v1.ChatgptPulseCardOpened
+protobuf_analytics_events.v1.ChatgptPulseCardViewed
+protobuf_analytics_events.v1.ChatgptPulseOnboardingConnectorInfo
+protobuf_analytics_events.v1.ChatgptPulseOnboardingEvent
+protobuf_analytics_events.v1.InitiateAtlasAgent
+pulse
+pulseApp
+pulseIntensity
+pulseOverlayType
+pushPendingAgentViewerIfNeeded(reason:)
+q32@0:8@"NSString"16^@24
+qd__SgXwz_So13NSURLResponseC_
+quatint
+queryString
+query_string
+rampDuration
+rangeOfFirstMatchInString:options:range:
+rangeOfString:
+rangeOfString:options:
+rayAnimDuration
+re sharing this so you can be aware and support your child.
+readString
+receive_name specified a receive right which was moved into a port set during the call.
+receivedMessageUpdate(from:to:streamEncodingFormat:streamBufferingEnabled:bytes:modelSlug:conversationID:messageID:)
+receivedResponse(with:)
+receivingResponse
+receiving_response
+recordDuration
+record_duration_ms
+recorded_duration
+recordingDuration
+recordingDurationCountsDown
+recurringTimeFormatStyle
+referringVisitId
+referring_visit_id_$value
+release
+release:
+releaseDrawables
+releaseDuration
+releaseName
+releaseToSend
+releaseToSendBackground
+releaseToSendForeground
+released
+remote-worker-response
+remoteAgentEventQueue
+remoteWorkerResponse
+remoteWorkerResponseHandler
+removeAutoPairingAppHint
+removeHighlights(animated:)
+removeRenderingAttribute:forTextRange:
+renderedHarmonyString
+renderingProgress
+renderingSurfaceBounds
+renderingTask
+replaceCharactersInRange:withAttributedString:
+replaceCharactersInRange:withString:
+replacementString
+reportResult(_:for:collectedMetrics:requestDuration:)
+request.duration
+request.time_since_response_started
+requestCompletionResponseTask
+requestWithResponsePseudo
+requiresAppPairing
+resetCursorRects
+resetWithDebounce()
+resizeLeftRightCursor
+resizeUpDownCursor
+response
+response.status_code
+responseBetaSettingsKeyPath
+responseBody
+responseBodyBytesReceived
+responseCode
+responseContinuation
+responseDecodeFailed
+responseEndDate
+responseEndTime
+responseError
+responseInterrupted
+responseMessageID
+responseMessageId
+responseQuality
+responseSettingsKeyPath
+responseSize
+responseStartDate
+responseStartTime
+responseStreaming
+responseSubject
+responseTimeout
+responseType
+responseTypeURL
+responseWithRequestPseudo
+responseWithoutStatus
+response_body_size
+response_code
+response_end_time
+response_quality
+response_start_time
+response_streaming
+response_timeout_seconds
+response_type_url
+responses
+resumableStreamingConversation(with:createRequest:enableSharedSessionRequests:dontRetryOnNoInternetConnection:taskDelegate:timeoutInterval:isMangoChat:)
+resumeAgent
+resumeStreamingConversation(with:continuingFrom:additionalHeaders:enableSharedSessionRequests:enableRetries:taskDelegate:timeoutInterval:isMangoChat:)
+retrieveImageDuration
+retrieveStacktraceFromCursor:
+return function(){const t="[[USER_CURSOR]]",e="[[USER_SELECTION_BEGIN]]",n="[[USER_SELECTION_END]]";function r(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}function i(t){return t?t.getRootNode?t.getRootNode():t.ownerDocument||null:null}function o(t,e){return i(t)===i(e)}function a(t){const e=[];let n=t,r=t.ownerDocument.defaultView;for(;;){const t=n.getRootNode();if(t instanceof ShadowRoot){const r=t.host;e.unshift({kind:"shadow",selector:l(r)}),n=r;continue}const i=r&&r.frameElement;if(!i)break;e.unshift({kind:"frame",selector:l(i)}),r=i.ownerDocument.defaultView,n=i}return e}function c(t){return{selector:l(t),chain:a(t)}}function s(t){if(!(t instanceof Element))return"";return'node_id="'+b(t,c(t))+'"'}function l(t){if(!(t instanceof Element))return"";let e=[];for(;t&&t.nodeType===Node.ELEMENT_NODE;){let n=t.tagName.toLowerCase();if(t.id){n+="#"+CSS.escape(t.id),e.unshift(n);break}{let e=t,r=1;for(;e=e.previousElementSibling;)e.tagName.toLowerCase()===n&&r++;n+=":nth-of-type("+r+")"}e.unshift(n),t=t.parentNode}return e.join(" > ")}function u(t){if(!(t instanceof Element))return"";const e=[],n=t.getAttribute&&t.getAttribute("name");n&&e.push(`name="${r(n)}"`);const i=t.getAttribute&&t.getAttribute("aria-label");if(i&&e.push(`aria-label="${r(i)}"`),t.tagName&&"img"===t.tagName.toLowerCase()){const n=t.getAttribute&&t.getAttribute("alt");null!=n&&e.push(`alt="${r(n)}"`)}return e.length?" "+e.join(" "):""}const f=new Set(["address","article","aside","blockquote","canvas","dd","div","dl","dt","fieldset","figcaption","figure","footer","form","h1","h2","h3","h4","h5","h6","header","hgroup","hr","li","main","nav","noscript","ol","p","pre","section","table","tfoot","ul","video","textarea"]),d=new Set(["table","tr","td","th"]);var h=null;MATCH_WHITESPACE_WITH_NEWLINE=/[\t ]*\n[\t \n]*/g,MATCH_WHITESPACE_NO_NEWLINES=/[\t ]+/g;const p=new WeakMap,g=new WeakMap;const m=new WeakMap,w=Object.create(null);function b(t,e){let n=m.get(t);if(!n){const r=function(t){return`${(location.origin+location.pathname).toLowerCase()}||${(t?.chain||[]).map(t=>`${t.kind}:${(t.selector||"").toLowerCase()}`).join("|")}||${(t?.selector||"").toLowerCase()}`}(e||c(t));n="$"+function(t,e=0){let n=3735928559^e,r=1103547991^e;for(let e,i=0;i<t.length;i++)e=t.charCodeAt(i),n=Math.imul(n^e,2654435761),r=Math.imul(r^e,1597334677);return n=Math.imul(n^n>>>16,2246822507)^Math.imul(r^r>>>13,3266489909),r=Math.imul(r^r>>>16,2246822507)^Math.imul(n^n>>>13,3266489909),(r>>>0).toString(16).padStart(8,"0")+(n>>>0).toString(16).padStart(8,"0")}(r),m.set(t,n)}if(e&&null==w[n]){let r=null;try{t&&"function"==typeof t.getBoundingClientRect&&(r=t.getBoundingClientRect())}catch(t){r=null}w[n]={selector:e.selector||"",chain:Array.isArray(e.chain)?e.chain:[],element_frame:r?{x:r.x,y:r.y,width:r.width,height:r.height}:{x:0,y:0,width:0,height:0}}}return n}const E=new Set(["button","link","checkbox","menuitem","option","radio","switch","textbox","combobox","tab","slider","spinbutton"]);function C(t){if(!t||1!==t.nodeType)return!1;if(t.hidden)return!1;const e=t.ownerDocument&&t.ownerDocument.defaultView,n=e?e.getComputedStyle(t):null;if(n){if("none"===n.display||"hidden"===n.visibility||"collapse"===n.visibility)return!1;if(n.opacity&&parseFloat(n.opacity)<=.01)return!1;if("none"===n.pointerEvents)return!1}const r=t.getBoundingClientRect();return!(r.width<=0||r.height<=0)}function y(t){if(!C(t))return!1;if(function(t){return t.hasAttribute("disabled")||"true"===t.getAttribute("aria-disabled")}(t))return!1;const e=t.tagName&&t.tagName.toUpperCase();if(!e)return!1;if("A"===e)return!0;if("BUTTON"===e)return!0;if("SUMMARY"===e)return!0;if("INPUT"===e){return"hidden"!==(t.getAttribute("type")||"text").toLowerCase()}if("SELECT"===e||"TEXTAREA"===e)return!0;if(t.isContentEditable)return!0;const n=t.getAttribute("role");if(n&&E.has(n.trim().toLowerCase()))return!0;const r=parseInt(t.getAttribute("tabindex")||"-1",10);return!isNaN(r)&&r>=0||"function"==typeof t.onclick}function S(t){if(!t||1!==t.nodeType)return!1;let e;try{e=t.getBoundingClientRect()}catch{return!1}if(!e||e.width<=0||e.height<=0)return!1;const n=[{x:e.left+e.width/2,y:e.top+e.height/2},{x:e.left+2,y:e.top+2},{x:e.right-2,y:e.top+2},{x:e.left+2,y:e.bottom-2},{x:e.right-2,y:e.bottom-2}].map(t=>({x:Math.min(Math.max(t.x,0),Math.max(0,window.innerWidth-1)),y:Math.min(Math.max(t.y,0),Math.max(0,window.innerHeight-1))}));for(const e of n){const n=document.elementFromPoint(e.x,e.y);if(n&&(n===t||n.contains(t)||t.contains(n)))return!1}return!0}function N(i){let o=i.value;if(document.activeElement===i){let a=i.selectionStart,c=i.selectionEnd;return a===c?r(o.slice(0,a))+t+r(o.slice(a)):r(o.slice(0,a))+e+r(o.slice(a,c))+n+r(o.slice(c))}return r(o)}function T(i){let a=i.nodeValue;if(!h)return r(a);try{if(!h.startContainer||i.ownerDocument!==h.startContainer.ownerDocument)return r(a)}catch{return r(a)}if(i===h.startContainer&&i===h.endContainer){let i=h.startOffset,o=h.endOffset;return i===o?r(a.slice(0,i))+t+r(a.slice(i)):r(a.slice(0,i))+e+r(a.slice(i,o))+n+r(a.slice(o))}if(i===h.startContainer){let t=h.startOffset;return r(a.slice(0,t))+e+r(a.slice(t))}if(i===h.endContainer){let t=h.endOffset;return r(a.slice(0,t))+n+r(a.slice(t))}return function(t,e){try{if(!t||!e)return!1;const n=t.startContainer,r=t.endContainer||n;if(!o(n,e)||!o(r,e))return!1;const i=e.ownerDocument.createRange();return i.selectNodeContents(e),t.compareBoundaryPoints(Range.START_TO_START,i)<=0&&t.compareBoundaryPoints(Range.END_TO_END,i)>=0}catch{return!1}}(h,i)?e+r(a)+n:r(a)}function A(t,e,n){return{prefix:t,postfix:e,haltTraversal:n}}function x(t){let e=t.tagName.toLowerCase();if("script"===e||"style"==e||"head"==e||"noscript"===e)return A("","",!0);let n=f.has(e)?"\n":"",i="";if("input"===e){const e=(t.getAttribute("type")||"text").toLowerCase(),o="password"===e;return A(n+`<input ${[`type="${r(e)}"`,t.name?`name="${r(t.name)}"`:"",t.placeholder?`placeholder="${r(t.placeholder)}"`:"",t.getAttribute("aria-label")?`aria-label="${r(t.getAttribute("aria-label"))}"`:"",s(t)].filter(Boolean).join(" ")} value="${o?"":N(t)}"></input>`,i,!0)}if("textarea"===e)return A(n+"<textarea "+s(t)+u(t)+">"+N(t)+"</textarea>",i,!0);if("a"===e){let e,o=t.getAttribute("href")||"";try{e=new URL(o,document.baseURI).toString()}catch{e=o}if(e!==window.location.href){const{short:o,full:a}=function(t,{keepKeys:e=new Set(["q"]),maxLen:n=120}={}){let r;try{r=new URL(t,document.baseURI)}catch{return{short:t,full:t}}const i=["utm_","icl_","mc_","pk_","mtm_"],o=new Set(["gclid","fbclid","ref","ref_src","ref_url","cId","iId","za","zp","impressionid","impressionId","spm","scm"]),a=new URL(r.toString()),c=new URLSearchParams;for(const[t,n]of r.searchParams.entries()){const r=t.toLowerCase();e.has(r)?c.append(t,n):o.has(r)||i.some(t=>r.startsWith(t))}a.search=c.toString()?"?"+c.toString():"";let s=a.origin+a.pathname+a.search+a.hash;return s.length>n&&(s=a.origin+a.pathname+(c.toString()?"?"+c.toString():""),s.length>n&&(s=s.slice(0,n-1)+"
+return function(e){if(!e)return!1;const t="string"==typeof e?document.querySelector(e):e;if(!t||"OPTION"!==t.tagName)return!1;const n=t.closest("select");if(!n)return!1;const l=window.HTMLSelectElement&&HTMLSelectElement.prototype,r=l&&Object.getOwnPropertyDescriptor(l,"value")?.set,c=String(t.value);if(n.multiple)t.selected=!0;else{for(const e of n.options)e.selected=!1;t.selected=!0}return r?r.call(n,c):n.value=c,n.dispatchEvent(new Event("input",{bubbles:!0})),n.dispatchEvent(new Event("change",{bubbles:!0})),n.blur(),!0}(elemSelector);
+return function(e,t){e=Number(e)||0,t=Number(t)||0;const o=document.scrollingElement||document.documentElement||document.body,l=o.scrollTop,n=o.scrollLeft;if(o.scrollBy({left:e,top:t}),o.scrollTop!==l||o.scrollLeft!==n)return!0;const r=Math.floor(window.innerWidth/2),c=Math.floor(window.innerHeight/2);let s=document.elementFromPoint(r,c);const d=new Set,u=/(auto|scroll|overlay)/;function f(e){if(!e||e===document.body||e===document.documentElement)return!1;const t=getComputedStyle(e),o=e.scrollHeight>e.clientHeight&&u.test(t.overflowY);return e.scrollWidth>e.clientWidth&&u.test(t.overflowX)||o}for(;s&&!f(s)&&!d.has(s);)d.add(s),s=s.assignedSlot||s.parentElement||s.getRootNode&&s.getRootNode().host||null;if(s&&f(s)){const o=s.scrollTop,l=s.scrollLeft;if(s.scrollBy({left:e,top:t}),s.scrollTop!==o||s.scrollLeft!==l)return!0}const m=Array.from(document.querySelectorAll("iframe"));for(const o of m)try{const l=o.contentWindow,n=l.document.scrollingElement||l.document.documentElement||l.document.body,r=null!=l.pageYOffset?l.pageYOffset:n.scrollTop;l.scrollBy(e,t);if((null!=l.pageYOffset?l.pageYOffset:n.scrollTop)!==r)return!0}catch(e){}const i=document.elementFromPoint(r,c);return i&&i.dispatchEvent(new WheelEvent("wheel",{deltaX:-e,deltaY:-t,bubbles:!0,cancelable:!0})),!1}(scroll_x,scroll_y);
+return"string"==typeof encoding&&"plain"===encoding?async function(t){const r=await fetch(t,{method:"GET"});if(!r.ok)throw new Error(`HTTP ${r.status} ${r.statusText} 
+return(()=>{const e=function(){const e=document.querySelector("ytd-player");return e&&e.getPlayer?e.getPlayer():null}(),t=e?.getVideoData?.()||null,r=function(){try{const e=document.getElementById("movie_player")||document.querySelector(".html5-video-player");return!!e&&(!(!e.classList.contains("ad-showing")&&!e.classList.contains("ad-interrupting"))||!!(document.querySelector(".ytp-ad-player-overlay-layout")||document.querySelector(".ytp-skip-ad-button")||document.querySelector(".ytp-ad-button-vm")||document.querySelector(".ytp-visit-advertiser-link")))}catch{return!1}}(),n=document.querySelector("video");let o=e?.getDuration?.()??n?.duration??0;Number.isFinite(o)||(o=0);return{isAd:r,isLive:!(!t||!t.isLive&&!t.is_live),videoDurationSeconds:o}})();
+return(async()=>{function t(t){return new Promise(e=>setTimeout(e,t))}const e=function(){const t=document.querySelector("ytd-player");return t&&t.getPlayer&&t.getPlayer?t.getPlayer():null}();if(!e)return;let n=e.isSubtitlesOn();const{urls:r,disconnect:s}=function({seedExisting:t=!1}={}){const e=new Set,n=[],r=t=>{t&&/\/timedtext/.test(t)&&!e.has(t)&&(e.add(t),n.push(t))};if(t)for(const t of performance.getEntriesByType("resource"))r(t.name);const s=new PerformanceObserver(t=>{for(const e of t.getEntries())r(e.name)});return s.observe({type:"resource",buffered:!0}),{urls:n,disconnect:()=>s.disconnect()}}();!function(t){t.isSubtitlesOn()&&t.toggleSubtitles(),t.toggleSubtitlesOn()}(e);const i=await async function(e,n=4e3){const r=Date.now()+n;for(;Date.now()<r;){const n=e.at(-1);if(n)return n;await t(150)}return null}(r,4e3);if(n||function(t){t.isSubtitlesOn()&&t.toggleSubtitles()}(e),s(),!i)return;const o=function(t){const e=new URL(t);return e.searchParams.set("fmt","json3"),e.toString()}(i),c=(await async function(t){return(await fetch(t)).text()}(o)).trim();if(!c)return;let a;try{a=JSON.parse(c)}catch{return}const u=function(t){return(t.events||[]).filter(t=>t.segs&&t.segs.length>0).map(t=>`[${(("number"==typeof t.tStartMs?t.tStartMs:0)/1e3).toFixed(3)}] ${t.segs.map(t=>t.utf8).join("")}`).join("\n")}(a).trim();if(!u)return;const f=function(t,e){return new URL(e).searchParams.get("v")!==t.getVideoData().video_id}(e,i);let l;if(f)l="** Note: This transcript is for an ad, not the main video **\n\n"+u;else{l=`** Transcript for ${e.getVideoData().title} **\n\n`+u}return{transcript:l,isAd:f}})();
+reuseOrBegin
+revealDurationMultiplier
+rich_image_sharing_enabled
+ring
+ringBuffer
+ringColor
+ringFontSize
+ringRadiusMultiplier
+ringScaleOverride
+ringTextBottom
+ringTextTop
+ringTracking
+ringWeight
+rippleActive
+rippleArmed
+rippleLastElapsedAtStop
+rippleMaxDuration
+rippleStartRealTime
+rippleStopRealTime
+rippleTailActive
+rippleTailDuration
+roundedCornerRadius
+roundedCorners
+roundingCorners
+rumContextIntegration
+s redwood forests represent one of the most critical ecosystems in North America, offering unparalleled carbon storage, biodiversity, and watershed protection. By evaluating current challenges
+s). Request a lower minTTL or increase the
+s5Clock_px8DurationsAAPRts_XP
+sanitizedModelsResponse(from:internalModelsEnabled:modelIntelligenceSheetEnabled:)
+saveMask(_:with:strokes:didSave:maskURL:previewURL:)
+scanUpToString:intoString:
+scannerWithString:
+scopedUserAgentHosts
+scopedUserAgentPrefix
+screenSharing
+screenSharingInactivity
+screenSharingInactivitySessionEndTask
+scrollToAnimated
+searchConversations(query:cursor:)
+searchGizmos(query:cursor:limit:)
+searchResponseItems
+secondaryContentOverlay
+secondaryDevToolsOverlay
+secureConnectionDuration
+seenAgentModeAnnouncementBanner
+seenAppPairingTooltip
+selectProfileForBrowser
+selectSearchResponseItem
+selectedProfileForBrowser
+selfCapturingTab
+sendCode(to:triggeringProduct:)
+sendCommand(command:payload:responseType:)
+sendPingAndWaitForResponse(context:)
+sendRemoteBrowserResponse(_:)
+sentry-release
+sentryANRMechanismDataAppHangDuration
+sentryIdString
+sentryLevelFromString:
+sentrySpanIdString
+sentrycrashcm_nsexception_initStackCursor
+separatorByte
+serverResponseError
+sessionDurationSeconds
+sessionSegmentDuration
+session_duration_ms
+session_duration_seconds
+setAgentSafeMode
+setAnimates:
+setAnimatesToStartingPositionsOnCancelOrFail:
+setAppHangTimeoutInterval:
+setAttributedString:
+setAttributedStringValue:
+setAutomaticallyAdjustsVideoMirroring:
+setAutoresizingMask:
+setBorderColor:
+setBorderType:
+setBorderWidth:
+setBordered:
+setColorString:
+setContentTintColor:
+setCornerRadius:
+setDamping:
+setDistString:
+setDoNotIntrospectClasses:
+setDraggingSourceOperationMask:forLocal:
+setDuration:
+setEnableFastViewRendering:
+setEnvironmentString:
+setErrorReplayDuration:
+setEventIdString:event:
+setFocusRingType:
+setFrame:display:animate:
+setImageInterpolation:
+setInitialVelocity:
+setInteger:forKey:
+setIntegrations:
+setInterColumnSpacing:
+setInterGroupSpacing:
+setInterItemSpacing:
+setInterRowAdditionalSpacing:
+setIntrinsicHeight
+setIntrospectMemory:
+setIsHoveringOnSideChatButton
+setKeyEquivalentModifierMask:
+setLocationSharingEnabled(_:source:)
+setMask:
+setMaskAllImages:
+setMaskAllText:
+setMaskedViewClasses:
+setMasksToBounds:
+setMaximumDuration:
+setMeteringEnabled:
+setMonitoring:
+setMonitoringFromUninstalledToRestore:
+setMonitoringWhenUninstalled:
+setNameFieldStringValue:
+setPlaceholderString:
+setQueryString:
+setReleaseName:
+setReleasedWhenClosed:
+setRenderingAttributes:forTextRange:
+setSdkName:andVersionString:
+setSessionSegmentDuration:
+setStiffness:
+setString:
+setString:forType:
+setStringValue:
+setStyleMask:
+setTimeoutInterval:
+setTimeoutIntervalForResource:
+setTimingFunction:
+setTranslatesAutoresizingMaskIntoConstraints:
+setUnmaskedViewClasses:
+setUpAgentTabGroupIfNecessary()
+setVersionString:
+settlingDuration
+setupCapturing()
+setupTextView(hasFocusRing:)
+sharing
+sharingLevels
+sharingPicker
+sharingServicePicker:delegateForSharingService:
+sharingServicePicker:didChooseSharingService:
+sharingServicePicker:sharingServicesForItems:proposedSharingServices:
+sharingServicePickerCollaborationModeRestrictions:
+sharingTargets
+shimmerColor
+shimmerDuration
+shimmerUpdateInterval
+shimmerWindow
+shimmerWindowCloseObserver
+shimmer_duration_ms
+shimmeringTitle
+shouldAllowStringsToPaste
+shouldAnimate
+shouldAnimateFocusTransition
+shouldAnimateRows
+shouldChangeTextInRange:replacementString:
+shouldChangeTextInRanges:replacementStrings:
+shouldInvalidateLayoutForBoundsChange:
+shouldMonitorScreenSharingInactivity
+shouldReplaceCharactersInRanges:withStrings:
+shouldRetryRequestAfterDeviceCheck(with:response:data:)
+showAgentFileDialog(params:)
+showBorder
+showCorrectionIndicatorOfType:primaryString:alternativeStrings:forStringInRect:view:completionHandler:
+showDefinitionForAttributedString:range:options:baselineOriginProvider:
+showDurationBeforeCooldown
+showErrorPageOverlay
+showTabSharingMenu
+showUpdateReleaseNotesFailedToDownloadWithError:
+showUpdateReleaseNotesWithDownloadData:
+showUpgradedResponseLabel
+show_duration_before_cooldown_seconds
+show_upgraded_response_label
+showsAppPairingUI
+showsPointingCursor
+slowOrBuggy
+spanStatusForHttpResponseStatusCode:
+sparkle.did_download_update
+sparkle.did_find_valid_update
+sparkle.did_not_find_update
+sparkle.failed_to_download_update
+sparkle.failed_to_download_update.once_per_version
+sparkle.failed_to_download_update.version
+sparkle.update_failed
+sparkle.update_install_triggered
+sparkle.update_latest
+sparkle.update_ready
+sparkle.update_succeeded
+sparkle.user_did_cancel_download
+sparkle.user_did_make_choice
+sparkle.will_download_update
+sparkleDelegate
+sparkles
+spring
+springAnimation
+springer.com
+standardWindowButton:forStyleMask:
+start(makeDisplayLink:mode:maxDuration:update:exceededMaxDuration:)
+startInternal(outputDirectory:)
+startMonitoring()
+startPairing
+startScreenSharing
+startTakeoverFromAgent
+start_agent_user_message_count
+start_pairing
+stateReleased
+steeringVersion
+stiffness
+stopAgent
+stopAgent(cancelStreamNatively:)
+stopAgent(from:cancelStreamNatively:)
+stopPairing
+stopScreenSharing
+stopSharing
+stop_pairing
+streamBufferingEnabled
+streamCodexTask(for:timeoutInterval:)
+stream_buffering
+streamingConversation(request:additionalHeaders:enableSharedSessionRequests:taskDelegate:timeoutInterval:isMangoChat:)
+streamingTask(for:timeoutInterval:)
+string
+stringArray
+stringArrayForKey:
+stringAtIndex:effectiveRange:endsWithSearchBoundary:
+stringByAppendingPathComponent:
+stringByAppendingPathExtension:
+stringByAppendingString:
+stringByDeletingLastPathComponent
+stringByDeletingPathExtension
+stringByExpandingTildeInPath
+stringByReplacingCharactersInRange:withString:
+stringByReplacingMatchesInString:options:range:withTemplate:
+stringByReplacingOccurrencesOfString:withString:
+stringByTrimmingCharactersInSet:
+stringForKey:
+stringForNameSource:
+stringForObjectValue:
+stringForType:
+stringFromByteCount:
+stringFromDate:
+stringFromDateComponents:
+stringFromNumber:
+stringFromTimeInterval:
+stringId
+stringLength
+stringLiteral
+stringPiece
+stringStorage
+stringValue
+stringWithCString:encoding:
+stringWithCapacity:
+stringWithCharacters:length:
+stringWithContentsOfFile:encoding:error:
+stringWithFormat:
+stringWithString:
+stringWithUTF8String:
+string_value
+strings
+stringsArray
+strokeBorder
+styleMask
+submitTaskPauseSurveyResponse(taskId:action:)
+substring
+substringFromIndex:
+substringToIndex:
+substringWithRange:
+suggestAgent
+suggest_agent
+summary(connectionState:reason:duration:time:)
+supports32BitFloatFiltering
+supportsBuffering
+supportsPrimitiveMotionBlur
+supportsPullModelInterpolation
+svgIconRenderingMode
+switchChartInteractivityButton
+t be generated. Please try again later.
+t be saved, so responses may feel less personalized. Delete existing memories to free up space.
+t be saved, so responses may feel less personalized. Upgrade to expand memory, or delete existing memories.
+t find that saved message. Please try again later.
+tabCapturing
+tabSharingSession
+tableBorderCornerRadius
+tabslot-mask-overlay
+tabslot-mask-position-x
+tapUpgradedResponseGetGo
+tapUpgradedResponseGetPlus
+tapUpgradedResponseGetPro
+tapUpgradedResponseLabel
+tap_upgraded_response_get_go
+tap_upgraded_response_get_plus
+tap_upgraded_response_get_pro
+tap_upgraded_response_label
+targetGreyTintAmount
+targetMaskProgress
+targetUniformTintAmount
+taskDuration
+taskSharingCancelled
+task_sharing_cancelled
+tearDownCapturing()
+textFadeAnimatorConfiguration
+textFadeAnimatorsByItemIndex
+textView:shouldChangeTextInRange:replacementString:
+textView:shouldChangeTextInRanges:replacementStrings:
+textView:willShowSharingServicePicker:forItems:
+text_fade_animation
+text_fade_enabled
+themeColorBinding
+these tags in your response.
+thumbnailCornerRadius
+timeoutInterrupt
+timeoutInterval
+timingCurve
+tint
+tintAlpha
+toJSONEncodedCString:
+toString
+tokenResponse
+tool:app-pairing
+toolAppPairing
+toolTipString
+topFadeOutHeight
+topGradientMaskLayer
+topOverlay
+topOverlayConstraints
+totalPauseDuration
+totalRequestDuration
+totalResponseLatency
+touchMovedDuringReleaseToSend
+touchReleased
+trace(response:data:)
+traceDurationMs
+trackClosed(entity:entitiesSeen:sessionDuration:)
+transcription.request.duration
+transfer(webContent:toAgent:from:)
+transitionDuration
+travelocity.com
+triggeringProduct
+triggeringUserName
+triggering_product
+turn.pauses.duration
+twinkleAccumulatedTime
+typeString
+typeaheadCompletionDebounce
+typeaheadNavlinkDebounce
+typeahead_completion_debounce
+typeahead_navlink_debounce
+ulcorner
+unable to find bundle named Aura_AuraAgents
+unable to push pending agent viewer; tab missing
+unable to select tab for agent
+undoneInterpolatedStrokes
+unexpectedResponseBody
+unexpectedResponseStatus
+unibarInnerCornerRadius
+uniformTintAmount
+unmaskedViewClasses
+unsupportedAccountSharing
+unsupported_account_sharing
+updateAgentSafeMode(preferredMode:)
+updateAgentSafeModeSelection(_:source:persistSetting:)
+updateCachedModelsResponse(_:)
+updateSharingLevel
+updater:shouldDownloadReleaseNotesForUpdate:
+uploadMaskAfterConfirmation(maskURL:previewURL:originalImageURL:source:generationID:strokes:)
+uploadingOverlay
+urcorner
+uring
+urlAsString
+urlResponseStatusCode:
+urlString
+urlStringForEditing
+urlWithReplacementString
+useDeterministicOrdering
+useLimitedPlaybackForAnimatedGradient
+user sent message to resume agent turn but not turn is recorded
+user tried to stop agent without a conversation controller
+userAgent
+userIsViewingAgent()
+userMessageBackgroundCornerRadius
+userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:
+userSentMessageInAgentConversation(agentid:usermessages:islocalsafemode:isresume:preinitializerequestid:originatesfromtoolcall:)
+userSentMessageInAgentConversation(from:userMessages:isLocalSafeMode:isResume:originatesFromToolCall:isDragonfruit:)
+user_agent
+v16@?0@"NSString"8
+v16@?0@"SUUpdatePermissionResponse"8
+v24@0:8@"NSHTTPURLResponse"16
+v24@0:8@"NSString"16
+v24@0:8@"SentryANRStoppedResultInternal"16
+v24@?0@"NSHTTPURLResponse"8@"NSError"16
+v24@?0@"NSString"8@"NSError"16
+v24@?0Q8@"NSString"16
+v28@0:8B16@"NSString"20
+v32@0:8@"NSData"16@"NSString"24
+v32@0:8@"NSSharingServicePicker"16@"NSSharingService"24
+v32@0:8@"NSString"16@"NSNumber"24
+v32@0:8@"NSString"16@"NSString"24
+v32@0:8@"NSURLRequest"16@?<v@?@"NSHTTPURLResponse"@"NSError">24
+v32@0:8@"NSXMLParser"16@"NSString"24
+v32@0:8@"SPUUpdatePermissionRequest"16@?<v@?@"SUUpdatePermissionResponse">24
+v32@0:8@16@"NSString"24
+v32@?0@"NSData"8@"NSURLResponse"16@"NSError"24
+v32@?0@"NSString"8@"NSDictionary"16^B24
+v40@0:8@"NSApplication"16@"NSString"24@"NSError"32
+v40@0:8@"NSControl"16@"NSString"24@"NSString"32
+v40@0:8@"NSString"16@"MTLCompileOptions"24@?<v@?@"<MTLLibrary>"@"NSError">32
+v40@0:8@"NSString"16@"NSCoder"24@?<v@?@"NSWindow"@"NSError">32
+v40@0:8@"NSString"16@"NSNumber"24@"SentryMeasurementUnit"32
+v40@0:8@"NSString"16@24@"NSDictionary"32
+v40@0:8@"NSURLSession"16@"NSURLSessionTask"24@"NSHTTPURLResponse"32
+v40@0:8@"NSURLSession"16@"NSURLSessionWebSocketTask"24@"NSString"32
+v40@0:8@"NSXMLParser"16@"NSString"24@"NSString"32
+v40@0:8@"UNUserNotificationCenter"16@"UNNotificationResponse"24@?<v@?>32
+v40@0:8@"WKUserContentController"16@"WKScriptMessage"24@?<v@?@@"NSString">32
+v40@0:8@"WKWebView"16@"WKNavigationResponse"24@"WKDownload"32
+v40@0:8@"WKWebView"16@"WKNavigationResponse"24@?<v@?q>32
+v40@0:8@16@"NSString"24@32
+v40@0:8{_NSRange=QQ}16@"NSString"32
+v40@?0@"NSString"8@"NSTextRange"16@"NSTextRange"24^B32
+v48@0:8@"NSCollectionView"16@"NSView"24@"NSString"32@"NSIndexPath"40
+v48@0:8@"NSURLSession"16@"NSURLSessionDataTask"24@"NSCachedURLResponse"32@?<v@?@"NSCachedURLResponse">40
+v48@0:8@"NSURLSession"16@"NSURLSessionDataTask"24@"NSURLResponse"32@?<v@?q>40
+v48@0:8@"NSXMLParser"16@"NSString"24@"NSString"32@"NSString"40
+v48@0:8@"WKDownload"16@"NSHTTPURLResponse"24@"NSURLRequest"32@?<v@?q>40
+v48@0:8@"WKDownload"16@"NSURLResponse"24@"NSString"32@?<v@?@"NSURL">40
+v48@0:8@16:24@"NSString"32@40
+v52@0:8@"LKRTCPeerConnection"16@"LKRTCIceCandidate"24@"LKRTCIceCandidate"32i40@"NSString"44
+v56@0:8@"NSURLSession"16@"NSURLSessionTask"24@"NSHTTPURLResponse"32@"NSURLRequest"40@?<v@?@"NSURLRequest">48
+v56@0:8@"NSXMLParser"16@"NSString"24@"NSString"32@"NSString"40@"NSDictionary"48
+v56@0:8@"NSXMLParser"16@"NSString"24@"NSString"32@"NSString"40@"NSString"48
+valueString
+velocity
+velocityThreshold
+velocityX
+velocityY
+verify(_:with:triggeringProduct:)
+versionString
+videoDurationSeconds
+view:stringForToolTip:point:userData:
+viewPulse
+viewsRequiringManualOnDismiss
+visitDuration
+visit_duration_$value
+voiceScreenSharing
+voice_screen_sharing
+waitAfterPerformingActionDuration(remoteConfigManager:)
+waitBetweenCompoundTypingActionsDuration(remoteConfigManager:)
+waitForAgentFileChooser()
+waitForRemoteWorkerResponse(requestID:timeout:)
+waitForResponse()
+waitInBetweenCompoundActionsDuration(remoteConfigManager:)
+waitingForToolResponse
+wand.and.sparkles
+warningDebounceThreshold
+warningDebounceThresholdSeconds
+was_new_user_during_default_search_experiment
+waveform.and.person.filled
+waveformBackgroundColor
+waveformMissingSampleColor
+waveformPresentSampleColor
+web.bridge.AgentHandler
+web.bridge.AgentSafeModeSettingsHandler
+web.bridge.AgentUIController
+web.bridge.AgentUIHandler
+web.bridge.SidebarOverlayController
+webContentShouldBeInAgentWindow
+webView:decidePolicyForNavigationResponse:decisionHandler:
+webView:navigationResponse:didBecomeDownload:
+web_socket_mediator.response_received
+websocket.ping.healthy.duration
+window:startCustomAnimationToEnterFullScreenOnScreen:withDuration:
+window:startCustomAnimationToEnterFullScreenWithDuration:
+window:startCustomAnimationToExitFullScreenWithDuration:
+windowForSharingRequestFromWindow:
+window_tint_color
+wrappedFeedEntrypoint(timeoutInterval:)
+ySaySo16NSSharingServiceCGG
+ySaySo8NSStringCG
+ySaySo8NSStringCGSiG
+ySo13NSURLResponseC
+ySo14NSUnitDurationCG
+ySo16AVAudioPCMBufferC6buffer_Sd9startTimeSd8durationtG
+ySo17NSHTTPURLResponseC
+ySo18NSAttributedStringC
+ySo18NSAttributedStringCG
+ySo18NSAttributedStringCGSg
+ySo18NSAttributedStringCGSgG
+ySo18NSAttributedStringCSgG
+ySo18NSAttributedStringC_G
+ySo18NSAttributedStringC_GSSG
+ySo18NSAttributedStringCc
+ySo18NSAttributedStringCcSg
+ySo8NSCursorCACG
+ySo8NSCursorCSgG
+ySo8NSStringCG
+ySo8NSStringCSbG
+ySo8NSStringC_SbtG
+yXlSgSo8NSStringCSgIeyBhyy_
+y_SaySo18NSAttributedStringCG
+y_SaySo18NSAttributedStringCGAEG
+y_SaySo18NSAttributedStringCGAFG
+y_SaySo18NSAttributedStringCGAGG
+youtubeTranscriptMaxPollDurationSeconds
+youtubeTranscriptMinimumTranscriptDurationSeconds
+youtube_transcript_max_poll_duration_seconds
+youtube_transcript_minimum_transcript_duration_seconds
+yytAFGGALGGSo18NSAttributedStringCG
+~AuraAgents

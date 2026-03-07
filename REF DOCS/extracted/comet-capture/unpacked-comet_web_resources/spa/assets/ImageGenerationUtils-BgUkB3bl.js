@@ -1,0 +1,2 @@
+var a;(function(e){e.DEFAULT="default",e.GPT4O_IMAGE="gpt-4o",e.GEMINI_FLASH="gemini-flash",e.NANO_BANANA_PRO="nano-banana-pro"})(a||(a={}));const r=e=>{switch(e){case a.GPT4O_IMAGE:return"GPT Image";case a.GEMINI_FLASH:return"Nano Banana";case a.NANO_BANANA_PRO:return"Nano Banana Pro";default:return"AI"}},s=e=>{if(Object.values(a).includes(e))return!0;const n=e.toLowerCase();return Object.values(a).some(t=>n.includes(t.toLowerCase()))};export{r as g,s as i};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/ImageGenerationUtils-BgUkB3bl.js.map

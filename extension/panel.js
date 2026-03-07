@@ -45,6 +45,119 @@ const escHtml = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+function buildHistoryMessages(store, sessionId) {
+  const normalizedStore = normalizeChatSessionsStore(store);
+  const targetSession = normalizedStore.sessions.find((session) => session.id === sessionId);
+  if (!targetSession) {
+    return [];
+  }
+
+  return targetSession.messages
+    .filter((message) =>
+      (message.role === "user" || message.role === "assistant") &&
+      typeof message.text === "string" &&
+      message.text.trim().length > 0
+    )
+    .map((message) => ({
+      role: message.role,
+      text: message.text.trim()
+    }));
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function getSortedSessions(store) {
+  return normalizeChatSessionsStore(store).sessions
+    .slice()
+    .sort((left, right) => (right.updatedAt || right.createdAt || "").localeCompare(left.updatedAt || left.createdAt || ""));
+}
+
+function getTrailingAtQuery(text, cursor = text.length) {
+  const source = String(text ?? "");
+  const limit = typeof cursor === "number" && Number.isFinite(cursor) ? cursor : source.length;
+  const uptoCursor = source.slice(0, limit);
+  const atPos = uptoCursor.lastIndexOf("@");
+  if (atPos < 0) {
+    return null;
+  }
+  const before = atPos === 0 ? "" : uptoCursor[atPos - 1];
+  if (before && !/\s/.test(before)) {
+    return null;
+  }
+  const token = uptoCursor.slice(atPos + 1);
+  if (token.includes("\n") || token.includes("]")) {
+    return null;
+  }
+  return {
+    start: atPos,
+    end: limit,
+    query: token.trimStart()
+  };
+}
+
+function insertAtMentionToken(input, label) {
+  const range = getTrailingAtQuery(input.value, input.selectionStart ?? input.value.length);
+  if (!range) {
+    return false;
+  }
+  const token = `@[${label}]`;
+  input.value = `${input.value.slice(0, range.start)}${token}${input.value.slice(range.end)}`;
+  const caret = range.start + token.length;
+  input.setSelectionRange(caret, caret);
+  autoResize(input);
+  input.focus();
+  return true;
+}
+
+async function expandMentionTokens(text) {
+  const source = typeof text === "string" ? text : "";
+  if (!source.includes("@[")) {
+    return source;
+  }
+
+  let activeTab = null;
+  let openTabs = [];
+  try {
+    activeTab = await getActiveWebTab();
+    openTabs = await chrome.tabs.query({ currentWindow: true, url: ["http://*/*", "https://*/*"] });
+  } catch {}
+
+  const tabsByTitle = new Map();
+  for (const tab of openTabs) {
+    const title = typeof tab.title === "string" ? tab.title.trim() : "";
+    if (!title) {
+      continue;
+    }
+    const key = title.toLowerCase();
+    const entries = tabsByTitle.get(key) ?? [];
+    entries.push(tab);
+    tabsByTitle.set(key, entries);
+  }
+
+  return source.replace(/@\[(.+?)\]/g, (full, rawLabel) => {
+    const label = String(rawLabel ?? "").trim();
+    if (!label) {
+      return full;
+    }
+    const normalized = label.toLowerCase();
+    if (normalized === "current page") {
+      return `[page: "${activeTab?.title ?? "page"}" — ${activeTab?.url ?? ""}]`;
+    }
+    if (normalized === "all open tabs") {
+      const tabList = openTabs.map((tab) => `${tab.title ?? "Tab"} — ${tab.url ?? ""}`).join("\n");
+      return tabList ? `[tabs:\n${tabList}\n]` : "[tabs]";
+    }
+    const matches = tabsByTitle.get(normalized) ?? [];
+    if (matches.length === 1) {
+      const match = matches[0];
+      return `[page: "${match.title ?? label}" — ${match.url ?? ""}]`;
+    }
+    return full;
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // SVG library
 // ═══════════════════════════════════════════════════════════════════
@@ -937,7 +1050,7 @@ function renderOverlay() {
   panel.style.animation = "";
 
   if (overlayKind === "slash")   { renderSlashPalette(panel, _slashToken);   return; }
-  if (overlayKind === "at")      { renderAtPalette(panel);                   return; }
+  if (overlayKind === "at")      { renderAtPalette(panel, _atToken);         return; }
   if (overlayKind === "plus")    { renderPlusMenu(panel);                    return; }
   if (overlayKind === "model")   { renderModelPicker(panel);                 return; }
   if (overlayKind === "recents") { renderRecentsPalette(panel);              return; }
@@ -973,6 +1086,7 @@ function setupPaletteNav(panel) {
 // Slash palette
 // ═══════════════════════════════════════════════════════════════════
 let _slashToken = "";
+let _atToken = "";
 
 async function renderSlashPalette(panel, token = "") {
   let shortcuts = BUILTIN_SHORTCUTS;
@@ -1011,16 +1125,39 @@ async function renderSlashPalette(panel, token = "") {
 // ═══════════════════════════════════════════════════════════════════
 // @ context palette
 // ═══════════════════════════════════════════════════════════════════
-async function renderAtPalette(panel) {
+async function renderAtPalette(panel, token = "") {
   let tab = null;
+  let tabs = [];
   try {
     tab = await getActiveWebTab();
+    tabs = await chrome.tabs.query({ currentWindow: true, url: ["http://*/*", "https://*/*"] });
   } catch {}
 
+  const query = token.trim().toLowerCase();
+  const tabItems = tabs
+    .filter((entry) => entry.id !== tab?.id)
+    .filter((entry) => {
+      if (!query) {
+        return true;
+      }
+      const title = typeof entry.title === "string" ? entry.title.toLowerCase() : "";
+      const url = typeof entry.url === "string" ? entry.url.toLowerCase() : "";
+      return title.includes(query) || url.includes(query);
+    })
+    .slice(0, 6)
+    .map((entry) => ({
+      id: `tab-${entry.id}`,
+      label: entry.title ?? "Tab",
+      desc: entry.url ?? "",
+      icon: SVG.globe,
+      mentionLabel: entry.title ?? "Tab"
+    }));
+
   const items = [
-    { id: "page", label: "Current page",  desc: tab?.title ?? "Active tab",       icon: SVG.globe,       inject: `[page: "${escHtml(tab?.title ?? "page")}" — ${tab?.url ?? ""}]` },
-    { id: "shot", label: "Screenshot",    desc: "Capture current page",           icon: SVG.camera,      inject: null, action: "screenshot" },
-    { id: "tabs", label: "All open tabs", desc: "Reference all open tabs",        icon: SVG.newChat,     inject: null, action: "allTabs"    },
+    { id: "page", label: "Current page",  desc: tab?.title ?? "Active tab",       icon: SVG.globe,  mentionLabel: "Current page" },
+    { id: "shot", label: "Screenshot",    desc: "Capture current page",           icon: SVG.camera, action: "screenshot" },
+    { id: "tabs", label: "All open tabs", desc: "Reference all open tabs",        icon: SVG.newChat, mentionLabel: "All open tabs" },
+    ...tabItems
   ];
 
   panel.innerHTML = `
@@ -1056,14 +1193,8 @@ async function renderAtPalette(panel) {
             throw new Error("No image returned");
           }
         } catch (e) { showToast("Screenshot failed: " + (e?.message ?? "unknown"), "error"); }
-      } else if (item.action === "allTabs") {
-        try {
-          const tabs    = await chrome.tabs.query({ currentWindow: true });
-          const tabList = tabs.map(t => `${t.title} — ${t.url}`).join("\n");
-          input.value   = before + `[tabs:\n${tabList}\n]`;
-        } catch { input.value = before + "[all tabs]"; }
-      } else if (item.inject) {
-        input.value = before + item.inject;
+      } else if (item.mentionLabel) {
+        insertAtMentionToken(input, item.mentionLabel);
       }
       autoResize(input);
       input.focus();
@@ -1217,7 +1348,7 @@ async function renderModelPicker(panel) {
 async function renderRecentsPalette(panel) {
   const stored   = await new Promise(r => chrome.storage.local.get([CHAT_SESSIONS_STORAGE_KEY], r));
   const store    = normalizeChatSessionsStore(stored[CHAT_SESSIONS_STORAGE_KEY]);
-  const sessions = store.sessions ?? [];
+  const sessions = getSortedSessions(store);
 
   const relTime = (ts) => {
     if (!ts) return "";
@@ -1273,6 +1404,11 @@ function restoreSession(session) {
   }
   scrollToBottom(false);
   activeSessionId = session.id;
+  sessionStore = {
+    ...normalizeChatSessionsStore(sessionStore),
+    activeSessionId
+  };
+  chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore }).catch(() => {});
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1759,7 +1895,7 @@ function finalizeCurrentRun(runId, payload) {
   if (activeSessionId && sessionStore && sessionText) {
     try {
       sessionStore = appendSessionMessage(sessionStore, activeSessionId, {
-        role: "assistant", text: sessionText, ts: Date.now(), runId: currentRunId
+        role: "assistant", text: sessionText, ts: nowIso(), runId: currentRunId
       });
       sessionStore = pruneChatSessions(sessionStore);
       chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore });
@@ -1817,13 +1953,15 @@ async function sendPrompt(promptText) {
   if (!text || state === "running") return;
 
   const pendingAttachments = attachments.slice();
+  let historyMessages = [];
+  const resolvedPromptText = await expandMentionTokens(text);
 
   // Build full prompt with attachments prefix
-  let fullPrompt = text;
+  let fullPrompt = resolvedPromptText;
   if (pendingAttachments.length > 0) {
     try {
       const prefix = buildAttachmentPromptPrefix(pendingAttachments);
-      if (prefix) fullPrompt = prefix + "\n\n" + text;
+      if (prefix) fullPrompt = prefix + "\n\n" + resolvedPromptText;
     } catch {}
   }
 
@@ -1876,7 +2014,8 @@ async function sendPrompt(promptText) {
       activeSessionId = sessionStore.activeSessionId ?? sessionStore.sessions[0]?.id ?? null;
     }
     if (activeSessionId) {
-      sessionStore = appendSessionMessage(sessionStore, activeSessionId, { role: "user", text, ts: Date.now() });
+      historyMessages = buildHistoryMessages(sessionStore, activeSessionId);
+      sessionStore = appendSessionMessage(sessionStore, activeSessionId, { role: "user", text, ts: nowIso() });
       chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore });
     }
   } catch {}
@@ -1894,6 +2033,7 @@ async function sendPrompt(promptText) {
       model,
       ...(apiKey  ? { api_key:  apiKey }  : {}),
       ...(baseUrl ? { base_url: baseUrl } : {}),
+      ...(historyMessages.length ? { history_messages: historyMessages, replay_history: true } : {}),
       ...(imageDataUrls.length ? { images: imageDataUrls, has_image_input: true } : {}),
     });
     currentRunId = result?.run_id ?? result?.id ?? null;
@@ -2054,8 +2194,15 @@ function autoResize(el) {
       return;
     }
 
-    if (/@\w*$/.test(val)) {
-      if (overlayKind !== "at") setOverlay("at");
+    const atQuery = getTrailingAtQuery(val, input.selectionStart ?? val.length);
+    if (atQuery) {
+      _atToken = atQuery.query;
+      if (overlayKind !== "at") {
+        setOverlay("at");
+      } else {
+        const panel = document.getElementById("overlay-panel");
+        if (panel) renderAtPalette(panel, _atToken);
+      }
       return;
     }
 

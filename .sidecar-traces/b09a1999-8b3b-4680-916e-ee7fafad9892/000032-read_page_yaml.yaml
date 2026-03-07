@@ -1,0 +1,59 @@
+interactables:
+  - frame_id: "48EC5F90A0CF0B280298AB032907DBB8"
+    nodes:
+      - ref_id: "f0:72"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 2880, h: 1382}
+        click: {x: 1440, y: 691}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:88"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 2770, y: 20, w: 90, h: 68}
+        click: {x: 2815, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:114"
+        role: "button"
+        name: "Click for JS Alert"
+        bbox: {x: 470, y: 268.58, w: 357.13, h: 93}
+        click: {x: 648.56, y: 315.08}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:116"
+        role: "button"
+        name: "Click for JS Confirm"
+        bbox: {x: 470, y: 401.58, w: 408.11, h: 93}
+        click: {x: 674.05, y: 448.08}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:118"
+        role: "button"
+        name: "Click for JS Prompt"
+        bbox: {x: 470, y: 534.58, w: 397.45, h: 93}
+        click: {x: 668.73, y: 581.08}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:125"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1388.98, y: 963.16, w: 281.58, h: 37}
+        click: {x: 1529.77, y: 981.66}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:147"
+        role: "button"
+        name: "Take control"
+        bbox: {x: 1407.11, y: 1228.5, w: 194.89, h: 60}
+        click: {x: 1504.55, y: 1258.5}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:148"
+        role: "button"
+        name: "Stop"
+        bbox: {x: 1618, y: 1228.5, w: 176, h: 60}
+        click: {x: 1706, y: 1258.5}
+        source: "ax"
+        actions: ["click", "key"]

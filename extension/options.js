@@ -31,6 +31,12 @@ import {
   recordModelBenchmarkResult,
   isBrowserControlBenchmarkCandidate
 } from "./lib/model-config.js";
+import {
+  SHORTCUTS_STORAGE_KEY,
+  normalizeShortcuts,
+  upsertShortcut,
+  deleteShortcut
+} from "./lib/shortcuts.js";
 
 // ─── Element refs ────────────────────────────────────────────────────────────
 
@@ -82,6 +88,18 @@ const audioSupport        = document.getElementById("audio-support");
 // Chats
 const clearChatsBtn       = document.getElementById("clear-chats-btn");
 const chatList            = document.getElementById("chat-list");
+
+// Commands
+const shortcutsAddBtn        = document.getElementById("shortcuts-add-btn");
+const shortcutsForm          = document.getElementById("shortcuts-form");
+const shortcutIdInput        = document.getElementById("shortcut-id");
+const shortcutTriggerInput   = document.getElementById("shortcut-trigger");
+const shortcutLabelInput     = document.getElementById("shortcut-label");
+const shortcutInstructions   = document.getElementById("shortcut-instructions");
+const shortcutsCancelBtn     = document.getElementById("shortcuts-cancel-btn");
+const shortcutsSaveBtn       = document.getElementById("shortcuts-save-btn");
+const shortcutsStatus        = document.getElementById("shortcuts-status");
+const shortcutsList          = document.getElementById("shortcuts-list");
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -547,6 +565,89 @@ function renderChats(store) {
   });
 }
 
+async function loadShortcutsStore() {
+  const result = await chromeGet(SHORTCUTS_STORAGE_KEY);
+  return normalizeShortcuts(result[SHORTCUTS_STORAGE_KEY]);
+}
+
+async function saveShortcutsStore(shortcuts) {
+  await chromeSet({ [SHORTCUTS_STORAGE_KEY]: normalizeShortcuts(shortcuts) });
+}
+
+function resetShortcutForm() {
+  shortcutIdInput.value = "";
+  shortcutTriggerInput.value = "";
+  shortcutLabelInput.value = "";
+  shortcutInstructions.value = "";
+}
+
+function openShortcutForm(entry = null) {
+  shortcutsForm.hidden = false;
+  shortcutIdInput.value = entry?.id ?? "";
+  shortcutTriggerInput.value = entry?.trigger ?? "";
+  shortcutLabelInput.value = entry?.label ?? "";
+  shortcutInstructions.value = entry?.instructions ?? "";
+  shortcutTriggerInput.focus();
+}
+
+function closeShortcutForm() {
+  shortcutsForm.hidden = true;
+  resetShortcutForm();
+}
+
+function renderShortcuts(shortcuts) {
+  shortcutsList.replaceChildren();
+  if (!Array.isArray(shortcuts) || shortcuts.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "settings-empty";
+    empty.textContent = "No custom commands yet.";
+    shortcutsList.append(empty);
+    return;
+  }
+
+  shortcuts.forEach((entry) => {
+    const item = document.createElement("div");
+    item.className = "settings-item";
+
+    const copy = document.createElement("div");
+    copy.className = "settings-item-copy";
+
+    const title = document.createElement("div");
+    title.className = "settings-item-title";
+    title.textContent = `${entry.trigger} · ${entry.label}`;
+
+    const meta = document.createElement("div");
+    meta.className = "settings-item-meta";
+    meta.textContent = entry.instructions;
+
+    copy.append(title, meta);
+
+    const actions = document.createElement("div");
+    actions.className = "settings-item-actions";
+
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "settings-button";
+    edit.textContent = "Edit";
+    edit.addEventListener("click", () => openShortcutForm(entry));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "settings-button settings-button--danger";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", async () => {
+      const next = deleteShortcut(shortcuts, entry.id);
+      await saveShortcutsStore(next);
+      renderShortcuts(next);
+      showStatus(shortcutsStatus, `Removed ${entry.trigger}.`);
+    });
+
+    actions.append(edit, remove);
+    item.append(copy, actions);
+    shortcutsList.append(item);
+  });
+}
+
 // ─── Active nav tracking ──────────────────────────────────────────────────────
 
 function setupNavHighlight() {
@@ -585,14 +686,15 @@ async function main() {
     `Dictation: ${isDictationSupported() ? "supported" : "unavailable"}`;
 
   // Load everything in parallel
-  const [rawSettings, store, providers, modelConfig, agentConfig, catalog, benchmarkManifest] = await Promise.all([
+  const [rawSettings, store, providers, modelConfig, agentConfig, catalog, benchmarkManifest, shortcuts] = await Promise.all([
     loadPanelSettings(),
     loadChats(),
     loadProviders(),
     loadModelConfig(),
     loadAgentConfig(),
     loadCatalog(),
-    loadBenchmarkManifest()
+    loadBenchmarkManifest(),
+    loadShortcutsStore()
   ]);
 
   // ── Audio ──
@@ -713,6 +815,29 @@ async function main() {
     renderChats({ sessions: [], activeSessionId: null });
   });
 
+  renderShortcuts(shortcuts);
+  shortcutsAddBtn.addEventListener("click", () => {
+    if (shortcutsForm.hidden) {
+      openShortcutForm();
+    } else {
+      closeShortcutForm();
+    }
+  });
+  shortcutsCancelBtn.addEventListener("click", closeShortcutForm);
+  shortcutsSaveBtn.addEventListener("click", async () => {
+    const current = await loadShortcutsStore();
+    const next = upsertShortcut(current, {
+      id: shortcutIdInput.value.trim() || undefined,
+      trigger: shortcutTriggerInput.value,
+      label: shortcutLabelInput.value,
+      instructions: shortcutInstructions.value
+    });
+    await saveShortcutsStore(next);
+    renderShortcuts(next);
+    closeShortcutForm();
+    showStatus(shortcutsStatus, "Command saved.");
+  });
+
   // ── Storage change listener ──
   if (globalThis.chrome?.storage?.onChanged?.addListener) {
     chrome.storage.onChanged.addListener(async (changes) => {
@@ -724,6 +849,9 @@ async function main() {
       }
       if (changes[CHAT_SESSIONS_STORAGE_KEY]) {
         renderChats(normalizeChatSessionsStore(changes[CHAT_SESSIONS_STORAGE_KEY].newValue));
+      }
+      if (changes[SHORTCUTS_STORAGE_KEY]) {
+        renderShortcuts(normalizeShortcuts(changes[SHORTCUTS_STORAGE_KEY].newValue));
       }
       if (changes[PROVIDER_SESSION_STORAGE_KEY]) {
         renderProviders(Object.values(changes[PROVIDER_SESSION_STORAGE_KEY].newValue || {}));

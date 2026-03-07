@@ -1,0 +1,338 @@
+interactables:
+  - frame_id: "377CED1AF8DB14D482F7A2E9167D8E98"
+    nodes:
+      - ref_id: "f0:415"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 3360, h: 1682}
+        click: {x: 1680, y: 841}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:416"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 3360, h: 2753.63}
+        click: {x: 1680, y: 1376.81}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:418"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 3250, y: 20, w: 90, h: 68}
+        click: {x: 3295, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:443"
+        role: "link"
+        name: "A/B Testing"
+        bbox: {x: 710, y: 396.38, w: 163.56, h: 37}
+        click: {x: 791.78, y: 414.88}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:445"
+        role: "link"
+        name: "Add/Remove Elements"
+        bbox: {x: 710, y: 447.56, w: 328.39, h: 37}
+        click: {x: 874.2, y: 466.06}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:447"
+        role: "link"
+        name: "Basic Auth"
+        bbox: {x: 710, y: 498.75, w: 154.7, h: 37}
+        click: {x: 787.35, y: 517.25}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:449"
+        role: "link"
+        name: "Broken Images"
+        bbox: {x: 710, y: 549.94, w: 215.17, h: 37}
+        click: {x: 817.59, y: 568.44}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:451"
+        role: "link"
+        name: "Challenging DOM"
+        bbox: {x: 710, y: 601.13, w: 252.52, h: 37}
+        click: {x: 836.26, y: 619.63}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:453"
+        role: "link"
+        name: "Checkboxes"
+        bbox: {x: 710, y: 652.31, w: 178.98, h: 37}
+        click: {x: 799.49, y: 670.81}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:455"
+        role: "link"
+        name: "Context Menu"
+        bbox: {x: 710, y: 703.5, w: 202.73, h: 37}
+        click: {x: 811.37, y: 722}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:457"
+        role: "link"
+        name: "Digest Authentication"
+        bbox: {x: 710, y: 754.69, w: 306.44, h: 37}
+        click: {x: 863.22, y: 773.19}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:459"
+        role: "link"
+        name: "Disappearing Elements"
+        bbox: {x: 710, y: 805.88, w: 330.16, h: 37}
+        click: {x: 875.08, y: 824.38}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:461"
+        role: "link"
+        name: "Drag and Drop"
+        bbox: {x: 710, y: 857.06, w: 210.44, h: 37}
+        click: {x: 815.22, y: 875.56}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:463"
+        role: "link"
+        name: "Dropdown"
+        bbox: {x: 710, y: 908.25, w: 149.36, h: 37}
+        click: {x: 784.68, y: 926.75}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:465"
+        role: "link"
+        name: "Dynamic Content"
+        bbox: {x: 710, y: 959.44, w: 248.39, h: 37}
+        click: {x: 834.2, y: 977.94}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:467"
+        role: "link"
+        name: "Dynamic Controls"
+        bbox: {x: 710, y: 1010.63, w: 254.89, h: 37}
+        click: {x: 837.45, y: 1029.13}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:469"
+        role: "link"
+        name: "Dynamic Loading"
+        bbox: {x: 710, y: 1061.81, w: 249.58, h: 37}
+        click: {x: 834.79, y: 1080.31}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:471"
+        role: "link"
+        name: "Entry Ad"
+        bbox: {x: 710, y: 1113, w: 122.7, h: 37}
+        click: {x: 771.35, y: 1131.5}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:473"
+        role: "link"
+        name: "Exit Intent"
+        bbox: {x: 710, y: 1164.19, w: 143.44, h: 37}
+        click: {x: 781.72, y: 1182.69}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:475"
+        role: "link"
+        name: "File Download"
+        bbox: {x: 710, y: 1215.38, w: 203.23, h: 37}
+        click: {x: 811.62, y: 1233.88}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:477"
+        role: "link"
+        name: "File Upload"
+        bbox: {x: 710, y: 1266.56, w: 162.38, h: 37}
+        click: {x: 791.19, y: 1285.06}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:479"
+        role: "link"
+        name: "Floating Menu"
+        bbox: {x: 710, y: 1317.75, w: 203.91, h: 37}
+        click: {x: 811.95, y: 1336.25}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:481"
+        role: "link"
+        name: "Forgot Password"
+        bbox: {x: 710, y: 1368.94, w: 243.81, h: 37}
+        click: {x: 831.91, y: 1387.44}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:483"
+        role: "link"
+        name: "Form Authentication"
+        bbox: {x: 710, y: 1420.13, w: 289.86, h: 37}
+        click: {x: 854.93, y: 1438.63}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:485"
+        role: "link"
+        name: "Frames"
+        bbox: {x: 710, y: 1471.31, w: 106.7, h: 37}
+        click: {x: 763.35, y: 1489.81}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:487"
+        role: "link"
+        name: "Geolocation"
+        bbox: {x: 710, y: 1522.5, w: 173.03, h: 37}
+        click: {x: 796.52, y: 1541}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:489"
+        role: "link"
+        name: "Horizontal Slider"
+        bbox: {x: 710, y: 1573.69, w: 235.78, h: 37}
+        click: {x: 827.89, y: 1592.19}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:491"
+        role: "link"
+        name: "Hovers"
+        bbox: {x: 710, y: 1624.88, w: 101.31, h: 37}
+        click: {x: 760.66, y: 1643.38}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:493"
+        role: "link"
+        name: "Infinite Scroll"
+        bbox: {x: 710, y: 1676.06, w: 184.3, h: 37}
+        click: {x: 802.15, y: 1694.56}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:495"
+        role: "link"
+        name: "Inputs"
+        bbox: {x: 710, y: 1727.25, w: 88.94, h: 37}
+        click: {x: 754.47, y: 1745.75}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:497"
+        role: "link"
+        name: "JQuery UI Menus"
+        bbox: {x: 710, y: 1778.44, w: 248.39, h: 37}
+        click: {x: 834.2, y: 1796.94}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:499"
+        role: "link"
+        name: "JavaScript Alerts"
+        bbox: {x: 710, y: 1829.63, w: 242.38, h: 37}
+        click: {x: 831.19, y: 1848.13}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:501"
+        role: "link"
+        name: "JavaScript onload event error"
+        bbox: {x: 710, y: 1880.81, w: 421.39, h: 37}
+        click: {x: 920.7, y: 1899.31}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:503"
+        role: "link"
+        name: "Key Presses"
+        bbox: {x: 710, y: 1932, w: 176.61, h: 37}
+        click: {x: 798.3, y: 1950.5}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:505"
+        role: "link"
+        name: "Large & Deep DOM"
+        bbox: {x: 710, y: 1983.19, w: 277.73, h: 37}
+        click: {x: 848.87, y: 2001.69}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:507"
+        role: "link"
+        name: "Multiple Windows"
+        bbox: {x: 710, y: 2034.38, w: 254.25, h: 37}
+        click: {x: 837.13, y: 2052.88}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:509"
+        role: "link"
+        name: "Nested Frames"
+        bbox: {x: 710, y: 2085.56, w: 218.13, h: 37}
+        click: {x: 819.06, y: 2104.06}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:511"
+        role: "link"
+        name: "Notification Messages"
+        bbox: {x: 710, y: 2136.75, w: 317.64, h: 37}
+        click: {x: 868.82, y: 2155.25}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:513"
+        role: "link"
+        name: "Redirect Link"
+        bbox: {x: 710, y: 2187.94, w: 187.91, h: 37}
+        click: {x: 803.95, y: 2206.44}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:515"
+        role: "link"
+        name: "Secure File Download"
+        bbox: {x: 710, y: 2239.13, w: 312.3, h: 37}
+        click: {x: 866.15, y: 2257.63}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:517"
+        role: "link"
+        name: "Shadow DOM"
+        bbox: {x: 710, y: 2290.31, w: 200.94, h: 37}
+        click: {x: 810.47, y: 2308.81}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:519"
+        role: "link"
+        name: "Shifting Content"
+        bbox: {x: 710, y: 2341.5, w: 231.75, h: 37}
+        click: {x: 825.88, y: 2360}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:521"
+        role: "link"
+        name: "Slow Resources"
+        bbox: {x: 710, y: 2392.69, w: 231.08, h: 37}
+        click: {x: 825.54, y: 2411.19}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:523"
+        role: "link"
+        name: "Sortable Data Tables"
+        bbox: {x: 710, y: 2443.88, w: 296.33, h: 37}
+        click: {x: 858.16, y: 2462.38}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:525"
+        role: "link"
+        name: "Status Codes"
+        bbox: {x: 710, y: 2495.06, w: 194.41, h: 37}
+        click: {x: 807.2, y: 2513.56}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:527"
+        role: "link"
+        name: "Typos"
+        bbox: {x: 710, y: 2546.25, w: 84.17, h: 37}
+        click: {x: 752.09, y: 2564.75}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:529"
+        role: "link"
+        name: "WYSIWYG Editor"
+        bbox: {x: 710, y: 2597.44, w: 247.69, h: 37}
+        click: {x: 833.84, y: 2615.94}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:534"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1628.98, y: 2718.63, w: 281.58, h: 37}
+        click: {x: 1769.77, y: 2737.13}
+        source: "ax"
+        actions: ["click", "key"]

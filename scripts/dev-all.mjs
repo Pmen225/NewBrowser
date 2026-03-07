@@ -78,7 +78,6 @@ process.on("SIGINT", () => shutdown("SIGINT", 130));
 process.on("SIGTERM", () => shutdown("SIGTERM", 143));
 
 async function main() {
-  spawnNpm(["run", "dev:extension"], "extension watcher");
   await waitForFile(EXTENSION_MANIFEST, STARTUP_TIMEOUT_MS);
   spawnNpm(["start"], "sidecar runtime");
 }

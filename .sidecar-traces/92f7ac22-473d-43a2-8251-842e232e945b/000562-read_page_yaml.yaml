@@ -1,0 +1,47 @@
+interactables:
+  - frame_id: "3F7292D05F1A963322BEE26749665308"
+    nodes:
+      - ref_id: "f0:72"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 3840, h: 1742}
+        click: {x: 1920, y: 871}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:86"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 3840, h: 923.97}
+        click: {x: 1920, y: 461.98}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:88"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 3730, y: 20, w: 90, h: 68}
+        click: {x: 3775, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:114"
+        role: "generic"
+        bbox: {x: 950, y: 268.58, w: 357.13, h: 93}
+        click: {x: 1128.56, y: 315.08}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:116"
+        role: "generic"
+        bbox: {x: 950, y: 401.58, w: 408.11, h: 93}
+        click: {x: 1154.05, y: 448.08}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:118"
+        role: "generic"
+        bbox: {x: 950, y: 534.58, w: 397.45, h: 93}
+        click: {x: 1148.73, y: 581.08}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:125"
+        role: "generic"
+        bbox: {x: 1868.98, y: 888.97, w: 281.58, h: 37}
+        click: {x: 2009.77, y: 907.47}
+        source: "dom_clickable"
+        actions: ["click"]

@@ -1,0 +1,2 @@
+const e=/(\[\d{1,3}\])/,t=/(\[\d{1,3},\s*\{ts:\d+\}\])/,n=RegExp(e.source+`|`+t.source),r=(e,t)=>{if(!n.test(e))return;let r=e.match(/\[(\d{1,3})/);if(!r)return;let i=parseInt(r[1],10)-1;return t?.[i]??void 0};export{r as i,e as n,t as r,n as t};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_sidecar/assets/assets/citations-CrgK3XNy.js.map

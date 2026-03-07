@@ -1,0 +1,52 @@
+interactables:
+  - frame_id: "9A2C04FE961513452DE301F439837025"
+    nodes:
+      - ref_id: "f0:677"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 3360, h: 1682}
+        click: {x: 1680, y: 841}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:678"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 3360, h: 1237.67}
+        click: {x: 1680, y: 618.84}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:680"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 3250, y: 20, w: 90, h: 68}
+        click: {x: 3295, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:707"
+        role: "button"
+        name: "Add"
+        bbox: {x: 710, y: 371.16, w: 161.03, h: 93}
+        click: {x: 790.52, y: 417.66}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:676"
+        role: "textbox"
+        state:
+          disabled: true
+        bbox: {x: 710, y: 867.92, w: 582, h: 64.75}
+        click: {x: 1001, y: 900.3}
+        source: "ax"
+        actions: ["click", "type", "key"]
+      - ref_id: "f0:711"
+        role: "button"
+        name: "Enable"
+        bbox: {x: 710, y: 960.67, w: 204.27, h: 93}
+        click: {x: 812.13, y: 1007.17}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:717"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1628.98, y: 1202.67, w: 281.58, h: 37}
+        click: {x: 1769.77, y: 1221.17}
+        source: "ax"
+        actions: ["click", "key"]

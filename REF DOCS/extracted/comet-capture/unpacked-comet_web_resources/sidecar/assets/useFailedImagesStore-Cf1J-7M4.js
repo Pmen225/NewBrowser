@@ -1,0 +1,2 @@
+import{r as o}from"./vendors-BAND5Q4O.js";const a=new Set,s=[];function i(e){a.add(e),s.forEach(t=>t())}function c(e){return a.has(e)}const d=()=>{const[e,t]=o.useState(a.size);return o.useEffect(()=>{const r=()=>t(a.size);return s.push(r),()=>{const n=s.indexOf(r);n!==-1&&s.splice(n,1)}},[]),o.useMemo(()=>({hasImageFailed:c,failedImagesCount:e,markImageAsFailed:i}),[e])};export{d as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_sidecar/assets/useFailedImagesStore-Cf1J-7M4.js.map

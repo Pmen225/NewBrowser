@@ -59,11 +59,20 @@ export interface ProviderTextPart {
 
 export type ProviderContentPart = ProviderTextPart | ProviderImagePart;
 
+export interface ProviderToolCallRef {
+  id: string;
+  name: string;
+  arguments: JsonObject;
+}
+
 export interface ProviderRuntimeMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string | ProviderContentPart[];
   tool_call_id?: string;
   tool_name?: string;
+  /** Assistant-role messages: the tool calls the model requested this turn */
+  tool_calls?: ProviderToolCallRef[];
+  provider_parts?: JsonObject[];
 }
 
 export interface ProviderToolCall {
@@ -79,6 +88,7 @@ export interface ProviderTurnInput {
   messages: ProviderRuntimeMessage[];
   tools: ProviderToolDefinition[];
   thinkingLevel?: ProviderThinkingLevel;
+  functionCallingMode?: "AUTO" | "NONE" | "ANY" | "VALIDATED";
   allowBrowserSearch: boolean;
   allowCodeExecution: boolean;
   preferVision: boolean;
@@ -88,6 +98,8 @@ export interface ProviderTurnInput {
 export interface ProviderTurnOutput {
   assistantText?: string;
   toolCalls: ProviderToolCall[];
+  provider_parts?: JsonObject[];
+  finishReason?: string;
   raw?: JsonObject;
 }
 

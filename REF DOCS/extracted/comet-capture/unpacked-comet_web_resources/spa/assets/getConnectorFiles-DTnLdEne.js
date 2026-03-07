@@ -1,0 +1,2 @@
+import{s as a,g as i,a as n}from"./platform-core-CZ-8UOca.js";const u=async({request:s,reason:t})=>{const{data:r,error:e,response:o}=await a.POST("/rest/files/list",t,{body:s,timeoutMs:i(),numRetries:1});if(e)throw new n("API_CLIENTS_ERROR",{message:"Failed to get connector files",cause:e,status:o.status??0});return r};export{u as g};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/getConnectorFiles-DTnLdEne.js.map

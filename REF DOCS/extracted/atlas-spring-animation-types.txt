@@ -1,0 +1,485 @@
+  This is not really an error: please read the documentation for
+ extension. Please make sure you have the latest version
+ is temporarily restricted as we review for potential abuse. Please email support@openai.com for help.
+ this could mean someone is tampering with your device or network. Please try another Wi-Fi network or contact your IT admin for help.
+$__lazy_storage_$_disableAgentStrictTransitions
+$__lazy_storage_$_disableEcosystemImproveBannerTiming
+$s6Motion15AnimationDriverP
+$s6Motion20AnimationEnvironmentP
+$s6Motion23AnimationDriverObserverP
+$s6Motion25AnimationEnvironmentProxyP
+$s6Motion28CAKeyframeAnimationEmittableP
+$s6Motion35CAKeyframeAnimationValueConvertibleP
+$ss27StringInterpolationProtocolP
+$ss32ExpressibleByStringInterpolationP
+**If you believe your child may be at immediate risk,** please call your local emergency services right away.
+. Please try again later.
+19StringInterpolation
+@"NSCollectionViewTransitionLayout"40@0:8@"NSCollectionView"16@"NSCollectionViewLayout"24@"NSCollectionViewLayout"32
+An animation should be in flight!
+An error occurred while archiving this conversation. Please try again.
+An error occurred while deleting this conversation. Please try again.
+An error occurred while deleting this project. Please try again.
+An error occurred while importing this file. Please try again.
+An error occurred while moving this conversation. Please try again.
+An error occurred while previewing this file. Please try again.
+An error occurred while removing this file. Please try again.
+An error occurred while renaming this conversation. Please try again.
+An error occurred while renaming. Please try again.
+An error occurred while saving the project. Please try again.
+An error occurred while saving your changes. Please try again.
+An error occurred while trying to load the content. Please try again.
+An error occurred while uploading this file. Please try again.
+An error occurred. Please try again.
+An unknown error occurred. Please try again later
+An unknown error while occurred capturing a screenshot of the selected app. Please try again.
+An update is already being downloaded. Please wait for it to complete.
+Animation
+AnimationBehavior
+AnimationConfiguration
+AnimationDriver
+AnimationDriverObserver
+AnimationEnvironment
+AnimationEnvironmentProxy
+AnimationEnvironmentStorage
+AnimationFrame
+AnimationGroup
+AnimationOptions
+AnimationPhase
+AnimationState
+AnimationType
+Animations
+Attempted to phase transition between two different meetings: 
+BannerBarTransition
+BasicAnimation
+Bezier
+BezierFunction
+CAKeyframeAnimationEmittable
+CAKeyframeAnimationValueConvertible
+CFRelease
+CMSampleTimingInfo
+Camera access is restricted on this device. Please check your parental control or system settings.
+ChatGPT didn't quite catch that. Please try again.
+Code entered is not a 6-digit numeric code. Please enter a valid 6-digit code.
+Content-Disposition: form-data; name="sentry[release]"
+ContentTransition
+Could not delete conversation. Please try again later.
+Could not reset memory. Please try again later.
+Could not unarchive conversation. Please try again later.
+Could not update account settings. Please try again later.
+Could not update the memory setting. Please try again later.
+Could not update the naughty chats setting. Please try again later.
+Countries could not be fetched. Please check your internet connection and restart the app. 
+Create an image of a photorealistic magazine cover for "CUTE ANIMALS," featuring three impossibly cute and stylishly accessorized pets, with realistic, catchy headlines and teaser text.
+DecayAnimation
+Decrease Quantity
+DefaultAnimationEnvironment
+Deserialized session doesn't contain a release name. Dropping it.
+Did we get it wrong? Please tell us by giving this response a thumbs down.
+Enabling Spotlight for a release build. We recommend running Spotlight only for local development.
+Error creating pull request. Please try again later.
+Error deleting all memories. Please try again later.
+Error deleting data. Please try again later.
+Error deleting memory. Please try again later.
+Error loading account information. Please try again later.
+Error loading customizations. Please try again later.
+Error prioritizing memory. Please try again later.
+Error sharing task. Please try again later.
+Error starting task. Please try again later.
+Error updating pull request. Please try again later.
+Error updating setting. Please try again later
+Error updating setting. Please try again later.
+Error updating state for customizations. Please try again later.
+Failed to add Account ExtraInfo because no Account Info exist yet. Please call `setAccountInfo` first.
+Failed to call NetworkService as it has been released
+Failed to disconnect connector. Please try again later.
+Failed to load Lottie file '
+Failed to resend the verification code. Please try again later.
+Failed to update user data. Please try again.
+Failed to upload file. Please try again.
+File upload timed out. Please try again.
+FocusAnimationSuppression
+For help, please see the [phone verification guide](
+For more information about this notification, please visit our [Help Center](
+I took control of the virtual browser. If you're unsure what changed, ask for more context. If the task is complete, just acknowledge and wrap it up. Otherwise, please proceed.
+If you believe this was done in error, please reach out to our support team.
+ImageTransition
+Important safety notice: Please review this time-sensitive information about 
+In-app purchases are currently unavailable. Please try again later.
+Increase Quantity
+Infectious Disease
+Invalid hex color string. Please provide a valid hex color (e.g., #FF0000 or FF0000).
+Invalid state transition from 
+Invalid theme. Please provide one of the following: 
+It looks like camera access is disabled. Please enable camera access in Settings to continue
+KnownTransition
+LeaseRenewal
+Login successful but window did not transition to onboarding or browser after 
+Long press to dictate, release to send.
+LottieAnimationView
+LottieAsset
+LottieStub
+LottieToolbelt
+LottieToolbelt/LottieAnimationView.swift
+LottieViewState
+MatchedTransitionSourceIfAvailableModifier
+Message failed, please try again
+MessageRowCanvasContentPartNavigationTransition
+Motion.AnimationGroup
+Motion.BasicAnimation
+Motion.DecayAnimation
+Motion.SpringAnimation
+Motion/NSScreen+AnimationEnvironment.swift
+Motion/ValueAnimation.swift
+NNSWindowAnimationBehavior
+NativeWidgetNSWindowHost_OnWindowFullscreenTransitionComplete_Params
+NativeWidgetNSWindowHost_OnWindowFullscreenTransitionComplete_Params_Data
+NativeWidgetNSWindowHost_OnWindowFullscreenTransitionStart_Params
+NativeWidgetNSWindowHost_OnWindowFullscreenTransitionStart_Params_Data
+NativeWidgetNSWindow_ReleaseCapture_Params
+NativeWidgetNSWindow_ReleaseCapture_Params_Data
+NativeWidgetNSWindow_SetAnimationEnabled_Params
+NativeWidgetNSWindow_SetAnimationEnabled_Params_Data
+NativeWidgetNSWindow_SetTransitionsToAnimate_Params
+NativeWidgetNSWindow_SetTransitionsToAnimate_Params_Data
+No audio detected. Please check your microphone or audio settings.
+No sign in info found. Please sign in.
+Not capturing transaction because finish was not called before timing out.
+OnboardingStepTransitionMetrics
+One or more of your workspaces does not yet have access to ChatGPT Atlas. Please contact your workspace owners or admins to enable access.
+OverlayAnimation
+PageLoad.InteractiveTiming.FirstInputDelay4
+PageLoad.PaintTiming.NavigationToFirstContentfulPaint
+PageLoad.PaintTiming.NavigationToFirstPaint
+PageLoad.PaintTiming.NavigationToLargestContentfulPaint2
+Please add the selected text to my saved memory
+Please check your connection and try again
+Please check your internet connection and retry.
+Please choose a valid date for your birthday.
+Please contact your workspace admin to retain access to your account
+Please enable microphone access in System Settings to use Voice.
+Please enter your feedback before sending the report.
+Please file a bug report to the SentryCrash project.
+Please log in again, then return here to continue.
+Please make sure this feature is enabled for your account.
+Please make this response longer and more detailed.
+Please make this response more concise and brief.
+Please provide a phone number for verification.
+Please start a new conversation
+Please try again
+Please try again later.
+Please try again. 
+Release name of the options of the client is nil. Not starting a session.
+Release to cancel
+Release when done talking
+Required information could not be fetched. Please check your internet connection and restart the app. (
+SVGView/MBezierPath+Extension_macOS.swift
+Session has no release name. Won't send it.
+Sg12transitionIDt
+Sg12transitionIDtG
+Sg12transitionIDtGG
+Sg12transitionIDtSg
+Sg14animationValuet
+Sg14nextTransitiont
+Sg9animation_t
+SidebarRefreshFooterLottieIcon
+SidebarTransitionStyle
+So18NSAnimationContextCIgg_
+So21CAMediaTimingFunctionC
+Something went wrong while deleting your post. Please try again later.
+Something went wrong. Please make sure your device date and time is correct, and that 'Set Automatically' is toggled on under 'Settings 
+Something went wrong. Please restart the app, or sign out and try again.
+Something went wrong. Please try again.
+Something went wrong. The account has already been created but could not be refreshed. Please sign out and sign back in.
+Spring
+SpringAnimation
+SpringAnimator
+SpringFunction
+StaggeredTransition
+StaggeredTransitionContext
+StaggeredTransitionLayout
+StringInterpolation
+Subscription charge failed. Please update your payment method.
+T@"NSString",C,N,V_releaseName
+T@"NSString",R,N,V_releaseName
+TODO: BridgedWindowController.setAnimationEnabled 
+TODO: BridgedWindowController.setTransitionsToAnimate
+The SDK is disabled, so addBreadcrumb doesn't work. Please ensure to start the SDK before adding breadcrumbs.
+The SDK is disabled, so setUser doesn't work. Please ensure to start the SDK before setting the user.
+The application was not able to find a textfield with that identifier. Please provide a valid textfield identifier.
+The code you entered is invalid. Please try again.
+The file download failed. Please try again later.
+The purchase was unsuccessful. Please try again later.
+The recording could not be processed. Please check your internet connection. (
+The response is invalid. Please try again.
+The server is having problems. Please try again later. (
+The server is overloaded. Please try again later.
+There is a problem with the server. Please try again later.
+There was a problem clearing sign in info. Please try again.
+There was a problem contacting Apple servers. Please try again. (
+There was a problem saving sign in info. Please try again.
+There was a problem with your internet connection. Please try again. (
+There was a problem. Please restart the app.
+There was an error updating your notification settings. Please try again later.
+There was an error with your account deletion. Please try again. If the problem continues, please visit us at help.openai.com.
+There was an issue connecting to audio. Please check your settings and try again. 
+This content may violate our content policy. Please try again with different content.
+This file contains too much text content. Please try again with a smaller file.
+This file is corrupted. Please ensure the file is not corrupted and try again.
+This file is encrypted or requires a password to access. Please try again with an unencrypted file.
+To share your screen, please enable macOS permissions for ChatGPT.
+To take a screenshot, please enable macOS permissions for ChatGPT.
+Touch Moved During Release to Send
+TransitionType
+Transitioned to finish summarizing without a meeting instance
+Transitioned to finish transcribing without a meeting instance
+Transitioned to prompt for retry without a meeting instance
+Transitioned to start finalizing transcribing without a meeting instance
+Transitioned to start summarizing without a meeting instance
+Transitioned to start transcribing while already transcribing
+Unable to delete ad data. Please try again later.
+Unable to update ad personalization. Please try again later.
+Unable to update ad preferences. Please try again.
+UploadTiming
+ValueAnimation
+VisibilityTransition
+Voice activity detection crashed, please reboot the app.
+We could not complete your request. Please try again.
+We could not send a verification code. Please try again.
+We could not send your feedback. Please try again.
+We could not verify that code. Please try again.
+We couldn't send another code. Please try again later.
+We couldn't verify that code. Please check your code and try again.
+We were unable to process your export at this time. Please try again later.
+WebViewPoolLeaseToken
+You're submitting feedback too quickly. Please try again shortly.
+You're trying codes too often. Please wait and try again.
+You've made too many code verification requests. Please try again later.
+You've made too many requests. Please try again later. (429, 
+You've sent too many requests. Please try again later.
+Your account could not be created. Please try again. 
+Your email is not yet verified. Please check your email inbox.
+Your feedback is too long. Please limit it to 
+Your session has expired. Please close this window and try again.
+Your version of ChatGPT is no longer supported and needs to be updated. Please visit the App Store to download the newest build of the app.
+Your workspace does not yet have access to ChatGPT Atlas. Please contact your workspace owners or admins to enable access.
+ZoomNavigationTransitionIfAvailableModifier
+[Statsig]: Failed to create URL with StatsigOptions.api. Please check if it's a valid URL
+[Statsig]: Failed to create URL with StatsigOptions.eventLoggingApi. Please check if it's a valid URL
+_LottieStub
+_Sb23shouldUseZoomTransitiont
+_Sb23shouldUseZoomTransitiontG
+_Sb23shouldUseZoomTransitiontGG
+_TtC10AuraTabsUIP33_169611005FFC3C32AF47DAC44CDF6FAF15LottieViewState
+_TtC11_LottieStub10LottieStub
+_TtC12AuraToolbelt14SpringAnimator
+_TtC14ChatGPTWebView21WebViewPoolLeaseToken
+_TtC6Motion14AnimationGroup
+_TtC6Motion27DefaultAnimationEnvironment
+_TtC6Motion9Animation
+_TtC6MotionP33_21DE64E0D59A6C99CFE6F615E56CE1DC27AnimationEnvironmentStorage
+__Key_imageVariantsAnimationStartDate
+__tsan_release
+_allowTransitionDragWhileDragging
+_animation
+_animationDriverStore
+_animationStartDate
+_animationState
+_canShowLoadingAnimation
+_findPanelAnimation
+_hasFinishedOnFirstAppearAnimation
+_imageVariantsAnimationStartDate
+_isAnimationEnabled
+_isTransitioning
+_lottieIconPlaybackMode
+_lottieIconSize
+_lottieViewState
+_panelAnimation
+_pendingFocusAnimationSuppression
+_releaseName
+_shouldAnimateCurrentFocusTransition
+_snapshotAnimationSuppressionCount
+_stepTransitionDirection
+_swiftUIAnimation
+_swiftUITransition
+_tabOverlayAnimation
+_transitionDragMultiplier
+_transitionLatencyMs
+_transitionNamespace
+_transitionTask
+_voiceTransitionOriginalVoiceFrame
+_voiceTransitionOriginalWindowFrame
+_voiceTransitionOriginalWindowWasFullscreen
+_voiceTransitionOverlayVisible
+` (please disambiguate: 
+activeLeaseCount
+addAnimation:forKey:
+agcRelease
+animation
+animationBehavior
+animationConfiguration
+animationDuration
+animationEnabled
+animationForKey:
+animationSpeedMultiplier
+animationSuppressionCount
+animationValue
+animationView
+animationWithKeyPath:
+animations
+appendBezierPath:
+appendBezierPathWithArcFromPoint:toPoint:radius:
+appendBezierPathWithArcWithCenter:radius:startAngle:endAngle:clockwise:
+assertResolvedReusePolicyConsistency(resolvedReusePolicy:leaseToken:webView:)
+audioProcessingRelease
+autorelease
+autorelease pool page
+bannerBarTransition
+bezier
+bezierPath
+bezierPathWithRect:
+bezierPathWithRoundedRect:xRadius:yRadius:
+canShowLoadingAnimation
+canShowLoadingAnimationObservable
+chatgpt-ios-agent-disable-strict-transitions
+chatgpt-ios-disable-ecosystem-improved-banner-timing
+collectionView:transitionLayoutForOldLayout:newLayout:
+contentTransition
+contentTransitionSubject
+currentAnimationSpeedMultiplier
+customTimings
+custom_timings
+damping
+dampingRatio
+decrease
+decreasedFont
+delayFirstItemAnimation
+determinateAnimation
+didTransitionFromLayout:toLayout:
+disableAgentStrictTransitions
+disableAnimation
+disableEcosystemImproveBannerTiming
+dismissalAnimation
+elementTransition
+enableIconRotationAnimation
+enableSendAnimation
+error transitioning from paused to agent viewer
+fadeAnimation
+fadeInAnimation
+fadeOutAnimation
+focusFullScreen(allowsZoomTransition:)
+forceTransition
+idleSpeakingAnimationAmount
+increase
+increaseContrastEnabled
+increase_contrast_enabled
+increasedFont
+indeterminateAnimation
+infectious_disease
+init(dependencies:conversationCoordinator:message:messagePublisher:enableSendAnimation:)
+initWithEnvironment:releaseName:cacheDirectoryPath:sendDefaultPii:
+initWithReleaseName:distinctId:
+initWithReleaseName:osVersion:vendorId:isDebugging:systemBootTimestamp:
+initWithTraceId:publicKey:releaseName:environment:transaction:sampleRate:sampleRand:sampled:replayId:
+initWithTraceId:publicKey:releaseName:environment:transaction:sampleRate:sampled:replayId:
+insertPrimary transition expects secondary content
+insertSecondary transition expects secondary content
+interpolatedStrokes
+interpolationCount
+keyReleased
+leaseRenewal
+leaseToken
+line.3.horizontal.decrease
+lineAnimationDuration
+ll keep trying this method, or you can update it now. To continue accessing your workspace, please take action by 
+login_window.window_did_not_transition_after_successful_login_before_timeout
+long-animation-frame
+longAnimationFrame
+lottie
+lottieAsset
+mainContentTransition
+maskTransitionDurationActive
+maskTransitionDurationInitializing
+matchedTransitionSourceId
+mediumspringgreen
+mouseReleasedEvent
+navigationTransition
+onRelease
+onTransitionFinish
+onUploadTimingCollected
+position-x-animation
+preloadAllAnimationData
+previewPanel:transitionImageForPreviewItem:contentRect:
+promptButtonTransition
+reducedAnimationsEnabled
+reduced_animations_enabled
+release
+release:
+releaseDrawables
+releaseDuration
+releaseName
+releaseToSend
+releaseToSendBackground
+releaseToSendForeground
+released
+removeAllAnimations
+runAnimationGroup:
+runAnimationGroup:completionHandler:
+runningAnimations
+s). Request a lower minTTL or increase the
+sentry-release
+setAllowsImplicitAnimation:
+setAnimationBehavior:
+setAnimations:
+setDamping:
+setImageInterpolation:
+setReleaseName:
+setReleasedWhenClosed:
+setStiffness:
+setTimingFunction:
+shouldAnimateFocusTransition
+shouldPreloadAllAnimation
+showUpdateReleaseNotesFailedToDownloadWithError:
+showUpdateReleaseNotesWithDownloadData:
+sidebarTransitionStyleRawValue
+sidebar_transition_style
+spring
+springAnimation
+springer.com
+startAnimation:
+stateReleased
+stepTransitionBeginTime
+stiffness
+stopAnimation:
+suggestionDismissalAnimationDidComplete
+supportsPullModelInterpolation
+t be generated. Please try again later.
+t find that saved message. Please try again later.
+targetAnimationSpeedMultiplier
+textAnimation
+text_fade_animation
+timingCurve
+touchMovedDuringReleaseToSend
+touchReleased
+transition
+transitionDuration
+transitionFromPausedIfNeeded()
+transitionNamespace
+transitionSourceID
+transitionStyle
+transitionToGracePeriodIfNeeded(for:before:)
+transitionType
+transition_$value
+transition_latency_ms
+transitioned
+transitions
+undoneInterpolatedStrokes
+updater:shouldDownloadReleaseNotesForUpdate:
+v16@?0@"NSAnimationContext"8
+willTransitionFromLayout:toLayout:
+willTransitionToPrimary
+willTransitionToSecondary
+window:startCustomAnimationToEnterFullScreenOnScreen:withDuration:
+window:startCustomAnimationToEnterFullScreenWithDuration:
+window:startCustomAnimationToExitFullScreenWithDuration:
+zingAnimation

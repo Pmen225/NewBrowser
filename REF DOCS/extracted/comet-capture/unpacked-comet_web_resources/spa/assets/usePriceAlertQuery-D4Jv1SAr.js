@@ -1,0 +1,2 @@
+import{r as s}from"./vendors-bqg7Hkg3.js";import{g as c,a as f}from"./getQuote-BCuDe_ZD.js";import{u as o}from"./react-query-DghsyKOG.js";const p=({symbol:r,enabled:a=!!r,onInitialSuccess:t})=>{const u=s.useRef(!1),e=o({enabled:a&&!!r,queryKey:f(r),queryFn:()=>c(r)});return s.useEffect(()=>{e.isSuccess&&e.data&&!u.current&&t&&(u.current=!0,t(e.data))},[e.isSuccess,e.data,t]),e};export{p as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/usePriceAlertQuery-D4Jv1SAr.js.map

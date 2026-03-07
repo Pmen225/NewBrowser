@@ -1,0 +1,250 @@
+[
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 1024px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 1280px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 1536px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "pointer: coarse",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 1024px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 1280px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "hover:hover",
+    "source": "comet-overlay.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-content.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-content.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-content.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 1024px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 1280px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 1536px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "pointer: coarse",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-reduced-motion: reduce",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 450px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "max-width: 1224px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "max-width: 970px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 1024px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 1280px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 1536px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 1024px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "prefers-color-scheme: dark",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "hover:hover",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "max-width:768px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "min-width: 640px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "condition": "forced-colors: active",
+    "source": "iconButton.css"
+  }
+]

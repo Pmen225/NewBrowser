@@ -1,0 +1,52 @@
+interactables:
+  - frame_id: "24FA836FA0DD0B591C69A6EB5F426E23"
+    nodes:
+      - ref_id: "f0:72"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 2560, h: 1479}
+        click: {x: 1280, y: 739.5}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:80"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 2560, h: 236.66}
+        click: {x: 1280, y: 118.33}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:82"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 2505, y: 10, w: 45, h: 34}
+        click: {x: 2527.5, y: 27}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:79"
+        role: "spinbutton"
+        state:
+          value: ""
+        bbox: {x: 1045, y: 134.28, w: 470, h: 32.38}
+        click: {x: 1280, y: 150.47}
+        source: "ax"
+        actions: ["click", "type", "key"]
+      - ref_id: "f0:115"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1254.48, y: 219.66, w: 140.8, h: 18}
+        click: {x: 1324.88, y: 228.66}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:137"
+        role: "button"
+        name: "Take control"
+        bbox: {x: 1263.55, y: 1420.25, w: 97.45, h: 30}
+        click: {x: 1312.27, y: 1435.25}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:138"
+        role: "button"
+        name: "Stop"
+        bbox: {x: 1369, y: 1420.25, w: 88, h: 30}
+        click: {x: 1413, y: 1435.25}
+        source: "ax"
+        actions: ["click", "key"]

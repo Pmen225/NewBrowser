@@ -1,0 +1,233 @@
+interactables:
+  - frame_id: "8F8FA5B1F2C7D5B7D78560EE8102C94D"
+    nodes:
+      - ref_id: "f0:126"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 1356, h: 1259.13}
+        click: {x: 678, y: 629.56}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:128"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 1356, h: 64}
+        click: {x: 678, y: 32}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:92"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 1356, h: 1382}
+        click: {x: 678, y: 691}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:131"
+        role: "image"
+        name: "Fork me on GitHub"
+        bbox: {x: 1058, y: 0, w: 298, h: 298}
+        click: {x: 1207, y: 149}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:113"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 1246, y: 20, w: 90, h: 68}
+        click: {x: 1291, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:13"
+        role: "statictext"
+        name: "✦"
+        bbox: {x: 1279.11, y: 36.94, w: 23.8, h: 35}
+        click: {x: 1291.01, y: 54.44}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:132"
+        role: "generic"
+        bbox: {x: 0, y: 64, w: 1356, h: 1195.13}
+        click: {x: 678, y: 661.56}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:136"
+        role: "heading"
+        name: "Dynamic Controls"
+        bbox: {x: 30, y: 71.19, w: 1296, h: 43.66}
+        click: {x: 678, y: 93.02}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:80"
+        role: "statictext"
+        name: "Dynamic Controls"
+        bbox: {x: 30, y: 71.19, w: 306.63, h: 43}
+        click: {x: 183.31, y: 92.69}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:137"
+        role: "paragraph"
+        bbox: {x: 30, y: 132.84, w: 1296, h: 102.38}
+        click: {x: 678, y: 184.03}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:81"
+        role: "statictext"
+        name: "This example demonstrates when elements (e.g., checkbox, input field, etc.) are changed asynchronously."
+        bbox: {x: 30, y: 139.84, w: 1272.61, h: 88.19}
+        click: {x: 666.3, y: 183.94}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:138"
+        role: "heading"
+        name: "Remove/add"
+        bbox: {x: 30, y: 275.22, w: 1296, h: 50.39}
+        click: {x: 678, y: 300.41}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:82"
+        role: "statictext"
+        name: "Remove/add"
+        bbox: {x: 30, y: 278.22, w: 194.05, h: 43}
+        click: {x: 127.02, y: 299.72}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:107"
+        role: "generic"
+        bbox: {x: 30, y: 375.61, w: 1296, h: 133}
+        click: {x: 678, y: 442.11}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:140"
+        role: "button"
+        name: "Add"
+        bbox: {x: 30, y: 375.61, w: 161.03, h: 93}
+        click: {x: 110.52, y: 422.11}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:221"
+        role: "statictext"
+        name: "Add"
+        bbox: {x: 80, y: 403.61, w: 61.03, h: 38}
+        click: {x: 110.52, y: 422.61}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:141"
+        role: "separator"
+        bbox: {x: 30, y: 548.61, w: 1296, h: 2}
+        click: {x: 678, y: 549.61}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:142"
+        role: "heading"
+        name: "Enable/disable"
+        bbox: {x: 30, y: 627.8, w: 1296, h: 50.39}
+        click: {x: 678, y: 652.99}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:87"
+        role: "statictext"
+        name: "Enable/disable"
+        bbox: {x: 30, y: 630.8, w: 219.72, h: 43}
+        click: {x: 139.86, y: 652.3}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:109"
+        role: "generic"
+        bbox: {x: 30, y: 728.19, w: 1296, h: 386.94}
+        click: {x: 678, y: 921.66}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:110"
+        role: "textbox"
+        bbox: {x: 30, y: 728.19, w: 388.8, h: 64.75}
+        click: {x: 224.4, y: 760.56}
+        source: "ax"
+        actions: ["click", "type", "key"]
+      - ref_id: "f0:144"
+        role: "button"
+        name: "Disable"
+        bbox: {x: 30, y: 820.94, w: 213.7, h: 93}
+        click: {x: 136.85, y: 867.44}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:230"
+        role: "statictext"
+        name: "Disable"
+        bbox: {x: 80, y: 848.94, w: 113.7, h: 38}
+        click: {x: 136.85, y: 867.94}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:229"
+        role: "paragraph"
+        bbox: {x: 30, y: 953.94, w: 1296, h: 51.19}
+        click: {x: 678, y: 979.53}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:231"
+        role: "statictext"
+        name: "It's enabled!"
+        bbox: {x: 30, y: 960.94, w: 174.86, h: 37}
+        click: {x: 117.43, y: 979.44}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:227"
+        role: "statictext"
+        name: "Wait for it..."
+        bbox: {x: 30, y: 1042.39, w: 171.88, h: 37}
+        click: {x: 115.94, y: 1060.89}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:224"
+        role: "generic"
+        bbox: {x: 30, y: 1045.13, w: 1296, h: 38}
+        click: {x: 678, y: 1064.13}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:225"
+        role: "image"
+        bbox: {x: 201.88, y: 1045.13, w: 440, h: 38}
+        click: {x: 421.88, y: 1064.13}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:146"
+        role: "generic"
+        bbox: {x: 0, y: 1147.13, w: 1356, h: 112}
+        click: {x: 678, y: 1203.13}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:147"
+        role: "generic"
+        bbox: {x: 0, y: 1147.13, w: 1356, h: 112}
+        click: {x: 678, y: 1203.13}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:148"
+        role: "separator"
+        bbox: {x: 30, y: 1187.13, w: 1296, h: 2}
+        click: {x: 678, y: 1188.13}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:90"
+        role: "statictext"
+        name: "Powered by"
+        bbox: {x: 447.42, y: 1224.13, w: 179.56, h: 37}
+        click: {x: 537.2, y: 1242.63}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:150"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 626.98, y: 1224.13, w: 281.58, h: 37}
+        click: {x: 767.77, y: 1242.63}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:91"
+        role: "statictext"
+        name: "Elemental Selenium"
+        bbox: {x: 626.98, y: 1224.13, w: 281.58, h: 37}
+        click: {x: 767.77, y: 1242.63}
+        source: "ax"
+        actions: []
+      - ref_id: "f0:149"
+        role: "generic"
+        bbox: {x: 30, y: 1227.13, w: 1296, h: 32}
+        click: {x: 678, y: 1243.13}
+        source: "ax"
+        actions: []

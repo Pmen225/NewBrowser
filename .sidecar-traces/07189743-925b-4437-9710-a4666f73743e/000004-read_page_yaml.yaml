@@ -1,0 +1,66 @@
+interactables:
+  - frame_id: "30E55A95F8FD1F0A92597ECF4B7B4C86"
+    nodes:
+      - ref_id: "f0:68"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 3360, h: 1682}
+        click: {x: 1680, y: 841}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:69"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 3360, h: 1426.58}
+        click: {x: 1680, y: 713.29}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:71"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 3250, y: 20, w: 90, h: 68}
+        click: {x: 3295, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:98"
+        role: "button"
+        name: "Choose file"
+        state:
+          value: "No file chosen"
+        bbox: {x: 710, y: 268.58, w: 1940, h: 49}
+        click: {x: 1680, y: 293.08}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:100"
+        role: "button"
+        name: "Upload"
+        bbox: {x: 710, y: 349.58, w: 209, h: 93}
+        click: {x: 814.5, y: 396.08}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:101"
+        role: "generic"
+        bbox: {x: 710, y: 514.58, w: 800, h: 800}
+        click: {x: 1110, y: 914.58}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:117"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1628.98, y: 1391.58, w: 281.58, h: 37}
+        click: {x: 1769.77, y: 1410.08}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:155"
+        role: "button"
+        name: "Take control"
+        bbox: {x: 1647.11, y: 1528.5, w: 194.89, h: 60}
+        click: {x: 1744.55, y: 1558.5}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:156"
+        role: "button"
+        name: "Stop"
+        bbox: {x: 1858, y: 1528.5, w: 176, h: 60}
+        click: {x: 1946, y: 1558.5}
+        source: "ax"
+        actions: ["click", "key"]

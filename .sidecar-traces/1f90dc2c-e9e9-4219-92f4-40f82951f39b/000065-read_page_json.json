@@ -1,0 +1,1014 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:169",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2560,
+        "h": 1376.8125
+      },
+      "click": {
+        "x": 1280,
+        "y": 688.40625
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:72",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2560,
+        "h": 1479
+      },
+      "click": {
+        "x": 1280,
+        "y": 739.5
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:171",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 2505,
+        "y": 10,
+        "w": 45,
+        "h": 34
+      },
+      "click": {
+        "x": 2527.5,
+        "y": 27
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:196",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "A/B Testing",
+      "bbox": {
+        "x": 795,
+        "y": 197.6875,
+        "w": 81.78125,
+        "h": 18
+      },
+      "click": {
+        "x": 835.890625,
+        "y": 206.6875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:198",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Add/Remove Elements",
+      "bbox": {
+        "x": 795,
+        "y": 223.28125,
+        "w": 164.203125,
+        "h": 18
+      },
+      "click": {
+        "x": 877.1015625,
+        "y": 232.28125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:200",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Basic Auth",
+      "bbox": {
+        "x": 795,
+        "y": 248.875,
+        "w": 77.359375,
+        "h": 18
+      },
+      "click": {
+        "x": 833.6796875,
+        "y": 257.875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:202",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Broken Images",
+      "bbox": {
+        "x": 795,
+        "y": 274.46875,
+        "w": 107.59375,
+        "h": 18
+      },
+      "click": {
+        "x": 848.796875,
+        "y": 283.46875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:204",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Challenging DOM",
+      "bbox": {
+        "x": 795,
+        "y": 300.0625,
+        "w": 126.265625,
+        "h": 18
+      },
+      "click": {
+        "x": 858.1328125,
+        "y": 309.0625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:206",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Checkboxes",
+      "bbox": {
+        "x": 795,
+        "y": 325.65625,
+        "w": 89.5,
+        "h": 18
+      },
+      "click": {
+        "x": 839.75,
+        "y": 334.65625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:208",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Context Menu",
+      "bbox": {
+        "x": 795,
+        "y": 351.25,
+        "w": 101.375,
+        "h": 18
+      },
+      "click": {
+        "x": 845.6875,
+        "y": 360.25
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:210",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Digest Authentication",
+      "bbox": {
+        "x": 795,
+        "y": 376.84375,
+        "w": 153.21875,
+        "h": 18
+      },
+      "click": {
+        "x": 871.609375,
+        "y": 385.84375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:212",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Disappearing Elements",
+      "bbox": {
+        "x": 795,
+        "y": 402.4375,
+        "w": 165.078125,
+        "h": 18
+      },
+      "click": {
+        "x": 877.5390625,
+        "y": 411.4375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:214",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Drag and Drop",
+      "bbox": {
+        "x": 795,
+        "y": 428.03125,
+        "w": 105.21875,
+        "h": 18
+      },
+      "click": {
+        "x": 847.609375,
+        "y": 437.03125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:216",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Dropdown",
+      "bbox": {
+        "x": 795,
+        "y": 453.625,
+        "w": 74.6875,
+        "h": 18
+      },
+      "click": {
+        "x": 832.34375,
+        "y": 462.625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:218",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Dynamic Content",
+      "bbox": {
+        "x": 795,
+        "y": 479.21875,
+        "w": 124.203125,
+        "h": 18
+      },
+      "click": {
+        "x": 857.1015625,
+        "y": 488.21875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:220",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Dynamic Controls",
+      "bbox": {
+        "x": 795,
+        "y": 504.8125,
+        "w": 127.453125,
+        "h": 18
+      },
+      "click": {
+        "x": 858.7265625,
+        "y": 513.8125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:222",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Dynamic Loading",
+      "bbox": {
+        "x": 795,
+        "y": 530.40625,
+        "w": 124.796875,
+        "h": 18
+      },
+      "click": {
+        "x": 857.3984375,
+        "y": 539.40625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:224",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Entry Ad",
+      "bbox": {
+        "x": 795,
+        "y": 556,
+        "w": 61.359375,
+        "h": 18
+      },
+      "click": {
+        "x": 825.6796875,
+        "y": 565
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:226",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Exit Intent",
+      "bbox": {
+        "x": 795,
+        "y": 581.59375,
+        "w": 71.71875,
+        "h": 18
+      },
+      "click": {
+        "x": 830.859375,
+        "y": 590.59375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:228",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "File Download",
+      "bbox": {
+        "x": 795,
+        "y": 607.1875,
+        "w": 101.625,
+        "h": 18
+      },
+      "click": {
+        "x": 845.8125,
+        "y": 616.1875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:230",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "File Upload",
+      "bbox": {
+        "x": 795,
+        "y": 632.78125,
+        "w": 81.1875,
+        "h": 18
+      },
+      "click": {
+        "x": 835.59375,
+        "y": 641.78125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:232",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Floating Menu",
+      "bbox": {
+        "x": 795,
+        "y": 658.375,
+        "w": 101.953125,
+        "h": 18
+      },
+      "click": {
+        "x": 845.9765625,
+        "y": 667.375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:234",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Forgot Password",
+      "bbox": {
+        "x": 795,
+        "y": 683.96875,
+        "w": 121.90625,
+        "h": 18
+      },
+      "click": {
+        "x": 855.953125,
+        "y": 692.96875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:236",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Form Authentication",
+      "bbox": {
+        "x": 795,
+        "y": 709.5625,
+        "w": 144.9375,
+        "h": 18
+      },
+      "click": {
+        "x": 867.46875,
+        "y": 718.5625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:238",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Frames",
+      "bbox": {
+        "x": 795,
+        "y": 735.15625,
+        "w": 53.359375,
+        "h": 18
+      },
+      "click": {
+        "x": 821.6796875,
+        "y": 744.15625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:240",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Geolocation",
+      "bbox": {
+        "x": 795,
+        "y": 760.75,
+        "w": 86.515625,
+        "h": 18
+      },
+      "click": {
+        "x": 838.2578125,
+        "y": 769.75
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:242",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Horizontal Slider",
+      "bbox": {
+        "x": 795,
+        "y": 786.34375,
+        "w": 117.890625,
+        "h": 18
+      },
+      "click": {
+        "x": 853.9453125,
+        "y": 795.34375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:244",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Hovers",
+      "bbox": {
+        "x": 795,
+        "y": 811.9375,
+        "w": 50.65625,
+        "h": 18
+      },
+      "click": {
+        "x": 820.328125,
+        "y": 820.9375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:246",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Infinite Scroll",
+      "bbox": {
+        "x": 795,
+        "y": 837.53125,
+        "w": 92.15625,
+        "h": 18
+      },
+      "click": {
+        "x": 841.078125,
+        "y": 846.53125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:248",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Inputs",
+      "bbox": {
+        "x": 795,
+        "y": 863.125,
+        "w": 44.46875,
+        "h": 18
+      },
+      "click": {
+        "x": 817.234375,
+        "y": 872.125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:250",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "JQuery UI Menus",
+      "bbox": {
+        "x": 795,
+        "y": 888.71875,
+        "w": 124.203125,
+        "h": 18
+      },
+      "click": {
+        "x": 857.1015625,
+        "y": 897.71875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:252",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "JavaScript Alerts",
+      "bbox": {
+        "x": 795,
+        "y": 914.3125,
+        "w": 121.1875,
+        "h": 18
+      },
+      "click": {
+        "x": 855.59375,
+        "y": 923.3125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:254",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "JavaScript onload event error",
+      "bbox": {
+        "x": 795,
+        "y": 939.90625,
+        "w": 210.703125,
+        "h": 18
+      },
+      "click": {
+        "x": 900.3515625,
+        "y": 948.90625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:256",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Key Presses",
+      "bbox": {
+        "x": 795,
+        "y": 965.5,
+        "w": 88.3125,
+        "h": 18
+      },
+      "click": {
+        "x": 839.15625,
+        "y": 974.5
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:258",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Large & Deep DOM",
+      "bbox": {
+        "x": 795,
+        "y": 991.09375,
+        "w": 138.875,
+        "h": 18
+      },
+      "click": {
+        "x": 864.4375,
+        "y": 1000.09375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:260",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Multiple Windows",
+      "bbox": {
+        "x": 795,
+        "y": 1016.6875,
+        "w": 127.125,
+        "h": 18
+      },
+      "click": {
+        "x": 858.5625,
+        "y": 1025.6875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:262",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Nested Frames",
+      "bbox": {
+        "x": 795,
+        "y": 1042.28125,
+        "w": 109.0625,
+        "h": 18
+      },
+      "click": {
+        "x": 849.53125,
+        "y": 1051.28125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:264",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Notification Messages",
+      "bbox": {
+        "x": 795,
+        "y": 1067.875,
+        "w": 158.828125,
+        "h": 18
+      },
+      "click": {
+        "x": 874.4140625,
+        "y": 1076.875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:266",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Redirect Link",
+      "bbox": {
+        "x": 795,
+        "y": 1093.46875,
+        "w": 93.953125,
+        "h": 18
+      },
+      "click": {
+        "x": 841.9765625,
+        "y": 1102.46875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:268",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Secure File Download",
+      "bbox": {
+        "x": 795,
+        "y": 1119.0625,
+        "w": 156.15625,
+        "h": 18
+      },
+      "click": {
+        "x": 873.078125,
+        "y": 1128.0625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:270",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Shadow DOM",
+      "bbox": {
+        "x": 795,
+        "y": 1144.65625,
+        "w": 100.46875,
+        "h": 18
+      },
+      "click": {
+        "x": 845.234375,
+        "y": 1153.65625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:272",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Shifting Content",
+      "bbox": {
+        "x": 795,
+        "y": 1170.25,
+        "w": 115.875,
+        "h": 18
+      },
+      "click": {
+        "x": 852.9375,
+        "y": 1179.25
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:274",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Slow Resources",
+      "bbox": {
+        "x": 795,
+        "y": 1195.84375,
+        "w": 115.546875,
+        "h": 18
+      },
+      "click": {
+        "x": 852.7734375,
+        "y": 1204.84375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:276",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Sortable Data Tables",
+      "bbox": {
+        "x": 795,
+        "y": 1221.4375,
+        "w": 148.171875,
+        "h": 18
+      },
+      "click": {
+        "x": 869.0859375,
+        "y": 1230.4375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:278",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Status Codes",
+      "bbox": {
+        "x": 795,
+        "y": 1247.03125,
+        "w": 97.203125,
+        "h": 18
+      },
+      "click": {
+        "x": 843.6015625,
+        "y": 1256.03125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:280",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Typos",
+      "bbox": {
+        "x": 795,
+        "y": 1272.625,
+        "w": 42.09375,
+        "h": 18
+      },
+      "click": {
+        "x": 816.046875,
+        "y": 1281.625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:282",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "WYSIWYG Editor",
+      "bbox": {
+        "x": 795,
+        "y": 1298.21875,
+        "w": 123.84375,
+        "h": 18
+      },
+      "click": {
+        "x": 856.921875,
+        "y": 1307.21875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:287",
+      "frame_id": "74E5FCBDE6ADEBF6B678203D116C186D",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1254.484375,
+        "y": 1359.8125,
+        "w": 140.796875,
+        "h": 18
+      },
+      "click": {
+        "x": 1324.8828125,
+        "y": 1368.8125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 48,
+    "generated_at": "2026-03-06T11:23:25.227Z"
+  }
+}

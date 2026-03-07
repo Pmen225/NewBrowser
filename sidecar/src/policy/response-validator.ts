@@ -103,6 +103,121 @@ function countWords(value: string): number {
     .filter((part) => part.length > 0).length;
 }
 
+function isDirectObservationPrompt(userPrompt: string | undefined, hasImageInput: boolean | undefined): boolean {
+  const normalized = normalizeWhitespace((userPrompt ?? "").toLowerCase());
+  if (!normalized) {
+    return false;
+  }
+
+  if (
+    normalized.includes("what do you see") ||
+    normalized.includes("what can you see") ||
+    normalized.includes("tell me what you see") ||
+    normalized.includes("describe what you see") ||
+    normalized.includes("what is visible") ||
+    normalized.includes("what's visible") ||
+    normalized.includes("what do you notice")
+  ) {
+    return true;
+  }
+
+  return hasImageInput === true && (
+    normalized.includes("describe this image") ||
+    normalized.includes("describe the image") ||
+    normalized.includes("describe this screenshot") ||
+    normalized.includes("describe the screenshot") ||
+    normalized.includes("summarize this image") ||
+    normalized.includes("summarize the image") ||
+    normalized.includes("summarize this screenshot") ||
+    normalized.includes("summarize the screenshot")
+  );
+}
+
+function containsMarkdownPresentation(value: string): boolean {
+  return (
+    /^\s*#{1,6}\s+/m.test(value) ||
+    /^\s*[-*]\s+/m.test(value) ||
+    /^\s*\d+\.\s+/m.test(value) ||
+    value.includes("|") ||
+    /[*_`]{1,3}[^*_`]+[*_`]{1,3}/.test(value)
+  );
+}
+
+function stripMarkdownPresentation(value: string): string {
+  const lines = value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !isTableSeparatorLine(line));
+
+  const normalizedLines = lines.map((line) => {
+    if (line.includes("|")) {
+      const cells = line
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .map((cell) => cell.trim())
+        .filter((cell) => cell.length > 0);
+      if (cells.length > 0) {
+        line = cells.join(" - ");
+      }
+    }
+
+    return line
+      .replace(/(^|\s)#{1,6}\s+/g, "$1")
+      .replace(/^#{1,6}\s+/, "")
+      .replace(/^\d+\.\s+/, "")
+      .replace(/^[-*]\s+/, "")
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/__(.*?)__/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/_(.*?)_/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .trim();
+  });
+
+  return normalizedLines.filter((line) => line.length > 0).join("; ");
+}
+
+function normalizeObservationLeadIn(value: string, hasImageInput: boolean | undefined): string {
+  let normalized = value
+    .replace(/^here is a breakdown of what is visible:\s*/i, "")
+    .replace(/^here(?:'s| is) what i see:\s*/i, "")
+    .replace(/^this (?:image|screenshot|page) (?:shows|displays)\s+/i, "")
+    .replace(/^the (?:image|screenshot|page) (?:shows|displays)\s+/i, "")
+    .replace(/^i (?:can )?see\s+/i, "");
+
+  normalized = normalizeWhitespace(normalized);
+  if (!normalized) {
+    return hasImageInput ? "Image reviewed." : "Page reviewed.";
+  }
+
+  if (/^(image|page|screenshot)\s*:/i.test(normalized)) {
+    return normalized;
+  }
+
+  const prefix = hasImageInput ? "Image:" : "Page:";
+  return `${prefix} ${normalized}`;
+}
+
+function ensurePlainTextObservationResponse(
+  text: string,
+  userPrompt: string | undefined,
+  hasImageInput: boolean | undefined
+): string {
+  if (!isDirectObservationPrompt(userPrompt, hasImageInput)) {
+    return text;
+  }
+
+  const flattened = stripMarkdownPresentation(text);
+  const clauses = flattened
+    .split(";")
+    .map((part) => normalizeWhitespace(part))
+    .filter((part) => part.length > 0)
+    .slice(0, 4);
+
+  return normalizeObservationLeadIn(clauses.join("; "), hasImageInput);
+}
+
 export function detectLanguageFromText(value: string): string {
   const normalized = ` ${normalizeWhitespace(value.toLowerCase().replace(/[^a-z0-9]+/g, " "))} `;
   if (
@@ -203,7 +318,8 @@ function hasOnlyRepairableViolations(violations: PolicyViolation[]): boolean {
     "raw_tool_tags_forbidden",
     "raw_ids_forbidden_in_final_response",
     "image_acknowledgement_required",
-    "lyrics_forbidden"
+    "lyrics_forbidden",
+    "plain_text_observation_required"
   ]);
   return violations.length > 0 && violations.every((violation) => allowedRules.has(violation.rule_id));
 }
@@ -346,7 +462,8 @@ function repairFinalAnswerCandidate(
   text: string,
   availableCitations: string[] | undefined,
   hasImageInput: boolean | undefined,
-  expectedLanguage: string
+  expectedLanguage: string,
+  userPrompt: string | undefined
 ): string {
   let candidate = sanitizeAnswerBody(extractAnswerBody(text));
   candidate = stripRawToolTags(candidate);
@@ -361,8 +478,9 @@ function repairFinalAnswerCandidate(
     candidate = fixedTable.includes("|") ? fixedTable : replacePipesWithBullets(fixedTable);
   }
 
-  candidate = ensureInlineCitation(candidate, availableCitations);
+  candidate = ensurePlainTextObservationResponse(candidate, userPrompt, hasImageInput);
   candidate = ensureImageAcknowledgement(candidate, hasImageInput, expectedLanguage);
+  candidate = ensureInlineCitation(candidate, availableCitations);
 
   return sanitizeAnswerBody(candidate);
 }
@@ -454,6 +572,14 @@ export function validateFinalAnswer(input: ResponseValidationInput): ResponseVal
     }
   }
 
+  if (isDirectObservationPrompt(input.userPrompt, input.hasImageInput) && containsMarkdownPresentation(answerBody)) {
+    violations.push({
+      rule_id: "plain_text_observation_required",
+      code: "POLICY_RESPONSE_INVALID",
+      message: "Direct observation answers must use plain text instead of markdown formatting."
+    });
+  }
+
   return {
     ok: violations.length === 0,
     violations,
@@ -475,7 +601,8 @@ export function validateFinalAnswerWithAutofix(input: ResponseValidationInput): 
     input.text,
     input.availableCitations,
     input.hasImageInput,
-    expectedLanguage
+    expectedLanguage,
+    input.userPrompt
   );
   const violationRules = new Set(initial.violations.map((violation) => violation.rule_id));
 

@@ -42,6 +42,10 @@ function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 function normalizeErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -184,6 +188,33 @@ function normalizeUrl(raw: string): string {
   }
 }
 
+function isSameHttpsUpgrade(currentUrl: string, expectedUrl: string): boolean {
+  try {
+    const current = new URL(currentUrl);
+    const expected = new URL(expectedUrl);
+    const protocols = new Set([current.protocol, expected.protocol]);
+    if (!protocols.has("http:") || !protocols.has("https:")) {
+      return false;
+    }
+
+    return (
+      current.hostname === expected.hostname &&
+      current.port === expected.port &&
+      current.pathname === expected.pathname &&
+      current.search === expected.search &&
+      current.hash === expected.hash
+    );
+  } catch {
+    return false;
+  }
+}
+
+function urlsMatchForNavigation(currentUrl: string, expectedUrl: string): boolean {
+  const normalizedCurrent = normalizeUrl(currentUrl);
+  const normalizedExpected = normalizeUrl(expectedUrl);
+  return normalizedCurrent === normalizedExpected || isSameHttpsUpgrade(normalizedCurrent, normalizedExpected);
+}
+
 function buildNavigateReliabilityHooks(runtime: BrowserActionRuntime, tabId: string, params: NavigateParams) {
   let previousHistoryIndex: number | null = null;
 
@@ -218,7 +249,7 @@ function buildNavigateReliabilityHooks(runtime: BrowserActionRuntime, tabId: str
         if (!current) {
           return false;
         }
-        return normalizeUrl(current.url) === normalizeUrl(expectedUrl);
+        return urlsMatchForNavigation(current.url, expectedUrl);
       }
 
       if (previousHistoryIndex === null) {
@@ -260,11 +291,63 @@ function ensureTask4Action(action: string): LegacyBrowserRpcAction {
   return normalized;
 }
 
+function extractRawStepAction(step: JsonObject): string {
+  const candidates = [step.action, step.kind, step.type, step.operation];
+  for (const candidate of candidates) {
+    if (isNonEmptyString(candidate)) {
+      return candidate.trim().toLowerCase();
+    }
+  }
+
+  return "";
+}
+
+function inferComputerBatchRecoveryHint(params: JsonObject): string | undefined {
+  const rawSteps = Array.isArray(params.steps) && params.steps.length > 0 ? params.steps : [params];
+
+  for (const rawStep of rawSteps) {
+    if (!isJsonObject(rawStep)) {
+      continue;
+    }
+
+    const action = extractRawStepAction(rawStep);
+    const hasRef = isNonEmptyString(rawStep.ref) || isNonEmptyString(rawStep.ref_id);
+    const hasFormValue =
+      rawStep.value !== undefined ||
+      rawStep.text !== undefined ||
+      rawStep.option !== undefined ||
+      rawStep.selected_option !== undefined ||
+      rawStep.checked !== undefined ||
+      rawStep.file !== undefined ||
+      rawStep.files !== undefined;
+
+    if ((action.includes("select") || action.includes("option") || action.includes("choose")) && (hasRef || hasFormValue)) {
+      return "Invalid params for action ComputerBatch. Use FormInput with ref, kind \"select\", and value for dropdowns and other form controls.";
+    }
+
+    if ((action.includes("checkbox") || action.includes("toggle") || action.includes("check")) && (hasRef || hasFormValue)) {
+      return "Invalid params for action ComputerBatch. Use FormInput with ref, kind \"checkbox\", and a boolean value for checkbox state changes.";
+    }
+
+    if ((action.includes("upload") || action.includes("file")) && (hasRef || hasFormValue)) {
+      return "Invalid params for action ComputerBatch. Use FormInput with ref, kind \"file\", and an absolute file path for uploads.";
+    }
+
+    if ((action.includes("type") || action.includes("input") || action.includes("fill") || action.includes("enter")) && hasFormValue) {
+      return "Invalid params for action ComputerBatch. Use FormInput with ref, kind \"text\", and value when setting form fields.";
+    }
+  }
+
+  return undefined;
+}
+
 function ensureComputerBatchParams(params: JsonObject): ComputerBatchParams {
   const parsed = parseTask4Params("ComputerBatch", params);
   if (!parsed) {
-    throw createDispatcherError("INVALID_REQUEST", "Invalid params for action ComputerBatch", false, {
-      action: "ComputerBatch"
+    const recoveryHint = inferComputerBatchRecoveryHint(params);
+    throw createDispatcherError("INVALID_REQUEST", recoveryHint ?? "Invalid params for action ComputerBatch", false, {
+      action: "ComputerBatch",
+      ...(recoveryHint ? { suggested_action: "FormInput" } : {})
     });
   }
   return parsed;

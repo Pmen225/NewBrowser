@@ -3,31 +3,154 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Assistant Settings</title>
+  <title>Settings</title>
   <link rel="stylesheet" href="options.css" />
 </head>
 <body>
   <main class="settings-shell">
     <aside class="settings-sidebar">
-      <div class="settings-brand">Assistant</div>
-      <p class="settings-sidebar-copy">Settings</p>
+      <div class="settings-brand">
+        <svg class="settings-brand-icon" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <rect width="22" height="22" rx="7" fill="url(#bgi)"/>
+          <circle cx="8"  cy="11" r="1.6" fill="white" fill-opacity=".92"/>
+          <circle cx="14" cy="11" r="1.6" fill="white" fill-opacity=".92"/>
+          <defs>
+            <linearGradient id="bgi" x1="0" y1="0" x2="22" y2="22">
+              <stop stop-color="#4ea9d4"/>
+              <stop offset="1" stop-color="#2870a0"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        Assistant
+      </div>
+
       <nav class="settings-nav" aria-label="Settings sections">
-        <a href="#provider" class="settings-nav-item">AI Provider</a>
-        <a href="#model" class="settings-nav-item">Model</a>
-        <a href="#audio" class="settings-nav-item">Audio</a>
-        <a href="#chats" class="settings-nav-item">Recent Chats</a>
+        <a href="#agent"    class="settings-nav-item" data-section="agent">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="5" width="12" height="9" rx="2"/>
+            <circle cx="6"  cy="9.5" r="1.1" fill="currentColor" stroke="none"/>
+            <circle cx="10" cy="9.5" r="1.1" fill="currentColor" stroke="none"/>
+            <path d="M8 5V3"/><circle cx="8" cy="2.5" r=".6" fill="currentColor" stroke="none"/>
+          </svg>
+          Agent
+        </a>
+        <a href="#provider" class="settings-nav-item" data-section="provider">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="5.5" cy="8" r="3"/>
+            <path d="M8.5 8H15M13 8v2M11 8v1.5"/>
+          </svg>
+          Provider
+        </a>
+        <a href="#models"   class="settings-nav-item" data-section="models">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2v2.5M8 11.5V14M2 8h2.5M11.5 8H14M3.8 3.8l1.8 1.8M10.4 10.4l1.8 1.8M12.2 3.8l-1.8 1.8M5.6 10.4l-1.8 1.8"/>
+            <circle cx="8" cy="8" r="1.8"/>
+          </svg>
+          Models
+        </a>
+        <a href="#data"     class="settings-nav-item" data-section="data">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <ellipse cx="8" cy="4.5" rx="5" ry="1.8"/>
+            <path d="M3 4.5v7c0 1 2.24 1.8 5 1.8s5-.8 5-1.8v-7"/>
+            <path d="M3 8c0 1 2.24 1.8 5 1.8S13 9 13 8"/>
+          </svg>
+          Data
+        </a>
+        <a href="#commands" class="settings-nav-item" data-section="commands">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 2L6 14"/>
+            <path d="M3 5h3M10 11h3"/>
+          </svg>
+          Commands
+        </a>
       </nav>
+
+      <div class="settings-sidebar-footer">
+        <span class="settings-version">v0.2.0</span>
+      </div>
     </aside>
 
     <section class="settings-main">
-      <header class="settings-header">
-        <h1 class="settings-title">Assistant Settings</h1>
-        <p class="settings-subtitle">Local-only preferences with Plexity-style surface and controls.</p>
-      </header>
 
-      <section id="provider" class="settings-section" aria-label="Provider keys">
-        <div class="settings-section-row">
-          <h2 class="settings-section-title">AI Provider</h2>
+      <!-- ── Agent ──────────────────────────────────────────────────── -->
+      <section id="agent" class="settings-section" aria-label="Agent">
+        <div class="settings-section-header">
+          <div>
+            <h2 class="settings-section-title">Agent</h2>
+            <p class="settings-section-desc">Browser control and automation.</p>
+          </div>
+          <span class="save-dot" id="agent-save-dot" hidden>✓ Saved</span>
+        </div>
+
+        <div class="settings-rows">
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Vision</span>
+              <span class="settings-row-desc">Use screenshot analysis (more tokens, better accuracy).</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="agent-vision-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Highlights</span>
+              <span class="settings-row-desc">Show visual highlights on interactive elements.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="agent-highlights-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">History replay <span class="settings-badge settings-badge--experimental">beta</span></span>
+              <span class="settings-row-desc">Store and replay agent step history.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="agent-replay-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+        </div>
+
+        <details class="settings-advanced">
+          <summary>Advanced</summary>
+          <div class="settings-rows">
+            <label class="settings-row">
+              <span class="settings-row-copy"><span class="settings-row-title">Max steps per task</span></span>
+              <input id="agent-max-steps" class="settings-number" type="number" min="1" max="250" value="50" />
+            </label>
+            <label class="settings-row">
+              <span class="settings-row-copy"><span class="settings-row-title">Max actions per step</span></span>
+              <input id="agent-max-actions" class="settings-number" type="number" min="1" max="50" value="10" />
+            </label>
+            <label class="settings-row">
+              <span class="settings-row-copy"><span class="settings-row-title">Failure tolerance</span></span>
+              <input id="agent-failure-tolerance" class="settings-number" type="number" min="0" max="50" value="3" />
+            </label>
+            <label class="settings-row">
+              <span class="settings-row-copy"><span class="settings-row-title">Replanning frequency</span></span>
+              <input id="agent-replan-freq" class="settings-number" type="number" min="0" max="50" value="0" />
+            </label>
+            <label class="settings-row">
+              <span class="settings-row-copy"><span class="settings-row-title">Page load wait (ms)</span></span>
+              <input id="agent-page-load-wait" class="settings-number" type="number" min="250" max="5000" step="50" value="250" />
+            </label>
+          </div>
+        </details>
+      </section>
+
+      <!-- ── Provider ────────────────────────────────────────────────── -->
+      <section id="provider" class="settings-section" aria-label="Provider">
+        <div class="settings-section-header">
+          <div>
+            <h2 class="settings-section-title">Provider</h2>
+            <p class="settings-section-desc">API keys stored locally, never leave your device.</p>
+          </div>
           <button id="provider-save-btn" class="settings-button settings-button--primary" type="button">Save key</button>
         </div>
 
@@ -35,126 +158,206 @@
           <label class="settings-row settings-row--stacked">
             <span class="settings-row-copy">
               <span class="settings-row-title">Provider</span>
-              <span class="settings-row-desc">google, openai, anthropic, deepseek</span>
+              <span class="settings-row-desc">google · openai · anthropic · deepseek · xai · perplexity</span>
             </span>
             <input id="provider-id-input" class="settings-input" type="text" placeholder="google" autocomplete="off" />
           </label>
-
           <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">API key</span>
-              <span class="settings-row-desc">Stored locally only, never leaves your device.</span>
-            </span>
-            <input id="provider-key-input" class="settings-input" type="password" placeholder="AIza..." autocomplete="new-password" />
+            <span class="settings-row-copy"><span class="settings-row-title">API Key</span></span>
+            <input id="provider-key-input" class="settings-input" type="password" placeholder="AIza…" autocomplete="new-password" />
           </label>
-
           <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Preferred model</span>
-              <span class="settings-row-desc">Default model for this provider.</span>
-            </span>
+            <span class="settings-row-copy"><span class="settings-row-title">Preferred model</span></span>
             <input id="provider-model-input" class="settings-input" type="text" placeholder="models/gemini-2.5-flash" autocomplete="off" />
           </label>
-
           <label class="settings-row settings-row--stacked">
             <span class="settings-row-copy">
-              <span class="settings-row-title">Base URL <span class="settings-row-optional">(optional)</span></span>
-              <span class="settings-row-desc">Override provider endpoint for custom deployments.</span>
+              <span class="settings-row-title">Base URL <span class="settings-row-optional">optional</span></span>
             </span>
             <input id="provider-base-url-input" class="settings-input" type="url" placeholder="https://api.example.com" autocomplete="off" />
           </label>
         </div>
 
-        <div id="provider-save-status" class="settings-hint" role="status" aria-live="polite" hidden></div>
-        <div id="provider-list" class="settings-chat-list" aria-live="polite"></div>
+        <div id="provider-save-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+        <div id="provider-list" class="settings-item-list" aria-live="polite"></div>
       </section>
 
-      <section id="model" class="settings-section" aria-label="Model">
-        <div class="settings-section-row">
-          <h2 class="settings-section-title">Model</h2>
-          <button id="model-config-save-btn" class="settings-button settings-button--primary" type="button">Save</button>
+      <!-- ── Models + Model Config ───────────────────────────────────── -->
+      <section id="models" class="settings-section" aria-label="Models">
+        <div class="settings-section-header">
+          <div>
+            <h2 class="settings-section-title">Models</h2>
+            <p class="settings-section-desc">Selection strategy, capabilities, and catalog.</p>
+          </div>
+          <span class="save-dot" id="model-save-dot" hidden>✓ Saved</span>
         </div>
 
-        <label class="settings-row">
-          <span class="settings-row-copy">
-            <span class="settings-row-title">Selection mode</span>
-            <span class="settings-row-desc">Auto picks the best model for each prompt. Manual locks to one model.</span>
-          </span>
-          <select id="model-mode-select" class="settings-select">
-            <option value="auto">Auto ✶</option>
-            <option value="manual">Manual</option>
-          </select>
-        </label>
-
-        <label class="settings-row">
-          <span class="settings-row-copy">
-            <span class="settings-row-title">Thinking level</span>
-            <span class="settings-row-desc">Higher levels use deeper reasoning and may be slower.</span>
-          </span>
-          <select id="thinking-level-select" class="settings-select">
-            <option value="minimal">Minimal (fastest)</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High (deepest)</option>
-          </select>
-        </label>
-
-        <label class="settings-row">
-          <span class="settings-row-copy">
-            <span class="settings-row-title">Function calling</span>
-            <span class="settings-row-desc">Allow tool calls such as browser automation and web search.</span>
-          </span>
-          <input id="function-calling-toggle" class="settings-toggle" type="checkbox" checked />
-        </label>
-
-        <label class="settings-row">
-          <span class="settings-row-copy">
-            <span class="settings-row-title">Web search</span>
-            <span class="settings-row-desc">Allow searching the web when answering questions.</span>
-          </span>
-          <input id="browser-search-toggle" class="settings-toggle" type="checkbox" checked />
-        </label>
-
-        <label class="settings-row">
-          <span class="settings-row-copy">
-            <span class="settings-row-title">Code execution</span>
-            <span class="settings-row-desc">Allow running Python snippets when supported by the model.</span>
-          </span>
-          <input id="code-execution-toggle" class="settings-toggle" type="checkbox" checked />
-        </label>
-
-        <div id="model-config-status" class="settings-hint" role="status" aria-live="polite" hidden></div>
-      </section>
-
-      <section id="audio" class="settings-section" aria-label="Audio">
-        <h2 class="settings-section-title">Audio</h2>
-
-        <label class="settings-row">
-          <span class="settings-row-copy">
-            <span class="settings-row-title">Narration</span>
-            <span class="settings-row-desc">Read assistant replies aloud.</span>
-          </span>
-          <input id="narration-toggle" class="settings-toggle" type="checkbox" />
-        </label>
-
-        <label class="settings-row">
-          <span class="settings-row-copy">
-            <span class="settings-row-title">Dictation</span>
-            <span class="settings-row-desc">Enable microphone input in the composer.</span>
-          </span>
-          <input id="transcription-toggle" class="settings-toggle" type="checkbox" />
-        </label>
-
-        <div id="audio-support" class="settings-hint" role="status" aria-live="polite"></div>
-      </section>
-
-      <section id="chats" class="settings-section" aria-label="Chats">
-        <div class="settings-section-row">
-          <h2 class="settings-section-title">Recent Chats</h2>
-          <button id="clear-chats-btn" class="settings-button" type="button">Clear all</button>
+        <div class="settings-rows">
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Selection</span>
+              <span class="settings-row-desc">Auto picks the best model. Manual locks to one.</span>
+            </span>
+            <select id="model-mode-select" class="settings-select settings-select--inline">
+              <option value="auto">Auto ✶</option>
+              <option value="manual">Manual</option>
+            </select>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Thinking depth</span>
+              <span class="settings-row-desc">Higher = deeper reasoning, slower response.</span>
+            </span>
+            <select id="thinking-level-select" class="settings-select settings-select--inline">
+              <option value="minimal">Minimal</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Tool calls</span>
+              <span class="settings-row-desc">Browser automation and function calling.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="function-calling-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Web search</span>
+              <span class="settings-row-desc">Search the web when answering questions.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="browser-search-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Code execution</span>
+              <span class="settings-row-desc">Run Python snippets when supported.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="code-execution-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
         </div>
-        <div id="chat-list" class="settings-chat-list"></div>
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-subsection-header">
+          <span class="settings-subsection-label">Catalog</span>
+          <div class="settings-button-group">
+            <button id="models-sync-btn" class="settings-button" type="button">Sync</button>
+            <button id="models-add-btn"  class="settings-button settings-button--primary" type="button">Add model</button>
+          </div>
+        </div>
+
+        <div id="models-add-form" class="settings-form-grid" hidden>
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy"><span class="settings-row-title">Provider</span></span>
+            <input id="manual-model-provider" class="settings-input" type="text" placeholder="google" autocomplete="off" />
+          </label>
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy"><span class="settings-row-title">Model ID</span></span>
+            <input id="manual-model-id" class="settings-input" type="text" placeholder="models/gemini-2.5-pro" autocomplete="off" />
+          </label>
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Display name <span class="settings-row-optional">optional</span></span>
+            </span>
+            <input id="manual-model-name" class="settings-input" type="text" placeholder="Gemini 2.5 Pro" autocomplete="off" />
+          </label>
+          <div class="settings-form-actions">
+            <button id="manual-model-cancel" class="settings-button" type="button">Cancel</button>
+            <button id="manual-model-save"   class="settings-button settings-button--primary" type="button">Add</button>
+          </div>
+        </div>
+
+        <div id="models-sync-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+        <div id="models-list" class="settings-item-list" aria-live="polite"></div>
       </section>
+
+      <!-- ── Data (Audio + Chats) ────────────────────────────────────── -->
+      <section id="data" class="settings-section" aria-label="Data">
+        <div class="settings-section-header">
+          <div>
+            <h2 class="settings-section-title">Data</h2>
+            <p class="settings-section-desc">Audio preferences and conversation history.</p>
+          </div>
+        </div>
+
+        <div class="settings-rows">
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Narration</span>
+              <span class="settings-row-desc">Read assistant replies aloud.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="narration-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Dictation</span>
+              <span class="settings-row-desc">Enable microphone input in the composer.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="transcription-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+        </div>
+        <div id="audio-support" class="settings-status" role="status" aria-live="polite"></div>
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-subsection-header">
+          <span class="settings-subsection-label">Recent chats</span>
+          <button id="clear-chats-btn" class="settings-button settings-button--danger" type="button">Clear all</button>
+        </div>
+        <div id="chat-list" class="settings-item-list"></div>
+      </section>
+
+      <!-- ── Commands ──────────────────────────────────────────────── -->
+      <section id="commands" class="settings-section" aria-label="Commands">
+        <div class="settings-section-header">
+          <div>
+            <h2 class="settings-section-title">Commands</h2>
+            <p class="settings-section-desc">Edit custom slash commands used in the composer.</p>
+          </div>
+          <button id="shortcuts-add-btn" class="settings-button settings-button--primary" type="button">Add command</button>
+        </div>
+
+        <div id="shortcuts-form" class="settings-form-grid" hidden>
+          <input id="shortcut-id" type="hidden" />
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy"><span class="settings-row-title">Trigger</span></span>
+            <input id="shortcut-trigger" class="settings-input" type="text" placeholder="/investigate" autocomplete="off" />
+          </label>
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy"><span class="settings-row-title">Label</span></span>
+            <input id="shortcut-label" class="settings-input" type="text" placeholder="Investigate" autocomplete="off" />
+          </label>
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy"><span class="settings-row-title">Instructions</span></span>
+            <textarea id="shortcut-instructions" class="settings-input settings-input--multiline" rows="4" placeholder="Investigate the current issue step by step."></textarea>
+          </label>
+          <div class="settings-form-actions">
+            <button id="shortcuts-cancel-btn" class="settings-button" type="button">Cancel</button>
+            <button id="shortcuts-save-btn" class="settings-button settings-button--primary" type="button">Save</button>
+          </div>
+        </div>
+
+        <div id="shortcuts-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+        <div id="shortcuts-list" class="settings-item-list" aria-live="polite"></div>
+      </section>
+
     </section>
   </main>
 

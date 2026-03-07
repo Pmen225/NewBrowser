@@ -1,0 +1,156 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:717",
+      "frame_id": "A2DF86DB049950BC4E1388AC10C96E41",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1682
+      },
+      "click": {
+        "x": 1680,
+        "y": 841
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:718",
+      "frame_id": "A2DF86DB049950BC4E1388AC10C96E41",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1237.671875
+      },
+      "click": {
+        "x": 1680,
+        "y": 618.8359375
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:720",
+      "frame_id": "A2DF86DB049950BC4E1388AC10C96E41",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 3250,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 3295,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:747",
+      "frame_id": "A2DF86DB049950BC4E1388AC10C96E41",
+      "role": "button",
+      "name": "Add",
+      "bbox": {
+        "x": 710,
+        "y": 371.15625,
+        "w": 161.03125,
+        "h": 93
+      },
+      "click": {
+        "x": 790.515625,
+        "y": 417.65625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:716",
+      "frame_id": "A2DF86DB049950BC4E1388AC10C96E41",
+      "role": "textbox",
+      "state": {
+        "disabled": true
+      },
+      "bbox": {
+        "x": 710,
+        "y": 867.921875,
+        "w": 582,
+        "h": 64.75
+      },
+      "click": {
+        "x": 1001,
+        "y": 900.296875
+      },
+      "actions": [
+        "click",
+        "type",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:751",
+      "frame_id": "A2DF86DB049950BC4E1388AC10C96E41",
+      "role": "button",
+      "name": "Enable",
+      "bbox": {
+        "x": 710,
+        "y": 960.671875,
+        "w": 204.265625,
+        "h": 93
+      },
+      "click": {
+        "x": 812.1328125,
+        "y": 1007.171875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:757",
+      "frame_id": "A2DF86DB049950BC4E1388AC10C96E41",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1628.984375,
+        "y": 1202.671875,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1769.7734375,
+        "y": 1221.171875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 7,
+    "generated_at": "2026-03-06T00:13:10.259Z"
+  }
+}

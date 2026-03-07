@@ -1,0 +1,289 @@
+interactables:
+  - frame_id: "7EB0122168A78E2B4506CDF64C21C8A8"
+    nodes:
+      - ref_id: "f0:177"
+        role: "rootwebarea"
+        name: "Checkbox Demo | QA Automation Labs"
+        bbox: {x: 0, y: 0, w: 3360, h: 1682}
+        click: {x: 1680, y: 841}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:237"
+        role: "link"
+        name: "QA Automation Labs"
+        bbox: {x: 0, y: 0, w: 500, h: 120.83}
+        click: {x: 250, y: 60.41}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:194"
+        role: "button"
+        name: ""
+        bbox: {x: 516, y: 16, w: 92, h: 80}
+        click: {x: 562, y: 56}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:200"
+        role: "link"
+        name: ""
+        bbox: {x: 3252, y: 16, w: 92, h: 80}
+        click: {x: 3298, y: 56}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:180"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 3272, y: 20, w: 68, h: 68}
+        click: {x: 3306, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:244"
+        role: "link"
+        name: " Dashboard"
+        bbox: {x: 16, y: 136.83, w: 468, h: 80}
+        click: {x: 250, y: 176.83}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:248"
+        role: "link"
+        name: " CheckBox"
+        bbox: {x: 16, y: 223.22, w: 468, h: 80}
+        click: {x: 250, y: 263.22}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:252"
+        role: "link"
+        name: " Radio Button"
+        bbox: {x: 16, y: 309.61, w: 468, h: 80}
+        click: {x: 250, y: 349.61}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:256"
+        role: "link"
+        name: " Dropdown"
+        bbox: {x: 16, y: 396, w: 468, h: 80}
+        click: {x: 250, y: 436}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:325"
+        role: "generic"
+        bbox: {x: 1042.33, y: 452.14, w: 188.44, h: 48}
+        click: {x: 1136.55, y: 476.14}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:67"
+        role: "checkbox"
+        name: "Check me!"
+        state:
+          checked: false
+        bbox: {x: 1042.33, y: 461.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 474.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:260"
+        role: "link"
+        name: " Form"
+        bbox: {x: 16, y: 482.39, w: 468, h: 80}
+        click: {x: 250, y: 522.39}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:264"
+        role: "link"
+        name: " Web Table"
+        bbox: {x: 16, y: 568.78, w: 468, h: 80}
+        click: {x: 250, y: 608.78}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:268"
+        role: "link"
+        name: " Iframe"
+        bbox: {x: 16, y: 655.17, w: 468, h: 80}
+        click: {x: 250, y: 695.17}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:335"
+        role: "generic"
+        bbox: {x: 1042.33, y: 712.14, w: 300.09, h: 48}
+        click: {x: 1192.38, y: 736.14}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:145"
+        role: "checkbox"
+        name: "Enable Checkbox 1"
+        state:
+          checked: false
+        bbox: {x: 1042.33, y: 721.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 734.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:272"
+        role: "link"
+        name: " Shadow DOM"
+        bbox: {x: 16, y: 741.56, w: 468, h: 80}
+        click: {x: 250, y: 781.56}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:336"
+        role: "generic"
+        bbox: {x: 1042.33, y: 776.14, w: 300.09, h: 48}
+        click: {x: 1192.38, y: 800.14}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:146"
+        role: "checkbox"
+        name: "Enable Checkbox 2"
+        state:
+          checked: false
+        bbox: {x: 1042.33, y: 785.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 798.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:276"
+        role: "link"
+        name: " Drag & Drop"
+        bbox: {x: 16, y: 827.95, w: 468, h: 80}
+        click: {x: 250, y: 867.95}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:147"
+        role: "checkbox"
+        name: "Disable Checkbox 3"
+        state:
+          checked: false
+          disabled: true
+        bbox: {x: 1042.33, y: 849.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 862.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:148"
+        role: "checkbox"
+        name: "Disable Checkbox 4"
+        state:
+          checked: false
+          disabled: true
+        bbox: {x: 1042.33, y: 913.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 926.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:280"
+        role: "link"
+        name: " Notifications"
+        bbox: {x: 16, y: 914.34, w: 468, h: 80}
+        click: {x: 250, y: 954.34}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:284"
+        role: "link"
+        name: " JavaScript Alert"
+        bbox: {x: 16, y: 1000.73, w: 468, h: 80}
+        click: {x: 250, y: 1040.73}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:288"
+        role: "link"
+        name: " File Upload"
+        bbox: {x: 16, y: 1087.13, w: 468, h: 80}
+        click: {x: 250, y: 1127.13}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:346"
+        role: "generic"
+        bbox: {x: 1042.33, y: 1164.14, w: 201.47, h: 48}
+        click: {x: 1143.06, y: 1188.14}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:149"
+        role: "checkbox"
+        name: "Checkbox 1"
+        state:
+          checked: true
+        bbox: {x: 1042.33, y: 1173.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 1186.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:292"
+        role: "link"
+        name: " File Download"
+        bbox: {x: 16, y: 1173.52, w: 468, h: 80}
+        click: {x: 250, y: 1213.52}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:347"
+        role: "generic"
+        bbox: {x: 1042.33, y: 1228.14, w: 201.47, h: 48}
+        click: {x: 1143.06, y: 1252.14}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:150"
+        role: "checkbox"
+        name: "Checkbox 2"
+        state:
+          checked: false
+        bbox: {x: 1042.33, y: 1237.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 1250.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:296"
+        role: "link"
+        name: " Window popup Modal"
+        bbox: {x: 16, y: 1259.91, w: 468, h: 80}
+        click: {x: 250, y: 1299.91}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:348"
+        role: "generic"
+        bbox: {x: 1042.33, y: 1292.14, w: 201.47, h: 48}
+        click: {x: 1143.06, y: 1316.14}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:151"
+        role: "checkbox"
+        name: "Checkbox 3"
+        state:
+          checked: false
+        bbox: {x: 1042.33, y: 1301.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 1314.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:300"
+        role: "link"
+        name: " List Box"
+        bbox: {x: 16, y: 1346.3, w: 468, h: 80}
+        click: {x: 250, y: 1386.3}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:349"
+        role: "generic"
+        bbox: {x: 1042.33, y: 1356.14, w: 201.47, h: 48}
+        click: {x: 1143.06, y: 1380.14}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:152"
+        role: "checkbox"
+        name: "Checkbox 4"
+        state:
+          checked: false
+        bbox: {x: 1042.33, y: 1365.14, w: 26, h: 26}
+        click: {x: 1055.33, y: 1378.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:304"
+        role: "link"
+        name: " Slider"
+        bbox: {x: 16, y: 1432.69, w: 468, h: 80}
+        click: {x: 250, y: 1472.69}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:350"
+        role: "button"
+        name: "Check All"
+        bbox: {x: 1042.33, y: 1468.14, w: 142.86, h: 62}
+        click: {x: 1113.76, y: 1499.14}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:355"
+        role: "link"
+        name: "QA Automation Labs"
+        bbox: {x: 1781.28, y: 1626.14, w: 285.31, h: 40}
+        click: {x: 1923.94, y: 1646.14}
+        source: "ax"
+        actions: ["click", "key"]

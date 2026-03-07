@@ -1,0 +1,2 @@
+function e(e={}){let n=new URL(window.location.href);for(let[t,r]of Object.entries(e))r===void 0?n.searchParams.delete(t):n.searchParams.set(t,r);t(Object.fromEntries(n.searchParams))}function t(e){let t=new URL(window.location.href),n=(e?new URLSearchParams(e):new URLSearchParams).toString();n!==t.searchParams.toString()&&window.history.replaceState({},``,`?${n}`)}export{e as n,t};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_sidecar/assets/assets/historySearchParams-BiF0X7DE.js.map

@@ -1,0 +1,301 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:725",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "rootwebarea",
+      "name": "Assistant",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2460,
+        "h": 1682
+      },
+      "click": {
+        "x": 1230,
+        "y": 841
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:736",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "Settings",
+      "bbox": {
+        "x": 2252,
+        "y": 20,
+        "w": 60,
+        "h": 60
+      },
+      "click": {
+        "x": 2282,
+        "y": 50
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:740",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "New chat",
+      "bbox": {
+        "x": 2316,
+        "y": 20,
+        "w": 60,
+        "h": 60
+      },
+      "click": {
+        "x": 2346,
+        "y": 50
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:744",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "More options",
+      "bbox": {
+        "x": 2380,
+        "y": 20,
+        "w": 60,
+        "h": 60
+      },
+      "click": {
+        "x": 2410,
+        "y": 50
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:762",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "generic",
+      "bbox": {
+        "x": 950,
+        "y": 818.875,
+        "w": 560,
+        "h": 128
+      },
+      "click": {
+        "x": 1230,
+        "y": 882.875
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:763",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "✦ Summarize",
+      "bbox": {
+        "x": 965.375,
+        "y": 818.875,
+        "w": 218.03125,
+        "h": 57
+      },
+      "click": {
+        "x": 1074.390625,
+        "y": 847.375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:764",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "What can I do here?",
+      "bbox": {
+        "x": 1197.40625,
+        "y": 818.875,
+        "w": 297.203125,
+        "h": 57
+      },
+      "click": {
+        "x": 1346.0078125,
+        "y": 847.375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:765",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "Learn more",
+      "bbox": {
+        "x": 1044.046875,
+        "y": 889.875,
+        "w": 192.359375,
+        "h": 57
+      },
+      "click": {
+        "x": 1140.2265625,
+        "y": 918.375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:766",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "Find CTA",
+      "bbox": {
+        "x": 1250.40625,
+        "y": 889.875,
+        "w": 165.546875,
+        "h": 57
+      },
+      "click": {
+        "x": 1333.1796875,
+        "y": 918.375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:777",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "textbox",
+      "name": "Ask anything",
+      "bbox": {
+        "x": 53,
+        "y": 1515.15625,
+        "w": 2364,
+        "h": 49.84375
+      },
+      "click": {
+        "x": 1235,
+        "y": 1540.078125
+      },
+      "actions": [
+        "click",
+        "type",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:795",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "Send",
+      "bbox": {
+        "x": 2353,
+        "y": 1573,
+        "w": 60,
+        "h": 60
+      },
+      "click": {
+        "x": 2383,
+        "y": 1603
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:783",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "Add content",
+      "bbox": {
+        "x": 57,
+        "y": 1575,
+        "w": 54,
+        "h": 56
+      },
+      "click": {
+        "x": 84,
+        "y": 1603
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:787",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "Select model",
+      "bbox": {
+        "x": 2157.28125,
+        "y": 1575,
+        "w": 121.71875,
+        "h": 56
+      },
+      "click": {
+        "x": 2218.140625,
+        "y": 1603
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:791",
+      "frame_id": "54B437BF3B4BD1B8988FF8487E918B40",
+      "role": "button",
+      "name": "Voice input",
+      "bbox": {
+        "x": 2289,
+        "y": 1575,
+        "w": 54,
+        "h": 56
+      },
+      "click": {
+        "x": 2316,
+        "y": 1603
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 14,
+    "generated_at": "2026-03-05T23:41:02.507Z"
+  }
+}

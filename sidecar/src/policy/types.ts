@@ -9,6 +9,8 @@ export interface PolicyViolation {
 
 export interface PromptPolicy {
   inspectBeforeInteractiveActions: boolean;
+  requireValidationAfterPageActions: boolean;
+  requireSingleStateChangingComputerAction: boolean;
   preferReadPageForInspection: boolean;
   preferGetPageTextForLongReading: boolean;
   preferSearchWebForGeneralSearch: boolean;

@@ -2,8 +2,15 @@ import { createHash, randomUUID } from "node:crypto";
 
 import type {
   AgentGetStateParams,
+  AgentPauseParams,
   AgentRunParams,
+  AgentResumeParams,
   AgentStateResult,
+  AgentTaskError,
+  AgentTaskState,
+  CreateSubagentParams,
+  CreateSubagentResult,
+  DraftArtifact,
   FindMatch,
   AgentStopParams,
   JsonObject,
@@ -21,7 +28,8 @@ import {
 } from "../policy/response-validator";
 import { createMemoryStore } from "./memory-store";
 import { loadPromptSpecs, type PromptLoaderOptions } from "./prompt-loader";
-import { buildToolSchemaCatalog } from "./tool-schema";
+import { buildToolSchemaCatalog, findToolCatalogMismatches } from "./tool-schema";
+import { createTaskManager } from "./task-manager";
 import type {
   AgentMemoryStore,
   AgentOrchestrator,
@@ -39,9 +47,14 @@ export interface AgentToolEvent {
   type: "tool_start" | "tool_done";
   run_id: string;
   tool_name?: string;
+  // Comet RUM vital field: step_type / stepType for observability (e.stepType in Comet source)
+  step_type?: string;
   tool_call_id: string;
   tool_input?: Record<string, unknown>;
   ok?: boolean;
+  // Comet RUM: operation_key and failure_reason for diagnostics
+  operation_key?: string;
+  failure_reason?: string;
 }
 
 export interface OrchestratorOptions {
@@ -71,8 +84,11 @@ const KNOWN_TOOL_NAMES = [
   "get_page_text",
   "search_web",
   "tabs_create",
+  "draft_email",
   "todo_write"
 ] as const;
+const EMPTY_PROVIDER_TURN_MAX_RETRIES = 1;
+const EMPTY_PROVIDER_TURN_RETRY_DELAY_MS = 250;
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -86,12 +102,104 @@ function cloneState(state: AgentRunState): AgentRunState {
   return {
     ...state,
     steps: [...state.steps],
-    sources: [...state.sources]
+    sources: [...state.sources],
+    children: [...state.children],
+    childError: state.childError ? { ...state.childError } : undefined
   };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function buildConversationHistoryMessages(params: AgentRunParams): ProviderRuntimeMessage[] {
+  if (!Array.isArray(params.history_messages) || params.history_messages.length === 0) {
+    return [];
+  }
+
+  return params.history_messages.map((message) => ({
+    role: message.role,
+    content: message.text
+  }));
+}
+
+function isDirectObservationPrompt(prompt: string, hasImageInput: boolean): boolean {
+  const lower = normalizeText(prompt).toLowerCase();
+  if (
+    includesAny(lower, [
+      "what do you see",
+      "what can you see",
+      "tell me what you see",
+      "describe what you see",
+      "what is visible",
+      "what's visible",
+      "what do you notice"
+    ])
+  ) {
+    return true;
+  }
+
+  if (!hasImageInput) {
+    return false;
+  }
+
+  return includesAny(lower, [
+    "describe this image",
+    "describe the image",
+    "describe this screenshot",
+    "describe the screenshot",
+    "summarize this image",
+    "summarize the image",
+    "summarize this screenshot",
+    "summarize the screenshot"
+  ]);
+}
+
+function buildObservationResponseInstruction(prompt: string, hasImageInput: boolean): ProviderRuntimeMessage[] {
+  if (!isDirectObservationPrompt(prompt, hasImageInput)) {
+    return [];
+  }
+
+  return [
+    {
+      role: "system",
+      content:
+        "For direct observation requests, answer in plain text only. No markdown, headers, bullets, or tables. Use as few words as possible and include only key facts."
+    }
+  ];
+}
+
+function shouldExposeTabManagementTool(prompt: string): boolean {
+  const lower = normalizeText(prompt).toLowerCase();
+  return includesAny(lower, [
+    "new tab",
+    "open tab",
+    "another tab",
+    "switch tab",
+    "change tab",
+    "close tab",
+    "list tabs",
+    "group tabs",
+    "ungroup tabs",
+    "tab group",
+    "move tab"
+  ]);
+}
+
+function buildTaskState(state: AgentRunState): AgentTaskState {
+  return {
+    task_id: state.taskId,
+    run_id: state.runId,
+    parent_task_id: state.parentTaskId,
+    role: state.role,
+    visibility: state.visibility,
+    status: state.status,
+    children: [...state.children],
+    active_child_task_id: state.activeChildTaskId,
+    child_summary: state.childSummary,
+    child_error: state.childError ? { ...state.childError } : undefined,
+    last_validated_observation: state.lastValidatedObservation
+  };
 }
 
 function buildStateResult(state: AgentRunState): AgentStateResult {
@@ -101,15 +209,24 @@ function buildStateResult(state: AgentRunState): AgentStateResult {
     steps: state.steps,
     sources: [...state.sources],
     final_answer: state.finalAnswer,
+    draft_artifact: state.draftArtifact,
     error_message: state.errorMessage,
     user_language: state.userLanguage,
-    has_image_input: state.hasImageInput
+    has_image_input: state.hasImageInput,
+    task: buildTaskState(state)
   };
 
   return enforceUserFacingResponsePayload("AgentGetState", snapshot as unknown as JsonObject) as unknown as AgentStateResult;
 }
 
-function createRunState(params: AgentRunParams): AgentRunState {
+function createRunState(
+  params: AgentRunParams,
+  meta?: {
+    role?: AgentRunState["role"];
+    visibility?: AgentRunState["visibility"];
+    parentTaskId?: string;
+  }
+): AgentRunState {
   const now = nowIso();
   const hasImageInput = params.has_image_input === true || (Array.isArray(params.images) && params.images.length > 0);
   const sources: SourceAttribution[] = [
@@ -135,6 +252,11 @@ function createRunState(params: AgentRunParams): AgentRunState {
 
   return {
     runId: randomUUID(),
+    taskId: randomUUID(),
+    role: meta?.role ?? "primary",
+    visibility: meta?.visibility ?? "panel",
+    parentTaskId: meta?.parentTaskId,
+    children: [],
     status: "running",
     startedAt: now,
     updatedAt: now,
@@ -143,8 +265,146 @@ function createRunState(params: AgentRunParams): AgentRunState {
     userLanguage: detectLanguageFromText(params.prompt),
     hasImageInput,
     sources,
-    abortController: new AbortController()
+    abortController: new AbortController(),
+    pauseRequested: false,
+    resumeRequested: false,
+    resumeNeedsReassessment: false,
+    resumeGate: undefined,
+    releaseResumeGate: null,
+    activeChildTaskId: undefined,
+    childSummary: undefined,
+    childError: undefined,
+    lastValidatedObservation: undefined
   };
+}
+
+const RESUME_REASSESSMENT_PROMPT =
+  "The user took control of the browser and may have changed the page. Reassess the current page state before taking any further actions.";
+
+function updateRunStatus(
+  state: AgentRunState,
+  status: AgentRunState["status"],
+  memoryStore: AgentMemoryStore,
+  onRunUpdated?: (state: AgentRunState) => void,
+  patch?: JsonObject
+): void {
+  state.status = status;
+  state.updatedAt = nowIso();
+  memoryStore.upsert(state.runId, {
+    status: state.status,
+    ...(patch ?? {})
+  });
+  onRunUpdated?.(cloneState(state));
+}
+
+function buildValidationObservation(action: string, result: JsonObject): string | undefined {
+  if (action === "find" && Array.isArray(result.matches)) {
+    return `Validated find result with ${result.matches.length} match(es).`;
+  }
+
+  const rawText =
+    typeof result.result === "string"
+      ? result.result
+      : typeof result.markdown === "string"
+        ? result.markdown
+        : typeof result.message === "string"
+          ? result.message
+          : undefined;
+  if (!rawText) {
+    return undefined;
+  }
+
+  const normalized = normalizeText(rawText);
+  return normalized.length > 280 ? `${normalized.slice(0, 277)}...` : normalized;
+}
+
+function buildEmptyTurnRecoveryPrompt(state: AgentRunState, pendingDialog?: NonNullable<ComputerBatchResult["javascript_dialog"]>): string {
+  const instructions = [
+    "Your previous turn returned no assistant text or tool calls after a successful tool result."
+  ];
+
+  if (state.lastValidatedObservation) {
+    instructions.push(`Validated page observation: ${state.lastValidatedObservation}`);
+  }
+
+  if (pendingDialog) {
+    instructions.push(
+      `A JavaScript ${pendingDialog.type} dialog is open with message: ${pendingDialog.message}`
+    );
+    instructions.push("Your next step must resolve the dialog with a dialog tool call or explicitly abort.");
+  } else {
+    instructions.push("Reassess the validated page state and either issue the next tool call or answer directly.");
+  }
+
+  return instructions.join(" ");
+}
+
+function ensureResumeGate(state: AgentRunState): Promise<void> {
+  if (state.resumeGate) {
+    return state.resumeGate;
+  }
+
+  state.resumeGate = new Promise<void>((resolve) => {
+    state.releaseResumeGate = () => {
+      state.releaseResumeGate = null;
+      state.resumeGate = undefined;
+      resolve();
+    };
+  });
+
+  return state.resumeGate;
+}
+
+function releaseResumeGate(state: AgentRunState): void {
+  const release = state.releaseResumeGate;
+  state.releaseResumeGate = null;
+  state.resumeGate = undefined;
+  release?.();
+}
+
+function createStoppedError(): Error & { code: string; retryable: boolean } {
+  return Object.assign(new Error("Run stopped by user."), {
+    code: "RUN_STOPPED",
+    retryable: false
+  });
+}
+
+function throwIfRunStopped(state: AgentRunState): void {
+  if (state.abortController.signal.aborted) {
+    throw createStoppedError();
+  }
+}
+
+async function pauseAtBoundary(
+  state: AgentRunState,
+  memoryStore: AgentMemoryStore,
+  onRunUpdated?: (state: AgentRunState) => void
+): Promise<boolean> {
+  if (!state.pauseRequested || state.abortController.signal.aborted) {
+    return false;
+  }
+
+  ensureResumeGate(state);
+  if (state.status !== "paused") {
+    updateRunStatus(state, "paused", memoryStore, onRunUpdated);
+  }
+
+  await state.resumeGate;
+  throwIfRunStopped(state);
+  return true;
+}
+
+function injectResumeReassessmentMessage(state: AgentRunState, messages: ProviderRuntimeMessage[]): void {
+  if (!state.resumeNeedsReassessment) {
+    return;
+  }
+
+  messages.push({
+    role: "user",
+    content: RESUME_REASSESSMENT_PROMPT
+  });
+  state.resumeNeedsReassessment = false;
+  state.resumeRequested = false;
 }
 
 function normalizeText(value: string): string {
@@ -236,6 +496,37 @@ function truncate(value: string, maxLength: number): string {
   return `${value.slice(0, maxLength - 1)}…`;
 }
 
+function stripMarkdownFormatting(value: string): string {
+  return value
+    .replace(/```[\s\S]*?```/g, (block) => block.replace(/```/g, "").trim())
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, "$1")
+    .replace(/\r/g, "")
+    .trim();
+}
+
+function normaliseEmailDraftArtifact(payload: JsonObject): DraftArtifact {
+  const subject = typeof payload.subject === "string" ? payload.subject.trim() : "";
+  const bodyMarkdown = typeof payload.body_markdown === "string" ? payload.body_markdown.trim() : "";
+
+  if (!subject || !bodyMarkdown) {
+    throw Object.assign(new Error("draft_email requires non-empty subject and body_markdown."), {
+      code: "INVALID_TOOL_CALL",
+      retryable: false
+    });
+  }
+
+  return {
+    kind: "email",
+    subject,
+    body_markdown: bodyMarkdown,
+    body_text: stripMarkdownFormatting(bodyMarkdown)
+  };
+}
+
 function extractQuotedValue(value: string): string | undefined {
   const match = value.match(/"([^"\n]+)"|'([^'\n]+)'/);
   const nextValue = match?.[1] ?? match?.[2];
@@ -269,6 +560,43 @@ function hasFormTarget(value: string): boolean {
 
 function hasFormActionVerb(value: string): boolean {
   return includesAny(value, ["enter", "type", "fill", "select", "check", "tick", "enable", "uncheck", "untick", "disable"]);
+}
+
+function hasCurrentPageCue(value: string): boolean {
+  return includesAny(value, [
+    "this page",
+    "current page",
+    "on this page",
+    "this site",
+    "on this site",
+    "current site",
+    "current tab",
+    "this tab",
+    "here"
+  ]);
+}
+
+function hasExplicitWebResearchIntent(value: string): boolean {
+  return includesAny(value, [
+    "search the web",
+    "search web",
+    "search online",
+    "look up",
+    "lookup",
+    "research",
+    "internet",
+    "online",
+    "latest",
+    "news",
+    "documentation",
+    "docs",
+    "official docs",
+    "official documentation",
+    "source",
+    "sources",
+    "cite",
+    "citation"
+  ]);
 }
 
 function isClickIntent(value: string): boolean {
@@ -312,6 +640,56 @@ function extractFormInputPlan(prompt: string): { kind: "text" | "checkbox"; valu
     kind: "text",
     value: textValue
   };
+}
+
+function shouldPreferCurrentTabExecution(prompt: string): boolean {
+  const normalized = normalizeText(prompt).toLowerCase();
+
+  if (hasCurrentPageCue(normalized)) {
+    return true;
+  }
+
+  if (extractFirstUrl(prompt) || extractNavigationIntentUrl(prompt) || extractHistoryNavigationMode(prompt)) {
+    return true;
+  }
+
+  if (hasFormTarget(normalized) || hasFormActionVerb(normalized) || isClickIntent(normalized)) {
+    return true;
+  }
+
+  return includesAny(normalized, [
+    "dropdown",
+    "checkbox",
+    "radio button",
+    "file upload",
+    "upload",
+    "download",
+    "alert",
+    "prompt",
+    "dialog",
+    "modal",
+    "hover",
+    "drag",
+    "drop",
+    "scroll"
+  ]);
+}
+
+function shouldDisableWebSearchForRun(prompt: string, tabId: string): boolean {
+  if (tabId === "__system__") {
+    return false;
+  }
+
+  const normalized = normalizeText(prompt).toLowerCase();
+  if (hasCurrentPageCue(normalized)) {
+    return true;
+  }
+
+  if (hasExplicitWebResearchIntent(normalized)) {
+    return false;
+  }
+
+  return shouldPreferCurrentTabExecution(prompt);
 }
 
 function toJsonObject(value: unknown): JsonObject {
@@ -485,12 +863,148 @@ function pushUniqueSource(target: SourceAttribution[], source: SourceAttribution
   target.push(source);
 }
 
+function parseSearchResultSources(result: Record<string, unknown>): SourceAttribution[] {
+  const rawResults = Array.isArray(result.results) ? result.results : [];
+  const sources: SourceAttribution[] = [];
+
+  for (const item of rawResults) {
+    if (!isRecord(item)) {
+      continue;
+    }
+
+    const rawId = typeof item.id === "string" ? item.id.trim() : "";
+    const url = typeof item.url === "string" ? item.url.trim() : "";
+    if (!/^web:\d+$/.test(rawId) || !url) {
+      continue;
+    }
+
+    const title = typeof item.title === "string" ? item.title.trim() : "";
+    sources.push({
+      id: `[${rawId}]`,
+      origin: "web",
+      action: "search_web",
+      ...(title ? { title, label: title } : {}),
+      url
+    });
+  }
+
+  return sources;
+}
+
+function extractCitationIndex(sourceId: string): number | undefined {
+  const match = sourceId.match(/^\[web:(\d+)\]$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(match[1], 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 function isInspectionStep(action: string): boolean {
   return action === "read_page" || action === "get_page_text";
 }
 
 function needsInspectionPrelude(action: string): boolean {
   return action === "find" || action === "form_input" || action === "computer";
+}
+
+function isStructuredInspectionAction(action: string): boolean {
+  return action === "read_page" || action === "find";
+}
+
+function isPostActionValidationAction(action: string): boolean {
+  return action === "read_page" || action === "find" || action === "get_page_text";
+}
+
+function countStateChangingComputerSteps(payload: JsonObject): number {
+  const steps = Array.isArray(payload.steps) ? payload.steps : [];
+  let count = 0;
+
+  for (const rawStep of steps) {
+    if (!isRecord(rawStep)) {
+      continue;
+    }
+
+    const kind = typeof rawStep.kind === "string" ? normalizeText(rawStep.kind).toLowerCase() : "";
+    if (kind === "click" || kind === "type" || kind === "key" || kind === "drag" || kind === "dialog") {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+function hasMultipleStateChangingComputerSteps(payload: JsonObject): boolean {
+  return countStateChangingComputerSteps(payload) > 1;
+}
+
+function requiresValidationAfterPageAction(action: string, payload: JsonObject, result: JsonObject): boolean {
+  if (action === "computer") {
+    return countStateChangingComputerSteps(payload) > 0;
+  }
+
+  if (action !== "form_input") {
+    return false;
+  }
+
+  const applied = Array.isArray(result.applied) ? result.applied : [];
+  if (applied.length === 0) {
+    return true;
+  }
+
+  return applied.some((entry) => !isRecord(entry) || !Object.prototype.hasOwnProperty.call(entry, "confirmed_value"));
+}
+
+function hasCoordinateDrivenComputerInteraction(payload: JsonObject): boolean {
+  const steps = Array.isArray(payload.steps) ? payload.steps : [];
+  for (const rawStep of steps) {
+    if (!isRecord(rawStep)) {
+      continue;
+    }
+
+    const kind = typeof rawStep.kind === "string" ? normalizeText(rawStep.kind).toLowerCase() : "";
+    if (kind === "click") {
+      const hasCoordinates =
+        (typeof rawStep.x === "number" && Number.isFinite(rawStep.x)) ||
+        (typeof rawStep.y === "number" && Number.isFinite(rawStep.y));
+      const hasRef = typeof rawStep.ref === "string" && rawStep.ref.trim().length > 0;
+      if (hasCoordinates && !hasRef) {
+        return true;
+      }
+      continue;
+    }
+
+    if (kind === "drag") {
+      const hasCoordinates =
+        (typeof rawStep.from_x === "number" && Number.isFinite(rawStep.from_x)) ||
+        (typeof rawStep.from_y === "number" && Number.isFinite(rawStep.from_y)) ||
+        (typeof rawStep.to_x === "number" && Number.isFinite(rawStep.to_x)) ||
+        (typeof rawStep.to_y === "number" && Number.isFinite(rawStep.to_y));
+      const hasRefs =
+        typeof rawStep.from_ref === "string" &&
+        rawStep.from_ref.trim().length > 0 &&
+        typeof rawStep.to_ref === "string" &&
+        rawStep.to_ref.trim().length > 0;
+      if (hasCoordinates && !hasRefs) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function requiresStructuredInspectionAfterNavigation(action: string, payload: JsonObject): boolean {
+  if (action === "form_input") {
+    return true;
+  }
+
+  if (action !== "computer") {
+    return false;
+  }
+
+  return hasCoordinateDrivenComputerInteraction(payload);
 }
 
 function injectInspectionSteps(
@@ -837,6 +1351,7 @@ function createExecutorAgent(performAction: OrchestratorOptions["performAction"]
       const availableCitations: string[] = [];
       let webCitationIndex = 0;
       let screenshotCitationIndex = 0;
+      let pendingJavaScriptDialog: ComputerBatchResult["javascript_dialog"] | undefined;
 
       if (policy.requireFrequentTodoTracking) {
         await performAction(
@@ -1013,17 +1528,85 @@ function appendStep(
   onRunUpdated?.(cloneState(state));
 }
 
+function emitToolEvent(
+  state: AgentRunState,
+  onToolEvent: OrchestratorOptions["onToolEvent"],
+  event: AgentToolEvent
+): void {
+  if (state.visibility !== "panel") {
+    return;
+  }
+
+  onToolEvent?.(event);
+}
+
 export async function createOrchestrator(options: OrchestratorOptions): Promise<AgentOrchestrator> {
   const memoryStore = options.memoryStore ?? createMemoryStore();
   const promptSpecs = options.promptSpecs ?? (await loadPromptSpecs(options.promptLoader));
   const providerRegistry = options.providerRegistry ?? createProviderRegistry();
-  const runs = new Map<string, AgentRunState>();
+  const taskManager = createTaskManager();
   const defaultMaxSteps =
     typeof options.defaultMaxSteps === "number" && Number.isFinite(options.defaultMaxSteps) && options.defaultMaxSteps > 0
       ? Math.floor(options.defaultMaxSteps)
       : 25;
 
+  const publishTaskUpdate = (state: AgentRunState): void => {
+    options.onRunUpdated?.(cloneState(state));
+  };
+
+  const writeParentTaskPatch = (parent: AgentRunState): void => {
+    memoryStore.upsert(parent.runId, {
+      status: parent.status,
+      task: buildTaskState(parent) as unknown as JsonObject
+    });
+    publishTaskUpdate(parent);
+  };
+
+  const finalizeChildTask = (state: AgentRunState): void => {
+    if (!state.parentTaskId) {
+      return;
+    }
+
+    const error = state.status === "completed"
+      ? undefined
+      : {
+          code: state.status === "stopped" ? "SUBAGENT_CANCELED" : "SUBAGENT_FAILED",
+          message: state.errorMessage ?? "Subagent task failed."
+        };
+    const parent = error
+      ? taskManager.failChild(state.taskId, error)
+      : taskManager.completeChild(state.taskId, state.finalAnswer);
+    if (parent) {
+      writeParentTaskPatch(parent);
+    }
+  };
+
+  const stopChildTask = (child: AgentRunState, error: AgentTaskError): void => {
+    if (child.status !== "running" && child.status !== "pausing" && child.status !== "paused") {
+      const parent = taskManager.cancelChild(child.taskId, error);
+      if (parent) {
+        writeParentTaskPatch(parent);
+      }
+      return;
+    }
+
+    child.pauseRequested = false;
+    child.resumeRequested = false;
+    child.resumeNeedsReassessment = false;
+    child.abortController.abort();
+    releaseResumeGate(child);
+    updateRunStatus(child, "stopped", memoryStore, undefined, {
+      error_message: error.message
+    });
+    child.errorMessage = error.message;
+    const parent = taskManager.cancelChild(child.taskId, error);
+    if (parent) {
+      writeParentTaskPatch(parent);
+    }
+  };
+
   const executeRun = async (state: AgentRunState): Promise<void> => {
+    const policy = promptSpecs.policy;
     const maxSteps =
       typeof state.params.max_steps === "number" && Number.isFinite(state.params.max_steps) && state.params.max_steps > 0
         ? Math.floor(state.params.max_steps)
@@ -1053,6 +1636,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
     const browseSearchEnabled = state.params.allow_browser_search !== false;
     const codeExecEnabled = state.params.enable_code_execution === true;
     const tabId = state.params.tab_id ?? options.resolveDefaultTabId() ?? "__system__";
+    const searchWebSuppressedForRun = shouldDisableWebSearchForRun(state.params.prompt, tabId);
     const apiKey = typeof state.params.api_key === "string" ? state.params.api_key.trim() : "";
     const model = typeof state.params.model === "string" ? state.params.model.trim() : "";
 
@@ -1079,10 +1663,21 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       }
 
       const fullToolCatalog = buildToolSchemaCatalog(promptSpecs.toolNames);
+      const toolingMismatches = findToolCatalogMismatches(promptSpecs.declaredTools, fullToolCatalog);
+      if (toolingMismatches.length > 0) {
+        throw Object.assign(new Error(`Tool definitions from REF DOCS mismatch sidecar implementation: ${toolingMismatches.join(", ")}`), {
+          code: "TOOLING_MISMATCH",
+          retryable: false
+        });
+      }
+
       let toolCatalog = fullToolCatalog.filter((tool) => tool.name !== "todo_write");
+      if (!shouldExposeTabManagementTool(state.params.prompt)) {
+        toolCatalog = toolCatalog.filter((tool) => tool.name !== "tabs_create");
+      }
       if (!funcCallingEnabled) {
         toolCatalog = [];
-      } else if (!browseSearchEnabled) {
+      } else if (!browseSearchEnabled || searchWebSuppressedForRun) {
         toolCatalog = toolCatalog.filter((tool) => tool.name !== "search_web");
       }
       const todoWriteFallbackTool = funcCallingEnabled ? fullToolCatalog.find((tool) => tool.name === "todo_write") : undefined;
@@ -1150,6 +1745,8 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
 
       const messages: ProviderRuntimeMessage[] = [
         { role: "system", content: promptSpecs.systemPrompt },
+        ...buildObservationResponseInstruction(state.params.prompt, state.hasImageInput),
+        ...buildConversationHistoryMessages(state.params),
         { role: "user", content: userContent }
       ];
 
@@ -1161,8 +1758,23 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       let loopGuardTrips = 0;
       let consecutiveFailures = 0;
       let needsPageLoadWait = false;
+      let needsStructuredInspectionAfterNavigation = false;
+      let needsPostActionValidation = false;
+      let postActionValidationReminderTrips = 0;
+      let emptyProviderTurnRetries = 0;
+      let pendingJavaScriptDialog: ComputerBatchResult["javascript_dialog"] | undefined;
+      let forceFunctionCallingContinuation = false;
 
       const completeRun = (answer: string, details: JsonObject): void => {
+        if (state.role === "primary" && state.activeChildTaskId) {
+          const child = taskManager.getByTaskId(state.activeChildTaskId);
+          if (child) {
+            stopChildTask(child, {
+              code: "SUBAGENT_CANCELED",
+              message: "Child task stopped because the parent task completed."
+            });
+          }
+        }
         state.finalAnswer = answer;
         appendStep(
           state,
@@ -1176,21 +1788,27 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
           memoryStore,
           options.onRunUpdated
         );
-        state.status = "completed";
-        state.updatedAt = nowIso();
-        memoryStore.upsert(state.runId, {
-          status: state.status,
-          final_answer: state.finalAnswer
+        updateRunStatus(state, "completed", memoryStore, options.onRunUpdated, {
+          final_answer: state.finalAnswer,
+          task: buildTaskState(state) as unknown as JsonObject,
+          ...(state.draftArtifact ? { draft_artifact: state.draftArtifact as unknown as JsonObject } : {})
         });
-        options.onRunUpdated?.(cloneState(state));
+        if (state.role === "subagent") {
+          finalizeChildTask(state);
+        }
       };
 
-      while (executedSteps < maxSteps) {
+      outer: while (executedSteps < maxSteps) {
+        if (await pauseAtBoundary(state, memoryStore, options.onRunUpdated)) {
+          continue;
+        }
+
         if (needsPageLoadWait && pageLoadWaitMs > 0) {
           needsPageLoadWait = false;
           await delay(pageLoadWaitMs);
         }
 
+        injectResumeReassessmentMessage(state, messages);
         const turn = await providerRegistry.runTurn(state.params.provider, {
           apiKey,
           baseUrl: state.params.base_url,
@@ -1202,13 +1820,38 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
             parameters: tool.parameters
           })),
           thinkingLevel: thinkingLevel,
-          allowBrowserSearch: browseSearchEnabled && availableToolNames.includes("search_web"),
+          functionCallingMode:
+            funcCallingEnabled && availableToolNames.length > 0
+              ? ((pendingJavaScriptDialog || forceFunctionCallingContinuation) ? "ANY" : "VALIDATED")
+              : "NONE",
+          allowBrowserSearch: browseSearchEnabled && !searchWebSuppressedForRun && availableToolNames.includes("search_web"),
           allowCodeExecution: codeExecEnabled,
           preferVision: state.hasImageInput || enableVision,
           signal: state.abortController.signal
         });
+        throwIfRunStopped(state);
+
+        if (await pauseAtBoundary(state, memoryStore, options.onRunUpdated)) {
+          continue;
+        }
 
         if (Array.isArray(turn.toolCalls) && turn.toolCalls.length > 0) {
+          emptyProviderTurnRetries = 0;
+          forceFunctionCallingContinuation = false;
+          // Record the assistant turn (with its tool calls) so providers that
+          // need the full conversation history (e.g. Gemini functionCall /
+          // functionResponse pairs) can reconstruct it correctly.
+          messages.push({
+            role: "assistant",
+            content: turn.assistantText ?? "",
+            provider_parts: turn.provider_parts,
+            tool_calls: turn.toolCalls.map((tc) => ({
+              id: tc.id,
+              name: tc.name,
+              arguments: tc.arguments
+            }))
+          });
+
           let actionsThisTurn = 0;
           for (const toolCall of turn.toolCalls) {
             if (executedSteps >= maxSteps) {
@@ -1256,7 +1899,141 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
             const requestTabId = tool.tabScope === "system" ? "__system__" : tabId;
             const toolSignature = `${action}:${inputHash}`;
 
-            if (shouldBlockLoopingToolCall(recentToolSignatures, toolSignature)) {
+            if (
+              needsStructuredInspectionAfterNavigation &&
+              !isStructuredInspectionAction(action) &&
+              requiresStructuredInspectionAfterNavigation(action, payload)
+            ) {
+              const inspectionMessage =
+                "Call read_page (prefer filter: \"interactive\") or find after navigation before using coordinate-based interactions on the new page.";
+              appendRecentSignature(recentToolSignatures, toolSignature);
+              executedSteps += 1;
+
+              appendStep(
+                state,
+                {
+                  ts: nowIso(),
+                  phase: "executor",
+                  action,
+                  status: "failed",
+                  details: {
+                    step_id: toolCall.id,
+                    step_index: executedSteps,
+                    description: `Execute ${toolCall.name}`,
+                    input_hash: inputHash,
+                    payload,
+                    error_code: "NAVIGATION_INSPECTION_REQUIRED",
+                    error_message: inspectionMessage
+                  }
+                },
+                memoryStore,
+                options.onRunUpdated
+              );
+
+              messages.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.name,
+                content: JSON.stringify({
+                  ok: false,
+                  error_code: "NAVIGATION_INSPECTION_REQUIRED",
+                  error_message: inspectionMessage
+                })
+              });
+              continue;
+            }
+
+            if (policy.requireSingleStateChangingComputerAction && action === "computer" && hasMultipleStateChangingComputerSteps(payload)) {
+              const validationMessage =
+                "Perform only one state-changing computer action per tool call. After it completes, validate the page state with read_page, find, or get_page_text before continuing.";
+              appendRecentSignature(recentToolSignatures, toolSignature);
+              executedSteps += 1;
+
+              appendStep(
+                state,
+                {
+                  ts: nowIso(),
+                  phase: "executor",
+                  action,
+                  status: "failed",
+                  details: {
+                    step_id: toolCall.id,
+                    step_index: executedSteps,
+                    description: `Execute ${toolCall.name}`,
+                    input_hash: inputHash,
+                    payload,
+                    error_code: "ACTION_VALIDATION_REQUIRED",
+                    error_message: validationMessage
+                  }
+                },
+                memoryStore,
+                options.onRunUpdated
+              );
+
+              messages.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.name,
+                content: JSON.stringify({
+                  ok: false,
+                  error_code: "ACTION_VALIDATION_REQUIRED",
+                  error_message: validationMessage
+                })
+              });
+              continue;
+            }
+
+            if (
+              policy.requireValidationAfterPageActions &&
+              needsPostActionValidation &&
+              !isPostActionValidationAction(action) &&
+              requiresValidationAfterPageAction(action, payload, {})
+            ) {
+              const validationMessage =
+                "Validate the result of your most recent page interaction with read_page, find, or get_page_text before taking another state-changing action.";
+              appendRecentSignature(recentToolSignatures, toolSignature);
+              executedSteps += 1;
+
+              appendStep(
+                state,
+                {
+                  ts: nowIso(),
+                  phase: "executor",
+                  action,
+                  status: "failed",
+                  details: {
+                    step_id: toolCall.id,
+                    step_index: executedSteps,
+                    description: `Execute ${toolCall.name}`,
+                    input_hash: inputHash,
+                    payload,
+                    error_code: "ACTION_VALIDATION_REQUIRED",
+                    error_message: validationMessage
+                  }
+                },
+                memoryStore,
+                options.onRunUpdated
+              );
+
+              messages.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.name,
+                content: JSON.stringify({
+                  ok: false,
+                  error_code: "ACTION_VALIDATION_REQUIRED",
+                  error_message: validationMessage
+                })
+              });
+              continue;
+            }
+
+            const isRequiredValidationAction =
+              policy.requireValidationAfterPageActions &&
+              needsPostActionValidation &&
+              isPostActionValidationAction(action);
+
+            if (!isRequiredValidationAction && shouldBlockLoopingToolCall(recentToolSignatures, toolSignature)) {
               const loopMessage = "Repeated tool pattern detected. Stop repeating this action and either choose a different tool or provide the final answer using gathered evidence.";
               loopGuardTrips += 1;
               appendRecentSignature(recentToolSignatures, toolSignature);
@@ -1394,27 +2171,60 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
             );
 
             // Emit tool_start SSE so the panel UI can show the action item
-            options.onToolEvent?.({
+            // Comet RUM: includes step_type (= tool name) and operation_key for observability
+            emitToolEvent(state, options.onToolEvent, {
               type: "tool_start",
               run_id: state.runId,
               tool_name: action,
+              step_type: action,            // Comet: e.stepType
+              operation_key: toolCall.id,   // Comet: e.operationKey
               tool_call_id: toolCall.id,
               tool_input: toolCall.arguments
             });
 
             try {
-              const rawResult = await options.performAction(action, requestTabId, toolCall.arguments, state.abortController.signal);
-              const result = redactSensitiveJson(toJsonObject(rawResult)) ?? {};
+              const result =
+                action === "draft_email"
+                  ? (normaliseEmailDraftArtifact(payload) as unknown as JsonObject)
+                  : (redactSensitiveJson(
+                      toJsonObject(await options.performAction(action, requestTabId, toolCall.arguments, state.abortController.signal))
+                    ) ?? {});
               lastResult = summarizeResult(result);
               let source: SourceAttribution | undefined;
 
-              if (action === "read_page" || action === "get_page_text" || action === "find" || action === "search_web") {
+              if (action === "draft_email") {
+                state.draftArtifact = result as unknown as DraftArtifact;
+              }
+
+              if (action === "search_web") {
+                const searchSources = parseSearchResultSources(result);
+                if (searchSources.length > 0) {
+                  for (const searchSource of searchSources) {
+                    pushUniqueSource(state.sources, searchSource);
+                    const citationIndex = extractCitationIndex(searchSource.id);
+                    if (typeof citationIndex === "number") {
+                      webCitationIndex = Math.max(webCitationIndex, citationIndex);
+                    }
+                  }
+                  source = searchSources[0];
+                } else {
+                  webCitationIndex += 1;
+                  source = {
+                    id: `[web:${webCitationIndex}]`,
+                    origin: "web",
+                    action
+                  };
+                  pushUniqueSource(state.sources, source);
+                }
+              } else if (action === "read_page" || action === "get_page_text" || action === "find") {
                 webCitationIndex += 1;
                 source = {
                   id: `[web:${webCitationIndex}]`,
                   origin: "web",
                   action
                 };
+                pushUniqueSource(state.sources, source);
+                state.lastValidatedObservation = buildValidationObservation(action, result);
               } else if (action === "computer" && typeof result.screenshot_b64 === "string") {
                 screenshotCitationIndex += 1;
                 source = {
@@ -1422,10 +2232,24 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                   origin: "screenshot",
                   action
                 };
-              }
-
-              if (source) {
                 pushUniqueSource(state.sources, source);
+              }
+              if (action === "computer" && result.javascript_dialog && typeof result.javascript_dialog === "object") {
+                pendingJavaScriptDialog = {
+                  type: typeof result.javascript_dialog.type === "string" ? result.javascript_dialog.type : "dialog",
+                  message: typeof result.javascript_dialog.message === "string" ? result.javascript_dialog.message : "",
+                  ...(typeof result.javascript_dialog.default_prompt === "string"
+                    ? { default_prompt: result.javascript_dialog.default_prompt }
+                    : {})
+                };
+                state.lastValidatedObservation = `JavaScript dialog open (${pendingJavaScriptDialog.type}): ${pendingJavaScriptDialog.message}`;
+              } else if (
+                action === "computer" &&
+                isRecord(payload) &&
+                Array.isArray(payload.steps) &&
+                payload.steps.some((step) => isRecord(step) && step.kind === "dialog")
+              ) {
+                pendingJavaScriptDialog = undefined;
               }
 
               appendStep(
@@ -1450,12 +2274,32 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
               );
 
               // Emit tool_done SSE so panel can mark the action item complete
-              options.onToolEvent?.({ type: "tool_done", run_id: state.runId, tool_call_id: toolCall.id, ok: true });
+              emitToolEvent(state, options.onToolEvent, {
+                type: "tool_done",
+                run_id: state.runId,
+                tool_call_id: toolCall.id,
+                ok: true
+              });
               consecutiveFailures = 0;
 
               // Flag page load wait if we navigated (applied before next LLM turn)
               if (action === "navigate" || action === "tabs_create") {
                 needsPageLoadWait = true;
+                needsStructuredInspectionAfterNavigation = true;
+                needsPostActionValidation = false;
+                postActionValidationReminderTrips = 0;
+              } else if (isStructuredInspectionAction(action)) {
+                needsStructuredInspectionAfterNavigation = false;
+              }
+
+              if (policy.requireValidationAfterPageActions) {
+                if (isPostActionValidationAction(action)) {
+                  needsPostActionValidation = false;
+                  postActionValidationReminderTrips = 0;
+                } else if (requiresValidationAfterPageAction(action, payload, result)) {
+                  needsPostActionValidation = true;
+                  postActionValidationReminderTrips = 0;
+                }
               }
 
               // Vision mode: auto-screenshot after navigate/form_input so the LLM can verify
@@ -1526,8 +2370,15 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                 options.onRunUpdated
               );
 
-              // Emit tool_done (failure) SSE
-              options.onToolEvent?.({ type: "tool_done", run_id: state.runId, tool_call_id: toolCall.id, ok: false });
+              // Emit tool_done (failure) SSE — Comet: includes failure_reason for diagnostics
+              emitToolEvent(state, options.onToolEvent, {
+                type: "tool_done",
+                run_id: state.runId,
+                tool_call_id: toolCall.id,
+                step_type: action,
+                ok: false,
+                failure_reason: normalized.code   // Comet: e.failureReason
+              });
 
               consecutiveFailures += 1;
               if (failureTolerance > 0 && consecutiveFailures >= failureTolerance) {
@@ -1551,6 +2402,10 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
 
             executedSteps += 1;
 
+            if (await pauseAtBoundary(state, memoryStore, options.onRunUpdated)) {
+              continue outer;
+            }
+
             // Replanning checkpoint: inject a review prompt every N steps
             if (replanningFrequency > 0 && executedSteps > 0 && executedSteps % replanningFrequency === 0) {
               messages.push({
@@ -1564,10 +2419,50 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         }
 
         if (typeof turn.assistantText !== "string" || turn.assistantText.trim().length === 0) {
-          throw Object.assign(new Error("Provider returned no assistant text or tool calls."), {
-            code: "PROVIDER_EMPTY_RESPONSE",
+            if (emptyProviderTurnRetries < EMPTY_PROVIDER_TURN_MAX_RETRIES) {
+              emptyProviderTurnRetries += 1;
+              forceFunctionCallingContinuation = Boolean(pendingJavaScriptDialog || state.lastValidatedObservation);
+              messages.push({
+                role: "user",
+                content: buildEmptyTurnRecoveryPrompt(state, pendingJavaScriptDialog)
+              });
+              await delay(EMPTY_PROVIDER_TURN_RETRY_DELAY_MS);
+              continue;
+          }
+          throw Object.assign(new Error(
+            `Provider returned no assistant text or tool calls${turn.finishReason ? ` (finishReason: ${turn.finishReason})` : ""}.`
+          ), {
+            code: "MODEL_EMPTY_TURN",
             retryable: true
           });
+        }
+
+        emptyProviderTurnRetries = 0;
+        forceFunctionCallingContinuation = false;
+
+        if (policy.requireValidationAfterPageActions && needsPostActionValidation) {
+          postActionValidationReminderTrips += 1;
+          if (postActionValidationReminderTrips > 3) {
+            throw Object.assign(
+              new Error("Agent stopped because it repeatedly tried to continue without validating the latest page interaction."),
+              {
+                code: "ACTION_VALIDATION_REQUIRED",
+                retryable: false
+              }
+            );
+          }
+
+          messages.push({
+            role: "assistant",
+            content: turn.assistantText,
+            provider_parts: turn.provider_parts
+          });
+          messages.push({
+            role: "user",
+            content:
+              "Before continuing or answering, verify the result of your most recent page interaction with read_page, find, or get_page_text. Do not take another state-changing action or give the final answer until you have checked the updated page state."
+          });
+          continue;
         }
 
         const availableCitations = state.sources
@@ -1620,20 +2515,37 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       );
       memoryStore.upsert(state.runId, {
         status: state.status,
-        error_message: state.errorMessage
+        error_message: state.errorMessage,
+        task: buildTaskState(state) as unknown as JsonObject
       });
+      if (state.role === "primary" && state.activeChildTaskId) {
+        const child = taskManager.getByTaskId(state.activeChildTaskId);
+        if (child) {
+          stopChildTask(child, {
+            code: "SUBAGENT_CANCELED",
+            message: "Child task stopped because the parent task ended."
+          });
+        }
+      }
+      if (state.role === "subagent") {
+        finalizeChildTask(state);
+      }
     }
   };
 
   return {
     async run(params: AgentRunParams) {
-      const state = createRunState(params);
-      runs.set(state.runId, state);
+      const state = createRunState(params, {
+        role: "primary",
+        visibility: "panel"
+      });
+      taskManager.register(state);
       memoryStore.upsert(state.runId, {
         status: state.status,
-        params: redactSensitiveJson(params as unknown as JsonObject) ?? {}
+        params: redactSensitiveJson(params as unknown as JsonObject) ?? {},
+        task: buildTaskState(state) as unknown as JsonObject
       });
-      options.onRunUpdated?.(cloneState(state));
+      publishTaskUpdate(state);
 
       void executeRun(state);
 
@@ -1642,13 +2554,20 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         status: "started"
       };
     },
-    async stop(params: AgentStopParams) {
-      const state = runs.get(params.run_id);
+    async pause(params: AgentPauseParams) {
+      const state = taskManager.getByRunId(params.run_id);
       if (!state) {
         throw Object.assign(new Error(`Unknown run_id: ${params.run_id}`), {
           code: "RUN_NOT_FOUND",
           retryable: false
         });
+      }
+
+      if (state.status === "paused" || state.status === "pausing") {
+        return {
+          run_id: state.runId,
+          status: state.status
+        };
       }
 
       if (state.status !== "running") {
@@ -1658,13 +2577,77 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         });
       }
 
+      state.pauseRequested = true;
+      updateRunStatus(state, "pausing", memoryStore, options.onRunUpdated);
+
+      return {
+        run_id: state.runId,
+        status: "pausing"
+      };
+    },
+    async resume(params: AgentResumeParams) {
+      const state = taskManager.getByRunId(params.run_id);
+      if (!state) {
+        throw Object.assign(new Error(`Unknown run_id: ${params.run_id}`), {
+          code: "RUN_NOT_FOUND",
+          retryable: false
+        });
+      }
+
+      if (state.status !== "paused") {
+        throw Object.assign(new Error(`Run ${params.run_id} is not paused`), {
+          code: "RUN_NOT_PAUSED",
+          retryable: false
+        });
+      }
+
+      state.pauseRequested = false;
+      state.resumeRequested = true;
+      state.resumeNeedsReassessment = true;
+      updateRunStatus(state, "running", memoryStore, options.onRunUpdated);
+      releaseResumeGate(state);
+
+      return {
+        run_id: state.runId,
+        status: "running"
+      };
+    },
+    async stop(params: AgentStopParams) {
+      const state = taskManager.getByRunId(params.run_id);
+      if (!state) {
+        throw Object.assign(new Error(`Unknown run_id: ${params.run_id}`), {
+          code: "RUN_NOT_FOUND",
+          retryable: false
+        });
+      }
+
+      if (state.status !== "running" && state.status !== "pausing" && state.status !== "paused") {
+        throw Object.assign(new Error(`Run ${params.run_id} is not running`), {
+          code: "RUN_NOT_RUNNING",
+          retryable: false
+        });
+      }
+
+      if (state.role === "primary") {
+        for (const childRunId of taskManager.getDescendantRunIds(state.taskId)) {
+          const child = taskManager.getByRunId(childRunId);
+          if (!child) {
+            continue;
+          }
+
+          stopChildTask(child, {
+            code: "SUBAGENT_CANCELED",
+            message: "Child task stopped because the parent task stopped."
+          });
+        }
+      }
+
+      state.pauseRequested = false;
+      state.resumeRequested = false;
+      state.resumeNeedsReassessment = false;
       state.abortController.abort();
-      state.status = "stopped";
-      state.updatedAt = nowIso();
-      memoryStore.upsert(state.runId, {
-        status: state.status
-      });
-      options.onRunUpdated?.(cloneState(state));
+      releaseResumeGate(state);
+      updateRunStatus(state, "stopped", memoryStore, options.onRunUpdated);
 
       return {
         run_id: state.runId,
@@ -1672,7 +2655,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       };
     },
     async getState(params: AgentGetStateParams) {
-      const state = runs.get(params.run_id);
+      const state = taskManager.getByRunId(params.run_id);
       if (!state) {
         throw Object.assign(new Error(`Unknown run_id: ${params.run_id}`), {
           code: "RUN_NOT_FOUND",
@@ -1681,6 +2664,58 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       }
 
       return buildStateResult(state);
+    },
+    async createSubagent(params: CreateSubagentParams): Promise<CreateSubagentResult> {
+      const parent = taskManager.getByTaskId(params.parent_task_id);
+      if (!parent || parent.role !== "primary") {
+        const rejectedTaskId = randomUUID();
+        return {
+          task_id: rejectedTaskId,
+          status: "rejected",
+          visibility: "hidden",
+          summary: params.goal_summary,
+          error: {
+            code: "SUBAGENT_PARENT_INVALID",
+            message: "Subagents can only be created from a primary task."
+          }
+        };
+      }
+
+      const childPrompt = params.start_url
+        ? `${params.prompt}\n\nStart URL: ${params.start_url}`
+        : params.prompt;
+      const childState = createRunState(
+        {
+          ...parent.params,
+          prompt: childPrompt
+        },
+        {
+          role: "subagent",
+          visibility: "hidden",
+          parentTaskId: params.parent_task_id
+        }
+      );
+
+      const result = taskManager.linkChild(params.parent_task_id, childState);
+      if (result.status === "rejected") {
+        return {
+          ...result,
+          summary: params.goal_summary
+        };
+      }
+
+      memoryStore.upsert(childState.runId, {
+        status: childState.status,
+        params: redactSensitiveJson(childState.params as unknown as JsonObject) ?? {},
+        task: buildTaskState(childState) as unknown as JsonObject
+      });
+      writeParentTaskPatch(parent);
+      void executeRun(childState);
+
+      return {
+        ...result,
+        summary: params.goal_summary
+      };
     }
   };
 }

@@ -1,0 +1,2 @@
+import{s as a,g as n,a as i}from"./platform-core-CZ-8UOca.js";const c=async({request:s,reason:t})=>{const{data:r,error:e,response:o}=await a.POST("/rest/files/delete",t,{body:s,timeoutMs:n(),numRetries:1});if(e)throw new i("API_CLIENTS_ERROR",{message:"Failed to delete connector files",cause:e,status:o.status??0});return r};export{c as d};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/deleteConnectorFiles-Cy3fq_7f.js.map

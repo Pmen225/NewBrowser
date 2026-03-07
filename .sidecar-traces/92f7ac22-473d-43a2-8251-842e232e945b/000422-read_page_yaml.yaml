@@ -1,0 +1,38 @@
+interactables:
+  - frame_id: "73A1ED2C78254A1CCC60B8D2B73923F0"
+    nodes:
+      - ref_id: "f0:72"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 3840, h: 1742}
+        click: {x: 1920, y: 871}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:80"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 3840, h: 473.33}
+        click: {x: 1920, y: 236.66}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:82"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 3730, y: 20, w: 90, h: 68}
+        click: {x: 3775, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:79"
+        role: "spinbutton"
+        state:
+          value: ""
+        bbox: {x: 1450, y: 268.58, w: 940, h: 64.75}
+        click: {x: 1920, y: 300.95}
+        source: "ax"
+        actions: ["click", "type", "key"]
+      - ref_id: "f0:115"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1868.98, y: 438.33, w: 281.58, h: 37}
+        click: {x: 2009.77, y: 456.83}
+        source: "ax"
+        actions: ["click", "key"]

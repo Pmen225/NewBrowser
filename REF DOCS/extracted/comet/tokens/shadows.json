@@ -1,0 +1,494 @@
+[
+  {
+    "value": "#20212451",
+    "source": "colors.css"
+  },
+  {
+    "value": "none",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "0 0 0 1px rgb(var(--tw-prose-kbd-shadows) / 10%),0 3px rgb(var(--tw-prose-kbd-shadows) / 10%)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-content.css"
+  },
+  {
+    "value": "inset 0 1px oklch(from var(--color-base) l c h / .2),0 1px 4px oklch(from var(--color-base) 15% c h / .2),0 4px 16px 0 var(--color-base)",
+    "source": "comet-content.css"
+  },
+  {
+    "value": "none",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "0 0 0 1px rgb(var(--tw-prose-kbd-shadows) / 10%),0 3px rgb(var(--tw-prose-kbd-shadows) / 10%)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "value": "var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000)",
+    "source": "comet-sidecar-main.css"
+  }
+]

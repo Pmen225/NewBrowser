@@ -1,0 +1,413 @@
+MTLB
+NAME
+vertex_blit
+TYPE
+HASH 
+*OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME$
+fragment_speaking_assistant_prepass
+TYPE
+HASH 
+RoLCY%
+OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_speaking_assistant_1
+TYPE
+HASH 
+OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_user_voice_1
+TYPE
+HASH 
+2K=S
+OFFT
+VERS
+MDSZ
+RFLT
+ENDTRLST
+UUID
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+b0$
+`Bd\ $d
+P$v`
+r2H #
+(d<12B
+Ld0H4
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.positionair.arg_type_namefloat4air.arg_namepositionair.vertex_outputgenerated(2uvDv2_f)float2uvair.vertex_iduintvertexIndex
+ksi{#
+c+s1c
+8H*,M
+omnipotent charSimple C++ TBAA
+ C` 
+_ZL31blitFullscreenTrianglePositionsvertex_blit32023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`rd\ $g
+(ISD
+H$Hb
+"M@3
+!U94
+C*yX0 
+C*<i
+`H%/
+P$v`
+r2H #
+(d<12B
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_infofloattimemicLevelstateListenlistenTimestampstateThinkthinkTimestampstateSpeakspeakTimestampreadyTimestampstateHalthaltTimestampstateFailedToConnectfailedToConnectTimestampuseNewIdleStateair.arg_type_sizeair.arg_type_align_sizeVoiceVisualFrameBufferframeavgMagcumulativeAudioviewportscreenScaleFactortouchDownTimestamptouchUpTimestampsilenceAmountsilenceTimestampboolisDarkModeisNewBloopisAdvancedBloopfloat3mainlowmidhighBloopColorsbloopColorsisClipair.textureair.sampletexture2d<float, sample>uTextureNoiseair.samplersampleruTextureNoiseSampler
+C-
+DAQe]3$
+S-t
+S;t
+U*\3(
+3H#A
+ksi{#
+c+s1c
+}H*,M
+cI~c
+omnipotent charSimple C++ TBAAair-alias-scopes(fragment_speaking_assistant_prepass)air-alias-scope-arg(3)air-alias-scope-samplersair-alias-scope-texturesair-alias-scope-arg(14)air-alias-scope-arg(4)air-alias-scope-arg(2)_ZTS22VoiceVisualFrameBufferllvm.loop.mustprogress
+b'Vs!
+B.~b
+?b` !
+/B6T
+6DVT
+?b` !
+?.1"
+sD0+
+2`CA
+3xCA
+lB/#
+r9LQ0
+?bp !
+?b` !
+6b` !
+?bp !
+?b` !
+a0@
+B3b` !
+@a0
+PHc0
+PLd0
+?bp !
+1b` !
+D1b` !
+AO(
+1b` !
+sB@
+sBP
+1bp !
+?bp !
+?bp !
+n #U0bp !
+z24
+B4"#
+fragment_speaking_assistant_prepassair.mix.v3f32air.fast_fmax.v3f32air.fast_pow.f32air.fast_clamp.f32_Z5noiseDv2_fair.mix.f32air.fast_fract.f32air.fast_sin.f32air.dot.v2f32air.fast_fract.v2f32air.fast_floor.v2f32air.fast_sqrt.f32air.fast_cos.f32air.sample_texture_2d.v4f32_Z6cnoiseDv3_fair.mix.v2f32air.mix.v4f32air.dot.v3f32air.convert.f.v4f32.u.v4i1air.fast_fabs.v4f32air.fast_fract.v4f32air.fast_floor.v4f32air.fast_fmod.v4f32air.fast_fract.v3f32air.fast_fmod.v3f32air.fast_floor.v3f3232023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`rd\ $g
+(ISD
+@@+#
+Pm02
+c&`
+jB`M
+ lr0!
+`0D3
+:`HU
+:`H5:P
+P$v`
+r2H #
+(d<12B
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_infofloattimemicLevelstateListenlistenTimestampstateThinkthinkTimestampstateSpeakspeakTimestampreadyTimestampstateHalthaltTimestampstateFailedToConnectfailedToConnectTimestampuseNewIdleStateair.arg_type_sizeair.arg_type_align_sizeVoiceVisualFrameBufferframeavgMagcumulativeAudioviewportscreenScaleFactortouchDownTimestamptouchUpTimestampsilenceAmountsilenceTimestampboolisDarkModeisNewBloopisAdvancedBloopfloat3mainlowmidhighBloopColorsbloopColorsisClipair.textureair.sampletexture2d<float, sample>uTextureNoiseprepassTexturetextTextureuFlowmapPTTuFlowmapThinkingair.samplersampleruTextureNoiseSampleruOrbPrepassTexturetextureSampleruFlowmapPTTSampleruFlowmapThinkingSampleromnipotent charSimple C++ TBAAllvm.loop.mustprogress
+ Xe0
+ Xi0
+ Xo0
+ Xs0
+ Xw0
+ X{0
+31Cb
+DAQe]3$
+Tv0C
+R9t
+/@cP
+/@~P
+T>t
+3$!!
+&(#66
+H&,M
+sN{c
+4<~c
+air-alias-scopes(fragment_speaking_assistant_1)air-alias-scope-arg(5)air-alias-scope-samplersair-alias-scope-texturesair-alias-scope-arg(15)air-alias-scope-arg(14)air-alias-scope-arg(13)air-alias-scope-arg(12)air-alias-scope-arg(11)air-alias-scope-arg(10)air-alias-scope-arg(9)air-alias-scope-arg(8)air-alias-scope-arg(7)air-alias-scope-arg(6)air-alias-scope-arg(3)air-alias-scope-arg(2)_ZTS22VoiceVisualFrameBuffer
+.bcC@
+7vC76
+Aolp
+7vC76
+7xc7tcCP
+7xC76
+?b`,!
+?b`,!
+2$J0b
+2DP0
+2\X0b
+2dZ0b
+<B0K
+H|l9
+l9H!
+H|l9
+l9d#
+AddK
+?b`,!
+\`0b
+sN{c
+;ATX
+1b`,!
+?b`,!
+?b`,!
+?b`,!
+?Ro 
+?b`,!
+0K@T
+F#@
+0R!@A
+?b`,!
+1b`,!
+C*H51
+?bp,!
+_OG
+Ao2
+C0b`,!
+?b`,!
+D0b`,!
+?bp,!
+?b`,!
+?b`,!
+B>`0
+A0b`,!
+?b`,!
+?b`,!
+AZL
+?^!!
+?bp,!
+TsT
+C0K0
+C0K0T
+D0b`,!
+sn 
+xe0bp,!
+0b`,!
+?b`,!
+A0b`,!
+?b`,!
+?b`,!
+D0b`,!
+s` 
+E0t#
+A0b`,!
+fragment_speaking_assistant_1air.mix.v4f32air.sample_texture_2d.v4f32air.convert.f.f32.u.i32air.get_height_texture_2dair.get_width_texture_2dair.fast_clamp.f32_Z14applyHaltState10ColoredSDF7SDFArgsair.mix.f32air.fast_pow.f32air.fast_fabs.f32air.fast_sqrt.f32air.dot.v2f32air.fast_sin.f32_Z15applySpeakState10ColoredSDF7SDFArgsPU11MTLconstantKfffair.fast_fmax.v2f32air.fast_fmin.f32air.fast_fmax.f32air.fast_fabs.v2f32air.fast_exp.f32air.fast_fract.f32air.fast_cos.f32_Z24applyListenAndSpeakState10ColoredSDF7SDFArgsfPU11MTLconstantKfS2_i11BloopColorsN5metal9texture2dIfLNS4_6accessE0EvEENS4_7samplerES7_S8_S7_S8_S7_S8_ffbbbair.mix.v3f32air.fast_fmod.f32_Z15applyThinkState10ColoredSDF7SDFArgsair.fast_atan.f32_Z16applyListenState10ColoredSDF7SDFArgsffff_Z3arcDv2_fffff_Z20applyIdleStateLegacy10ColoredSDF7SDFArgsbair.fast_atan2.f32_Z17applyIdleStateNew10ColoredSDF7SDFArgsb32023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`bd\ $f
+`0D3
+*`HUI
+!U]D
+P$v`
+r2H #
+(d<12B
+UDHD(
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_infofloattimemicLevelstateListenlistenTimestampstateThinkthinkTimestampstateSpeakspeakTimestampreadyTimestampstateHalthaltTimestampstateFailedToConnectfailedToConnectTimestampuseNewIdleStateair.arg_type_sizeair.arg_type_align_sizeVoiceVisualFrameBufferframeuserMicMagnitudesviewportscreenScaleFactorboolisDarkModeomnipotent charSimple C++ TBAA
+ ta0
+ te0
+ ti0
+C($
+A3C
+P4C`
+(@cP
+3c0
+ksI#+s
+;k+s
+air-alias-scopes(fragment_user_voice_1)air-alias-scope-arg(4)air-alias-scope-arg(6)air-alias-scope-arg(5)air-alias-scope-arg(3)air-alias-scope-arg(2)_ZTS22VoiceVisualFrameBuffer
+o0A 
+w0A 
+AKl b
+66A
+hA@
+t!F
+sN~c
+`0F@
+sN{c
+llvm.loop.mustprogress
+1lA.
+?K LG
+=7(#
+A/`0
+dt@H
+L?!a
+Qkd&
+. 71b`
+B0bp
+B0KPT
+ f0bp
+S.sB
+C0K0T
+A0b`
+A0b`
+D0bp
+A0b`
+E0bp
+fragment_user_voice_1air.fast_clamp.f32_Z33applyBottomAlignedBarsAndMicState10ColoredSDF7SDFArgsPU11MTLconstantKffbair.fast_fmin.f32air.fast_sqrt.f32air.dot.v2f32air.fast_fmax.v2f32air.fast_fmax.f32air.fast_fabs.v2f32air.fast_pow.f32air.mix.f32air.fast_cos.f32air.fast_exp.f32air.fast_fabs.f32_Z6micSdfDv2_ffair.fast_sin.f32air.convert.f.f32.u.i32air.mix.v4f3232023.850.10air64_v26-apple-macosx14.0.0
+RBUF
+AIRR
+vertexIndex
+uint
+float2
+generated(2uvDv2_f)
+position
+float4
+vertex_blit
+ENDTx
+RBUFh
+AIRR
+uTextureNoiseSampler
+sampler
+uTextureNoise
+texture2d<float, sample>
+isClip
+high
+main
+float3
+bloopColors
+BloopColors
+isAdvancedBloop
+isNewBloop
+isDarkMode
+bool
+silenceTimestamp
+silenceAmount
+touchUpTimestamp
+touchDownTimestamp
+screenScaleFactor
+viewport
+cumulativeAudio
+avgMag
+useNewIdleState
+failedToConnectTimestamp
+stateFailedToConnect
+haltTimestamp
+stateHalt
+readyTimestamp
+speakTimestamp
+stateSpeak
+thinkTimestamp
+stateThink
+listenTimestamp
+stateListen
+micLevel
+time
+float
+frame
+VoiceVisualFrameBuffer
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_speaking_assistant_prepass
+ENDT
+RBUF
+AIRR
+uFlowmapThinkingSampler
+uFlowmapPTTSampler
+textureSampler
+uOrbPrepassTexture
+uTextureNoiseSampler
+sampler
+uFlowmapThinking
+uFlowmapPTT
+textTexture
+prepassTexture
+uTextureNoise
+texture2d<float, sample>
+isClip
+high
+main
+float3
+bloopColors
+BloopColors
+isAdvancedBloop
+isNewBloop
+isDarkMode
+bool
+silenceTimestamp
+silenceAmount
+touchUpTimestamp
+touchDownTimestamp
+screenScaleFactor
+viewport
+cumulativeAudio
+avgMag
+useNewIdleState
+failedToConnectTimestamp
+stateFailedToConnect
+haltTimestamp
+stateHalt
+readyTimestamp
+speakTimestamp
+stateSpeak
+thinkTimestamp
+stateThink
+listenTimestamp
+stateListen
+micLevel
+time
+float
+frame
+VoiceVisualFrameBuffer
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_speaking_assistant_1
+ENDT8
+RBUF(
+AIRR
+isDarkMode
+bool
+screenScaleFactor
+viewport
+userMicMagnitudes
+useNewIdleState
+failedToConnectTimestamp
+stateFailedToConnect
+haltTimestamp
+stateHalt
+readyTimestamp
+speakTimestamp
+stateSpeak
+thinkTimestamp
+stateThink
+listenTimestamp
+stateListen
+micLevel
+time
+float
+frame
+VoiceVisualFrameBuffer
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_user_voice_1

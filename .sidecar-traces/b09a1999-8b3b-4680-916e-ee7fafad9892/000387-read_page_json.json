@@ -1,0 +1,90 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:279",
+      "frame_id": "13F15EA3C82E18D7AB18A5C1D3684D59",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2880,
+        "h": 1382
+      },
+      "click": {
+        "x": 1440,
+        "y": 691
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:283",
+      "frame_id": "13F15EA3C82E18D7AB18A5C1D3684D59",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2880,
+        "h": 445.390625
+      },
+      "click": {
+        "x": 1440,
+        "y": 222.6953125
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:286",
+      "frame_id": "13F15EA3C82E18D7AB18A5C1D3684D59",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 2770,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 2815,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:352",
+      "frame_id": "13F15EA3C82E18D7AB18A5C1D3684D59",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1388.984375,
+        "y": 410.390625,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1529.7734375,
+        "y": 428.890625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 4,
+    "generated_at": "2026-03-06T18:52:15.826Z"
+  }
+}

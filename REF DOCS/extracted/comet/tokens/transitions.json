@@ -1,0 +1,1572 @@
+[
+  {
+    "type": "animation",
+    "value": ".3s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "enter",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "ease-in-out",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "indicator steps(48) infinite",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "indeterminate 1.5s infinite cubic-bezier(.65,.815,.735,.395)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "ping 1s cubic-bezier(0,0,.2,1) infinite",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "indicator steps(52) infinite",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "pulse 2s cubic-bezier(.4,0,.6,1) infinite",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDownAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "spin 1s linear infinite",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "enter",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "exit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".1s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".2s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".3s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".7s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "75ms",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "75ms",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.4,0,1,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.4,0,.2,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.7,0,.84,0)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(0,0,.2,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "fadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "scaleAndFadeOut .15s cubic-bezier(.7,0,.84,0) forwards",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDown .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDownAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideLeftAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideRightAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideUpAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDownAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideLeftAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideRightAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideUpAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "fadeIn .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "scaleAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideLeftAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideUp .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.16,1,.3,1)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".65,.815,.735,.395",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.6,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,1,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".7,0,.84,0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,1,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".7,0,.84,0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".7,0,.84,0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "indeterminate",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "ping",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "indicator",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "pulse",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "spin",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "enter",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "exit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "fadeOut",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scaleAndFadeOut",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideDown",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideDownAndFadeOut",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideLeftAndFadeOut",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideRightAndFadeOut",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideUpAndFadeOut",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideDownAndFadeIn",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideRightAndFadeIn",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideUpAndFadeIn",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "fadeIn",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scaleAndFadeIn",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideLeftAndFadeIn",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideUp",
+    "source": "comet-overlay.css"
+  },
+  {
+    "type": "transition",
+    "value": "background-color .2s ease",
+    "source": "comet-content.css"
+  },
+  {
+    "type": "animation",
+    "value": "0s",
+    "source": "comet-content.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "enter",
+    "source": "comet-content.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "exit",
+    "source": "comet-content.css"
+  },
+  {
+    "type": "animation",
+    "value": "shimmer",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "gridDotFade",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "2s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "maintenanceLoader 40s linear forwards infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "coin-spin",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".3s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "enter",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "ease-in-out",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "f1-track-dash 6s ease infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "ping 1.5s cubic-bezier(0,0,.2,1) infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "pulse 2.5s ease-in-out infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "indicator steps(48) infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "fadeIn .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "indeterminate 1.5s infinite cubic-bezier(.65,.815,.735,.395)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "marqueeLeft 35s linear infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "ping 1s cubic-bezier(0,0,.2,1) infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "indicator steps(52) infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "pulse 2s cubic-bezier(.4,0,.6,1) infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDownAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "spin 1s linear infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "underlineFade 1s ease",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "enter",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "exit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "0s!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".1s!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "0s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".1s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "1s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".2s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".3s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".5s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".7s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "75ms",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "75ms",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(0,0,.2,1)!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.4,0,1,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.4,0,.2,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.7,0,.84,0)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "linear",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(0,0,.2,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "fadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "scaleAndFadeOut .15s cubic-bezier(.7,0,.84,0) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDown .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDownAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideLeft .15s cubic-bezier(.25,.1,.25,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideLeftAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideRightAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideUpAndFadeOut .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideDownAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideLeftAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideRightAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideUpAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "fadeIn .15s cubic-bezier(.16,1,.3,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "scaleAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideLeftAndFadeIn .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideRight .15s cubic-bezier(.25,.1,.25,1) forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideUp .15s cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": ".15s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(.16,1,.3,1)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "75ms",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "shine 1.8s linear infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "thinking-gaze 6.87s var(--ease-in-out-quart) infinite,thinking-blink-l 6.87s linear infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "thinking-gaze 6.87s var(--ease-in-out-quart) 40ms infinite,thinking-blink-r 6.87s linear infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "scanning-compress .3s var(--ease-in-out-quart) forwards,scanning-sweep .9s var(--ease-in-out-sine) .3s forwards,scanning-tighten .5s var(--ease-in-out-sine) 1.2s forwards,scanning-lock .25s var(--ease-in-out-quart) 1.7s forwards,scanning-decompress .4s var(--ease-out-soft) 1.95s forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "streaming-left .32s var(--ease-in-out-cubic) infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "streaming-right .32s var(--ease-in-out-cubic) infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "error-tremor .35s linear,error-collapse-left 80ms linear .35s forwards,error-dead 1.4s linear .43s,error-false-start-left .3s var(--ease-out-soft) 1.83s,error-fail-left .15s linear 2.13s,error-commit-left .5s var(--ease-out-soft) 2.28s,error-recovery .7s var(--ease-out-soft) 2.78s forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "error-tremor .35s linear,error-collapse-right .12s linear .41s forwards,error-dead 1.4s linear .53s,error-commit-right .5s var(--ease-out-soft) 2.28s,error-recovery .7s var(--ease-out-soft) 2.78s forwards",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "snow-anim linear infinite 3s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "snow-anim-wave cubic-bezier(.45,0,.55,1) infinite 3s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "star-twinkle ease infinite 1s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "star-shoot linear infinite 12s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "rain-anim ease infinite 1s",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "rain-splash 1s ease infinite",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".65,.815,.735,.395",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.6,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,1,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".7,0,.84,0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,1,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".7,0,.84,0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".7,0,.84,0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".25,.1,.25,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".25,.1,.25,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".16,1,.3,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".4,0,.2,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".33, 1, .68, 1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".65, 0, .35, 1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".36, 1.3, .64, 1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".76, 0, .24, 1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".22, 1, .36, 1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".32, 0, .67, 0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".37, 0, .63, 1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": ".45,0,.55,1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "shimmer",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "gridDotFade",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "maintenanceLoader",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "f1",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "indeterminate",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "marqueeLeft",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "ping",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "indicator",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "pulse",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "spin",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "underlineFade",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "enter",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "exit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "fadeOut",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scaleAndFadeOut",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideDown",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideDownAndFadeOut",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideLeft",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideLeftAndFadeOut",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideRightAndFadeOut",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideUpAndFadeOut",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideDownAndFadeIn",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideRightAndFadeIn",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideUpAndFadeIn",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "fadeIn",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scaleAndFadeIn",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideLeftAndFadeIn",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideRight",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideUp",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "shine",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "thinking",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "thinking",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "thinking",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scanning",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scanning",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scanning",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scanning",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "scanning",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "streaming",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "streaming",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "error",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "snow",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "snow",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "star",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "star",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "rain",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "rain",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "type": "animation",
+    "value": "typing 0.4s steps(40,end)",
+    "source": "markdownView.css"
+  },
+  {
+    "type": "animation",
+    "value": "expand 0.1s linear",
+    "source": "markdownView.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "typing",
+    "source": "markdownView.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "expand",
+    "source": "markdownView.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideIn",
+    "source": "menu.css"
+  },
+  {
+    "type": "animation",
+    "value": "slideIn",
+    "source": "dialog.css"
+  },
+  {
+    "type": "animation",
+    "value": "100ms",
+    "source": "dialog.css"
+  },
+  {
+    "type": "animation",
+    "value": "cubic-bezier(0,0,0.3,1)",
+    "source": "dialog.css"
+  },
+  {
+    "type": "cubic-bezier",
+    "value": "0,0,0.3,1",
+    "source": "dialog.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideIn",
+    "source": "dialog.css"
+  },
+  {
+    "type": "keyframes",
+    "name": "slideIn",
+    "source": "selectMenu.css"
+  }
+]

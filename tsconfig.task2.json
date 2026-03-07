@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/cdp", "tests/cdp", "tests/e2e", "vitest.config.ts"]
+}

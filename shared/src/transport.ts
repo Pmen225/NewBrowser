@@ -380,6 +380,7 @@ export interface AgentRunParams {
   replanning_frequency?: number;
   page_load_wait_ms?: number;
   replay_history?: boolean;
+  history_messages?: AgentHistoryMessage[];
   has_image_input?: boolean;
   images?: string[];
   api_key?: string;
@@ -388,6 +389,11 @@ export interface AgentRunParams {
   enable_function_calling?: boolean;
   allow_browser_search?: boolean;
   enable_code_execution?: boolean;
+}
+
+export interface AgentHistoryMessage {
+  role: "user" | "assistant";
+  text: string;
 }
 
 export interface AgentRunResult {
@@ -1442,6 +1448,23 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     return null;
   }
 
+  let historyMessages: AgentHistoryMessage[] | undefined;
+  if (value.history_messages !== undefined) {
+    if (!Array.isArray(value.history_messages) || value.history_messages.length > 200) {
+      return null;
+    }
+    historyMessages = [];
+    for (const entry of value.history_messages) {
+      if (!isRecord(entry) || !isNonEmptyString(entry.text) || (entry.role !== "user" && entry.role !== "assistant")) {
+        return null;
+      }
+      historyMessages.push({
+        role: entry.role,
+        text: entry.text.trim()
+      });
+    }
+  }
+
   if (value.has_image_input !== undefined && !isBoolean(value.has_image_input)) {
     return null;
   }
@@ -1496,6 +1519,7 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     replanning_frequency: value.replanning_frequency,
     page_load_wait_ms: value.page_load_wait_ms,
     replay_history: value.replay_history,
+    history_messages: historyMessages,
     has_image_input: value.has_image_input,
     images: Array.isArray(value.images) ? (value.images as string[]) : undefined,
     api_key: typeof value.api_key === "string" ? value.api_key.trim() : undefined,

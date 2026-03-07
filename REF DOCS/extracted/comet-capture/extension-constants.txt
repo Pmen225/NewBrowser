@@ -1,0 +1,72 @@
+# Comet agents extension — extracted constants and protocol (from unpacked agents.crx)
+
+Source: /Applications/Comet.app/.../Default Apps/agents.crx unpacked to comet-capture/unpacked-agents/
+Extension: comet-agent v0.0.176 (manifest.json)
+
+## Protocol / message types (content + background)
+
+content.js:
+- BROWSER_TASK_PAUSE_RESUME  (payload: sidecarTabId) — Pause/Resume Comet Assistant
+- START_OVERLAY, STOP_OVERLAY
+
+background.js:
+- BROWSER_TASK_PROGRESS_SCREENSHOT
+- BROWSER_TASK_STOP
+- BROWSER_TASK_COMPLETE
+- BROWSER_TASK_PAUSE_RESUME
+
+## Supported features (task start payload)
+
+supported_features: ["computer_batch", "computer_ref", "create_subagent"]
+
+## Step / vital event (RUM)
+
+background.js ~6918:
+  step_type: e.stepType,
+  operation_key: e.operationKey,
+  failure_reason: e.failureReason
+
+## ComputerBatch (background.js)
+
+- Entry: t.actions ?? []  (array of actions; no client-side max length in this file)
+- Actions: LEFT_CLICK, RIGHT_CLICK, DOUBLE_CLICK, TRIPLE_CLICK, TYPE, KEY, SCROLL, SCREENSHOT, WAIT, LEFT_CLICK_DRAG, SCROLL_TO
+- Delay between actions: random 100–200 ms  (Nl = 100, OR = 200)
+- LR = 1000 (1e3) — if last action was click and within 1s, reuse screenshot (dontSaveToStorage)
+- maxWaitingTimeoutMs: 2500 for waitForFCP
+- Screenshot: timeout 1e3 (1000 ms) for “fast” post-click; 1e4 (10000 ms) for full
+- Metrics: agent.client_loop.batch_action_duration, agent.client_loop.start_duration
+
+## Timeouts / waits
+
+background.js:
+- ah = 1250, ch = 1e4 (10000), uh = 15e3 (15000) — fetch timeouts (GET 10s, non-GET 15s in browser; 1250 in node)
+- ml = 2, ah = 1250, ch = 1e4, uh = 15e3  (MA function: timeout handling)
+- lR = 350, Ah = 15e3  (15s) — Accessibility / load
+- kl = 250 — HTML length threshold (chars) for some check
+- yt(200), yt(250) — 200 ms, 250 ms waits in various flows
+- idleTimeout: 500 (dR)
+- Scroll/action: await yt(250) after scroll; 5e3 (5000 ms) timeout for doScroll
+
+content.js:
+- Le = 150 — selection debounce (setTimeout 150 ms)
+- 300 — setTimeout for body check (W)
+- 400 — setTimeout before animation
+- 1250 — overlay animation duration (1250ms linear infinite)
+
+## Other constants (Sentry / RUM / batching — not necessarily agent limits)
+
+- td = 50 — Sentry stack frames slice
+- R_ = 30, x_ = 50 — Sentry stack/frame limits
+- batchMessagesLimit: On ? 1 : 50  (Datadog RUM)
+- batchBytesLimit: 16 * xn
+- maxValueLength: 250 (Sentry)
+- sS = 50
+- Error.stackTraceLimit = 50
+
+## Not found in extension
+
+- Explicit max_steps or step_limit (task-level)
+- Explicit max_actions per batch (cap like 10) — batch is t.actions, size not clamped in client
+- failure_tolerance (e.g. 3)
+- replan_frequency or check-in cadence (5, 10, 15)
+- BROWSER_OPEN_TAB or step_type enum values (only stepType field name in RUM vital)

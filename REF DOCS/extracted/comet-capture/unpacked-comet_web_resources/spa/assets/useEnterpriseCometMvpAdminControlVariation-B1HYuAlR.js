@@ -1,0 +1,2 @@
+import{r as i}from"./vendors-bqg7Hkg3.js";import{u as s}from"./experimentation-AW3antsu.js";const p=(r,o,a)=>{const{value:t,loading:e}=s({flag:"enterprise-comet-mvp-admin-control",defaultValue:r,extraAttributes:o,subjectType:"user_nextauth_id",shortCircuitCases:a});return i.useMemo(()=>({variation:t,loading:e}),[t,e])};export{p as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/useEnterpriseCometMvpAdminControlVariation-B1HYuAlR.js.map

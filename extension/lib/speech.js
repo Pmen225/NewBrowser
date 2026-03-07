@@ -63,7 +63,7 @@ export function createDictationController({ onText, onInterim, onError, language
   }
 
   const useContinuous = continuous === true;
-  const useInterim    = interim !== false;
+  const useInterim    = interim === true;
   const useLang       = typeof language === "string" && language.trim().length > 0 ? language.trim() : "";
 
   let active = false;

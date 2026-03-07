@@ -1,0 +1,635 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:111",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 1156.9375
+      },
+      "click": {
+        "x": 678,
+        "y": 578.46875
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:126",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 1156.9375
+      },
+      "click": {
+        "x": 678,
+        "y": 578.46875
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:128",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 64
+      },
+      "click": {
+        "x": 678,
+        "y": 32
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:92",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1356,
+        "h": 1382
+      },
+      "click": {
+        "x": 678,
+        "y": 691
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:131",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "image",
+      "name": "Fork me on GitHub",
+      "bbox": {
+        "x": 1058,
+        "y": 0,
+        "w": 298,
+        "h": 298
+      },
+      "click": {
+        "x": 1207,
+        "y": 149
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:113",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 1246,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 1291,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:13",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "✦",
+      "bbox": {
+        "x": 1279.109375,
+        "y": 36.9375,
+        "w": 23.796875,
+        "h": 35
+      },
+      "click": {
+        "x": 1291.0078125,
+        "y": 54.4375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:132",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 64,
+        "w": 1356,
+        "h": 1092.9375
+      },
+      "click": {
+        "x": 678,
+        "y": 610.46875
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:136",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "heading",
+      "name": "Dynamic Controls",
+      "bbox": {
+        "x": 30,
+        "y": 71.1875,
+        "w": 1296,
+        "h": 43.65625
+      },
+      "click": {
+        "x": 678,
+        "y": 93.015625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:80",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "Dynamic Controls",
+      "bbox": {
+        "x": 30,
+        "y": 71.1875,
+        "w": 306.625,
+        "h": 43
+      },
+      "click": {
+        "x": 183.3125,
+        "y": 92.6875
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:137",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "paragraph",
+      "bbox": {
+        "x": 30,
+        "y": 132.84375,
+        "w": 1296,
+        "h": 102.375
+      },
+      "click": {
+        "x": 678,
+        "y": 184.03125
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:81",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "This example demonstrates when elements (e.g., checkbox, input field, etc.) are changed asynchronously.",
+      "bbox": {
+        "x": 30,
+        "y": 139.84375,
+        "w": 1272.609375,
+        "h": 88.1875
+      },
+      "click": {
+        "x": 666.3046875,
+        "y": 183.9375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:138",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "heading",
+      "name": "Remove/add",
+      "bbox": {
+        "x": 30,
+        "y": 275.21875,
+        "w": 1296,
+        "h": 50.390625
+      },
+      "click": {
+        "x": 678,
+        "y": 300.4140625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:82",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "Remove/add",
+      "bbox": {
+        "x": 30,
+        "y": 278.21875,
+        "w": 194.046875,
+        "h": 43
+      },
+      "click": {
+        "x": 127.0234375,
+        "y": 299.71875
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:84",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "A checkbox",
+      "bbox": {
+        "x": 56,
+        "y": 372.609375,
+        "w": 178.40625,
+        "h": 37
+      },
+      "click": {
+        "x": 145.203125,
+        "y": 391.109375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:107",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 30,
+        "y": 375.609375,
+        "w": 1296,
+        "h": 192
+      },
+      "click": {
+        "x": 678,
+        "y": 471.609375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:139",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 30,
+        "y": 375.609375,
+        "w": 1296,
+        "h": 59
+      },
+      "click": {
+        "x": 678,
+        "y": 405.109375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:108",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "checkbox",
+      "state": {
+        "checked": false
+      },
+      "bbox": {
+        "x": 30,
+        "y": 376.609375,
+        "w": 26,
+        "h": 26
+      },
+      "click": {
+        "x": 43,
+        "y": 389.609375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:140",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "button",
+      "name": "Remove",
+      "bbox": {
+        "x": 30,
+        "y": 434.609375,
+        "w": 225.03125,
+        "h": 93
+      },
+      "click": {
+        "x": 142.515625,
+        "y": 481.109375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:85",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "Remove",
+      "bbox": {
+        "x": 80,
+        "y": 462.609375,
+        "w": 125.03125,
+        "h": 38
+      },
+      "click": {
+        "x": 142.515625,
+        "y": 481.609375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:141",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "separator",
+      "bbox": {
+        "x": 30,
+        "y": 607.609375,
+        "w": 1296,
+        "h": 2
+      },
+      "click": {
+        "x": 678,
+        "y": 608.609375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:142",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "heading",
+      "name": "Enable/disable",
+      "bbox": {
+        "x": 30,
+        "y": 686.796875,
+        "w": 1296,
+        "h": 50.390625
+      },
+      "click": {
+        "x": 678,
+        "y": 711.9921875
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:87",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "Enable/disable",
+      "bbox": {
+        "x": 30,
+        "y": 689.796875,
+        "w": 219.71875,
+        "h": 43
+      },
+      "click": {
+        "x": 139.859375,
+        "y": 711.296875
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:109",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 30,
+        "y": 787.1875,
+        "w": 1296,
+        "h": 225.75
+      },
+      "click": {
+        "x": 678,
+        "y": 900.0625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:110",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "textbox",
+      "state": {
+        "disabled": true
+      },
+      "bbox": {
+        "x": 30,
+        "y": 787.1875,
+        "w": 388.796875,
+        "h": 64.75
+      },
+      "click": {
+        "x": 224.3984375,
+        "y": 819.5625
+      },
+      "actions": [
+        "click",
+        "type",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:144",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "button",
+      "name": "Enable",
+      "bbox": {
+        "x": 30,
+        "y": 879.9375,
+        "w": 204.265625,
+        "h": 93
+      },
+      "click": {
+        "x": 132.1328125,
+        "y": 926.4375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:89",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "Enable",
+      "bbox": {
+        "x": 80,
+        "y": 907.9375,
+        "w": 104.265625,
+        "h": 38
+      },
+      "click": {
+        "x": 132.1328125,
+        "y": 926.9375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:146",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 1044.9375,
+        "w": 1356,
+        "h": 112
+      },
+      "click": {
+        "x": 678,
+        "y": 1100.9375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:147",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 1044.9375,
+        "w": 1356,
+        "h": 112
+      },
+      "click": {
+        "x": 678,
+        "y": 1100.9375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:148",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "separator",
+      "bbox": {
+        "x": 30,
+        "y": 1084.9375,
+        "w": 1296,
+        "h": 2
+      },
+      "click": {
+        "x": 678,
+        "y": 1085.9375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:90",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "Powered by",
+      "bbox": {
+        "x": 447.421875,
+        "y": 1121.9375,
+        "w": 179.5625,
+        "h": 37
+      },
+      "click": {
+        "x": 537.203125,
+        "y": 1140.4375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:150",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 626.984375,
+        "y": 1121.9375,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 767.7734375,
+        "y": 1140.4375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:91",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "statictext",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 626.984375,
+        "y": 1121.9375,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 767.7734375,
+        "y": 1140.4375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:149",
+      "frame_id": "8F8FA5B1F2C7D5B7D78560EE8102C94D",
+      "role": "generic",
+      "bbox": {
+        "x": 30,
+        "y": 1124.9375,
+        "w": 1296,
+        "h": 32
+      },
+      "click": {
+        "x": 678,
+        "y": 1140.9375
+      },
+      "actions": [],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 34,
+    "generated_at": "2026-03-06T19:29:53.985Z"
+  }
+}

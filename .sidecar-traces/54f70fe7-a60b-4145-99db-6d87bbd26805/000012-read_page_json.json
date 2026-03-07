@@ -1,0 +1,28 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:1",
+      "frame_id": "4BD94F99A3BF3331FF4C793BBD3F87CE",
+      "role": "rootwebarea",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1682
+      },
+      "click": {
+        "x": 1680,
+        "y": 841
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 1,
+    "generated_at": "2026-03-06T00:55:59.272Z"
+  }
+}

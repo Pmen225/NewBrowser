@@ -12,6 +12,13 @@ export function compilePromptPolicy(systemPrompt: string, toolNames: string[]): 
     inspectBeforeInteractiveActions:
       toolSet.has("read_page") &&
       normalizedPrompt.includes("first seeks to understand the page's content, layout, and structure before taking action"),
+    requireValidationAfterPageActions:
+      (toolSet.has("read_page") || toolSet.has("find") || toolSet.has("get_page_text")) &&
+      normalizedPrompt.includes("after every state-changing action on the page") &&
+      normalizedPrompt.includes("before taking another state-changing action or giving the final answer"),
+    requireSingleStateChangingComputerAction:
+      toolSet.has("computer") &&
+      normalizedPrompt.includes("do not batch multiple state-changing interactions into a single `computer` call"),
     preferReadPageForInspection:
       toolSet.has("read_page") &&
       normalizedPrompt.includes("either by using `read_page`"),

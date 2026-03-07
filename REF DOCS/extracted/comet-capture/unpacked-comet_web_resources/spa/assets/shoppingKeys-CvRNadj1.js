@@ -1,0 +1,2 @@
+import{Q as e}from"./react-query-DghsyKOG.js";const t=()=>e.makeQueryKey("/rest/shopping/user-orders",{}),n=()=>e.makeQueryKey("/rest/shopping/try-on-photo/get",{}),s=()=>e.makeQueryKey("shoppingTryOnBackgroundGeneration"),y=r=>e.makeQueryKey("productTryOn",{productImageUrl:r}),p=()=>e.makeQueryKey("/rest/shopping/retrieve-customer-shopping-info",{});export{t as a,n as b,s as c,y as d,p as g};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/shoppingKeys-CvRNadj1.js.map

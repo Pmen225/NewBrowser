@@ -1,0 +1,2 @@
+import{s as o,M as n,g as u,a as m}from"./platform-core-CZ-8UOca.js";import{t as k}from"./settings-jn981d9t.js";const T=async({taskId:e,headers:a,reason:r})=>{const{data:s,error:t,response:i}=await o.GET("/rest/tasks/{task_id}",r,{params:{path:{task_id:e}},timeoutMs:u(),numRetries:n,headers:a});if(t)throw new m("API_CLIENTS_ERROR",{message:"Failed to get user task",cause:t,status:i.status??0});return s?.task?k(s.task):null};export{T as g};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/getUserTask-Dsq7nwpt.js.map

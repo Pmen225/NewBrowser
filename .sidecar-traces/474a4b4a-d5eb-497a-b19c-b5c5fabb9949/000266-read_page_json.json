@@ -1,0 +1,176 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:1393",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1682
+      },
+      "click": {
+        "x": 1680,
+        "y": 841
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1394",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1538.671875
+      },
+      "click": {
+        "x": 1680,
+        "y": 769.3359375
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:1396",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 3250,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 3295,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1466",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "button",
+      "name": "Remove",
+      "bbox": {
+        "x": 710,
+        "y": 371.15625,
+        "w": 225.03125,
+        "h": 93
+      },
+      "click": {
+        "x": 822.515625,
+        "y": 417.65625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1583",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "checkbox",
+      "state": {
+        "checked": false
+      },
+      "bbox": {
+        "x": 710,
+        "y": 505.15625,
+        "w": 26,
+        "h": 26
+      },
+      "click": {
+        "x": 723,
+        "y": 518.15625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1472",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "textbox",
+      "bbox": {
+        "x": 710,
+        "y": 867.734375,
+        "w": 582,
+        "h": 64.75
+      },
+      "click": {
+        "x": 1001,
+        "y": 900.109375
+      },
+      "actions": [
+        "click",
+        "type",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1473",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "button",
+      "name": "Disable",
+      "bbox": {
+        "x": 710,
+        "y": 960.484375,
+        "w": 213.703125,
+        "h": 93
+      },
+      "click": {
+        "x": 816.8515625,
+        "y": 1006.984375
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1479",
+      "frame_id": "CECB7CF102CA23CFEC46F9322626A05B",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1628.984375,
+        "y": 1503.671875,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1769.7734375,
+        "y": 1522.171875
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 8,
+    "generated_at": "2026-03-06T00:06:07.847Z"
+  }
+}

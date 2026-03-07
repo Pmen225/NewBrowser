@@ -1,0 +1,2 @@
+import{R as d,c as i,j as a}from"./vendors-bqg7Hkg3.js";import"./vite-h6ohMMGa.js";function l(e){const{className:t,size:s=144,src:o="/static/app-download-qr.svg",...r}=e,c=i("text-foreground relative",t);return a.jsx("div",{className:c,...r,children:a.jsx("img",{src:o,alt:"Download App QR Code",width:s,height:s,className:"rounded bg-white dark:invert"})})}const p=d.memo(l);export{p as default};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/AppDownloadQR-BUcucCC3.js.map

@@ -1,0 +1,136 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:1177",
+      "frame_id": "87CEC3B06F5E3CC506E0C41AB47BACED",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1682
+      },
+      "click": {
+        "x": 1680,
+        "y": 841
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1178",
+      "frame_id": "87CEC3B06F5E3CC506E0C41AB47BACED",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 439.390625
+      },
+      "click": {
+        "x": 1680,
+        "y": 219.6953125
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:1180",
+      "frame_id": "87CEC3B06F5E3CC506E0C41AB47BACED",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 3250,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 3295,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1175",
+      "frame_id": "87CEC3B06F5E3CC506E0C41AB47BACED",
+      "role": "checkbox",
+      "state": {
+        "checked": true
+      },
+      "bbox": {
+        "x": 710,
+        "y": 178.390625,
+        "w": 26,
+        "h": 26
+      },
+      "click": {
+        "x": 723,
+        "y": 191.390625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1176",
+      "frame_id": "87CEC3B06F5E3CC506E0C41AB47BACED",
+      "role": "checkbox",
+      "state": {
+        "checked": false
+      },
+      "bbox": {
+        "x": 710,
+        "y": 237.390625,
+        "w": 26,
+        "h": 26
+      },
+      "click": {
+        "x": 723,
+        "y": 250.390625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:1207",
+      "frame_id": "87CEC3B06F5E3CC506E0C41AB47BACED",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1628.984375,
+        "y": 404.390625,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1769.7734375,
+        "y": 422.890625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 6,
+    "generated_at": "2026-03-06T00:00:16.247Z"
+  }
+}

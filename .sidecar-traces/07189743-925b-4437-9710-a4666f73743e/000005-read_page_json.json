@@ -1,0 +1,196 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:68",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1682
+      },
+      "click": {
+        "x": 1680,
+        "y": 841
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:69",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 3360,
+        "h": 1426.578125
+      },
+      "click": {
+        "x": 1680,
+        "y": 713.2890625
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:71",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 3250,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 3295,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:98",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "button",
+      "name": "Choose file",
+      "state": {
+        "value": "No file chosen"
+      },
+      "bbox": {
+        "x": 710,
+        "y": 268.578125,
+        "w": 1940,
+        "h": 49
+      },
+      "click": {
+        "x": 1680,
+        "y": 293.078125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:100",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "button",
+      "name": "Upload",
+      "bbox": {
+        "x": 710,
+        "y": 349.578125,
+        "w": 209,
+        "h": 93
+      },
+      "click": {
+        "x": 814.5,
+        "y": 396.078125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:101",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "generic",
+      "bbox": {
+        "x": 710,
+        "y": 514.578125,
+        "w": 800,
+        "h": 800
+      },
+      "click": {
+        "x": 1110,
+        "y": 914.578125
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:117",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1628.984375,
+        "y": 1391.578125,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1769.7734375,
+        "y": 1410.078125
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:155",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "button",
+      "name": "Take control",
+      "bbox": {
+        "x": 1647.109375,
+        "y": 1528.5,
+        "w": 194.890625,
+        "h": 60
+      },
+      "click": {
+        "x": 1744.5546875,
+        "y": 1558.5
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:156",
+      "frame_id": "30E55A95F8FD1F0A92597ECF4B7B4C86",
+      "role": "button",
+      "name": "Stop",
+      "bbox": {
+        "x": 1858,
+        "y": 1528.5,
+        "w": 176,
+        "h": 60
+      },
+      "click": {
+        "x": 1946,
+        "y": 1558.5
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 9,
+    "generated_at": "2026-03-06T01:43:45.444Z"
+  }
+}

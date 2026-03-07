@@ -2,6 +2,11 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => 
 
 const insertContexts = new Map();
 const benchmarkWorkspaces = new Map();
+const activeControlWorkspace = {
+  title: "Atlas active",
+  tabIds: new Set(),
+  groupId: undefined
+};
 const BENCHMARK_URL_MARKER = "atlas-benchmark=";
 
 function cloneTargetSnapshot(target) {
@@ -245,6 +250,47 @@ async function finalizeBenchmarkWorkspace(benchmarkId, closeTabs) {
   };
 }
 
+async function syncActiveControlWorkspace() {
+  const tabIds = [...activeControlWorkspace.tabIds].filter((tabId) => typeof tabId === "number");
+  if (tabIds.length === 0) {
+    activeControlWorkspace.groupId = undefined;
+    return;
+  }
+
+  try {
+    const groupId = typeof activeControlWorkspace.groupId === "number"
+      ? await chrome.tabs.group({ groupId: activeControlWorkspace.groupId, tabIds })
+      : await chrome.tabs.group({ tabIds });
+    activeControlWorkspace.groupId = groupId;
+    await chrome.tabGroups.update(groupId, {
+      title: activeControlWorkspace.title,
+      color: "blue",
+      collapsed: false
+    });
+  } catch {
+    activeControlWorkspace.groupId = undefined;
+  }
+}
+
+async function registerActiveControlTab(tabId) {
+  if (typeof tabId !== "number") {
+    return;
+  }
+  activeControlWorkspace.tabIds.add(tabId);
+  await syncActiveControlWorkspace();
+}
+
+async function unregisterActiveControlTab(tabId) {
+  if (typeof tabId !== "number") {
+    return;
+  }
+  activeControlWorkspace.tabIds.delete(tabId);
+  try {
+    await chrome.tabs.ungroup(tabId);
+  } catch {}
+  await syncActiveControlWorkspace();
+}
+
 function scheduleBenchmarkFinalize(benchmarkId, closeTabs) {
   setTimeout(async () => {
     await finalizeBenchmarkWorkspace(benchmarkId, closeTabs);
@@ -386,6 +432,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       target: { tabId: message.tabId },
       files: ["content/agent-overlay.js"],
     }).then(async () => {
+      await registerActiveControlTab(message.tabId);
       try {
         const tab = await chrome.tabs.get(message.tabId);
         chrome.tabs.sendMessage(message.tabId, {
@@ -412,6 +459,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
      message.type === "ATLAS_SITE_INFO") &&
     typeof message.tabId === "number"
   ) {
+    if (message.type === "ATLAS_OVERLAY_STOP") {
+      void unregisterActiveControlTab(message.tabId);
+    }
     chrome.tabs.sendMessage(message.tabId, message).catch(() => {});
     return;
   }

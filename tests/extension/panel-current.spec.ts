@@ -40,6 +40,24 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("const { provider, model, apiKey, baseUrl } = await resolveProvider(capabilityRequest);");
   });
 
+  it("includes prior chat turns in follow-up AgentRun payloads", () => {
+    expect(panelJs).toContain("function buildHistoryMessages(store, sessionId)");
+    expect(panelJs).toContain("historyMessages = buildHistoryMessages(sessionStore, activeSessionId);");
+    expect(panelJs).toContain("history_messages: historyMessages");
+  });
+
+  it("stores session message timestamps as ISO strings", () => {
+    expect(panelJs).toContain("function nowIso()");
+    expect(panelJs).toContain('ts: nowIso()');
+  });
+
+  it("resolves recent chats and mention tokens through explicit helpers", () => {
+    expect(panelJs).toContain("function getSortedSessions(store)");
+    expect(panelJs).toContain("function getTrailingAtQuery(text, cursor = text.length)");
+    expect(panelJs).toContain("function insertAtMentionToken(input, label)");
+    expect(panelJs).toContain("function expandMentionTokens(text)");
+  });
+
   it("has scroll FAB", () => {
     expect(panelJs).toContain('id="scroll-fab"');
     expect(panelJs).toContain("setupScrollFab");
@@ -138,6 +156,14 @@ describe("overlay animations", () => {
   });
 });
 
+describe("composer visibility", () => {
+  it("keeps the composer fade light enough not to darken the last chat lines", () => {
+    expect(css).toContain(".composer-blur");
+    expect(css).toContain("height: 20px;");
+    expect(css).toContain("color-mix(in oklab, var(--bg) 32%, transparent)");
+  });
+});
+
 // ─── Smooth scroll ───────────────────────────────────────────────────────────
 describe("smooth scroll", () => {
   it("scrollToBottom uses scrollTo with behavior:smooth instead of raw scrollTop assignment", () => {
@@ -152,6 +178,26 @@ describe("smooth scroll", () => {
 
   it("restoreSession uses scrollToBottom(false) to avoid animating history load", () => {
     expect(panelJs).toContain("scrollToBottom(false)");
+  });
+
+  it("restoreSession persists the chosen active session into storage", () => {
+    expect(panelJs).toContain("activeSessionId = session.id;");
+    expect(panelJs).toContain("chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore })");
+  });
+});
+
+describe("@ mention palette", () => {
+  it("shows searchable tab results instead of injecting raw page text into the composer", () => {
+    expect(panelJs).toContain("renderAtPalette(panel, _atToken)");
+    expect(panelJs).toContain("tabs = await chrome.tabs.query({ currentWindow: true, url: [\"http://*/*\", \"https://*/*\"] })");
+    expect(panelJs).toContain("mentionLabel");
+    expect(panelJs).toContain('const token = `@[${label}]`;');
+  });
+
+  it("expands current-page and all-tabs mention tokens only at send time", () => {
+    expect(panelJs).toContain('if (normalized === "current page")');
+    expect(panelJs).toContain('if (normalized === "all open tabs")');
+    expect(panelJs).toContain("const resolvedPromptText = await expandMentionTokens(text);");
   });
 });
 

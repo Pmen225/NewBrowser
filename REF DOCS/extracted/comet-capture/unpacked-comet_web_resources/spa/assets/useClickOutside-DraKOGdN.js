@@ -1,0 +1,2 @@
+import{r as u}from"./vendors-bqg7Hkg3.js";function c(t,r=!0){const e=u.useRef(null);return u.useEffect(()=>{if(!r)return;const n=o=>{e.current&&!e.current.contains(o.target)&&t()};return document.addEventListener("mousedown",n),()=>{document.removeEventListener("mousedown",n)}},[r,t]),e}export{c as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/useClickOutside-DraKOGdN.js.map

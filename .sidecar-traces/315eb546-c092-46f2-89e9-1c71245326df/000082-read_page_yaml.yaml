@@ -1,0 +1,50 @@
+interactables:
+  - frame_id: "E1113050C397C1CDBACA14C2565E1583"
+    nodes:
+      - ref_id: "f0:111"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 2880, h: 1275.67}
+        click: {x: 1440, y: 637.84}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:72"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 2880, h: 1382}
+        click: {x: 1440, y: 691}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:113"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 2770, y: 20, w: 90, h: 68}
+        click: {x: 2815, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:140"
+        role: "button"
+        name: "Add"
+        bbox: {x: 470, y: 371.16, w: 161.03, h: 93}
+        click: {x: 550.52, y: 417.66}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:110"
+        role: "textbox"
+        bbox: {x: 470, y: 744.73, w: 582, h: 64.75}
+        click: {x: 761, y: 777.11}
+        source: "ax"
+        actions: ["click", "type", "key"]
+      - ref_id: "f0:144"
+        role: "button"
+        name: "Disable"
+        bbox: {x: 470, y: 837.48, w: 213.7, h: 93}
+        click: {x: 576.85, y: 883.98}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:150"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1388.98, y: 1240.67, w: 281.58, h: 37}
+        click: {x: 1529.77, y: 1259.17}
+        source: "ax"
+        actions: ["click", "key"]

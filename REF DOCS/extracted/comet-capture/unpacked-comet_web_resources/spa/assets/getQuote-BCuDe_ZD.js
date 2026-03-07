@@ -1,0 +1,2 @@
+import{s as r,a as o}from"./platform-core-CZ-8UOca.js";const i=async t=>{const{data:a,error:e,response:s}=await r.GET("/rest/finance/quote/{market_identifier}","automations/quote",{params:{path:{market_identifier:t}}});if(e)throw new o("API_CLIENTS_ERROR",{cause:e,status:s.status??0});return a},u=t=>["automations/quote",t];export{u as a,i as g};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/getQuote-BCuDe_ZD.js.map

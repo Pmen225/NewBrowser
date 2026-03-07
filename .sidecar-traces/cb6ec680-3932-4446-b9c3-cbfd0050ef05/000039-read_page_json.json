@@ -1,0 +1,88 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:72",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2880,
+        "h": 1382
+      },
+      "click": {
+        "x": 1440,
+        "y": 691
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:81",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2880,
+        "h": 366.390625
+      },
+      "click": {
+        "x": 1440,
+        "y": 183.1953125
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:83",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 2770,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 2815,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:125",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 1388.984375,
+        "y": 331.390625,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1529.7734375,
+        "y": 349.890625
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 4,
+    "generated_at": "2026-03-06T16:40:47.122Z"
+  }
+}

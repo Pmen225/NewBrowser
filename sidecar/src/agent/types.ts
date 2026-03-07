@@ -1,9 +1,20 @@
 import type {
   AgentGetStateParams,
+  AgentPauseParams,
+  AgentPauseResult,
   AgentRunParams,
   AgentStateResult,
   AgentStepTrace,
+  AgentLifecycleStatus,
+  AgentResumeParams,
+  AgentResumeResult,
   AgentStopParams,
+  AgentTaskError,
+  AgentTaskRole,
+  AgentTaskVisibility,
+  CreateSubagentParams,
+  CreateSubagentResult,
+  DraftArtifact,
   JsonObject,
   SourceAttribution,
   TodoItem
@@ -11,10 +22,16 @@ import type {
 import type { PromptPolicy } from "../policy/types";
 export type { PromptPolicy } from "../policy/types";
 
+export interface PromptDeclaredTool {
+  name: string;
+  parameters?: JsonObject;
+}
+
 export interface PromptSpecs {
   systemPrompt: string;
   toolsSpec: string;
   toolNames: string[];
+  declaredTools: PromptDeclaredTool[];
   policy: PromptPolicy;
 }
 
@@ -100,21 +117,39 @@ export interface ExecutorStepEvent {
 
 export interface AgentRunState {
   runId: string;
-  status: "running" | "completed" | "failed" | "stopped";
+  taskId: string;
+  role: AgentTaskRole;
+  visibility: AgentTaskVisibility;
+  parentTaskId?: string;
+  children: string[];
+  status: AgentLifecycleStatus;
   startedAt: string;
   updatedAt: string;
   params: AgentRunParams;
   steps: AgentStepTrace[];
   finalAnswer?: string;
+  draftArtifact?: DraftArtifact;
   userLanguage: string;
   hasImageInput: boolean;
   sources: SourceAttribution[];
   abortController: AbortController;
+  pauseRequested: boolean;
+  resumeRequested: boolean;
+  resumeNeedsReassessment: boolean;
+  resumeGate?: Promise<void>;
+  releaseResumeGate?: (() => void) | null;
   errorMessage?: string;
+  activeChildTaskId?: string;
+  childSummary?: string;
+  childError?: AgentTaskError;
+  lastValidatedObservation?: string;
 }
 
 export interface AgentOrchestrator {
   run(params: AgentRunParams): Promise<{ run_id: string; status: "started" }>;
+  pause(params: AgentPauseParams): Promise<AgentPauseResult>;
+  resume(params: AgentResumeParams): Promise<AgentResumeResult>;
   stop(params: AgentStopParams): Promise<{ run_id: string; status: "stopped" }>;
   getState(params: AgentGetStateParams): Promise<AgentStateResult>;
+  createSubagent?(params: CreateSubagentParams): Promise<CreateSubagentResult>;
 }

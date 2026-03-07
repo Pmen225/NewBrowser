@@ -1,0 +1,342 @@
+{
+  "tree": [
+    {
+      "ref_id": "f0:72",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "rootwebarea",
+      "name": "The Internet",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2880,
+        "h": 1382
+      },
+      "click": {
+        "x": 1440,
+        "y": 691
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:81",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2880,
+        "h": 366.390625
+      },
+      "click": {
+        "x": 1440,
+        "y": 183.1953125
+      },
+      "actions": [
+        "click"
+      ],
+      "source": "dom_clickable"
+    },
+    {
+      "ref_id": "f0:96",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 2880,
+        "h": 366.390625
+      },
+      "click": {
+        "x": 1440,
+        "y": 183.1953125
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:98",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 440,
+        "y": 0,
+        "w": 2000,
+        "h": 64
+      },
+      "click": {
+        "x": 1440,
+        "y": 32
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:101",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "image",
+      "name": "Fork me on GitHub",
+      "bbox": {
+        "x": 2582,
+        "y": 0,
+        "w": 298,
+        "h": 298
+      },
+      "click": {
+        "x": 2731,
+        "y": 149
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:83",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "button",
+      "name": "Open Assistant",
+      "bbox": {
+        "x": 2770,
+        "y": 20,
+        "w": 90,
+        "h": 68
+      },
+      "click": {
+        "x": 2815,
+        "y": 54
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:13",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "statictext",
+      "name": "✦",
+      "bbox": {
+        "x": 2803.109375,
+        "y": 36.9375,
+        "w": 23.796875,
+        "h": 35
+      },
+      "click": {
+        "x": 2815.0078125,
+        "y": 54.4375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:102",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 440,
+        "y": 64,
+        "w": 2000,
+        "h": 190.390625
+      },
+      "click": {
+        "x": 1440,
+        "y": 159.1953125
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:104",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "heading",
+      "name": "Dropdown List",
+      "bbox": {
+        "x": 470,
+        "y": 74.796875,
+        "w": 1940,
+        "h": 75.59375
+      },
+      "click": {
+        "x": 1440,
+        "y": 112.59375
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:74",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "statictext",
+      "name": "Dropdown List",
+      "bbox": {
+        "x": 470,
+        "y": 79.796875,
+        "w": 376.984375,
+        "h": 65
+      },
+      "click": {
+        "x": 658.4921875,
+        "y": 112.296875
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:80",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "combobox",
+      "state": {
+        "expanded": false,
+        "value": "Please select an option"
+      },
+      "bbox": {
+        "x": 470,
+        "y": 177.390625,
+        "w": 1940,
+        "h": 45
+      },
+      "click": {
+        "x": 1440,
+        "y": 199.890625
+      },
+      "actions": [
+        "click",
+        "type",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:121",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 440,
+        "y": 254.390625,
+        "w": 2000,
+        "h": 112
+      },
+      "click": {
+        "x": 1440,
+        "y": 310.390625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:122",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 1106.671875,
+        "y": 294.390625,
+        "w": 666.65625,
+        "h": 72
+      },
+      "click": {
+        "x": 1440,
+        "y": 330.390625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:123",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "separator",
+      "bbox": {
+        "x": 1136.671875,
+        "y": 294.390625,
+        "w": 606.65625,
+        "h": 2
+      },
+      "click": {
+        "x": 1440,
+        "y": 295.390625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:76",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "statictext",
+      "name": "Powered by",
+      "bbox": {
+        "x": 1209.421875,
+        "y": 331.390625,
+        "w": 179.5625,
+        "h": 37
+      },
+      "click": {
+        "x": 1299.203125,
+        "y": 349.890625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:125",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "link",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1388.984375,
+        "y": 331.390625,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1529.7734375,
+        "y": 349.890625
+      },
+      "actions": [
+        "click",
+        "key"
+      ],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:77",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "statictext",
+      "name": "Elemental Selenium",
+      "bbox": {
+        "x": 1388.984375,
+        "y": 331.390625,
+        "w": 281.578125,
+        "h": 37
+      },
+      "click": {
+        "x": 1529.7734375,
+        "y": 349.890625
+      },
+      "actions": [],
+      "source": "ax"
+    },
+    {
+      "ref_id": "f0:124",
+      "frame_id": "DDED3FA51532320DB51E70EF9C29175F",
+      "role": "generic",
+      "bbox": {
+        "x": 1136.671875,
+        "y": 334.390625,
+        "w": 606.65625,
+        "h": 32
+      },
+      "click": {
+        "x": 1440,
+        "y": 350.390625
+      },
+      "actions": [],
+      "source": "ax"
+    }
+  ],
+  "meta": {
+    "frame_count": 1,
+    "interactable_count": 18,
+    "generated_at": "2026-03-06T16:48:00.313Z"
+  }
+}

@@ -11,11 +11,11 @@
     "scripting"
   ],
   "host_permissions": [
+    "<all_urls>",
     "http://127.0.0.1:3210/*",
     "http://localhost:3210/*",
     "ws://127.0.0.1:3210/*",
-    "ws://localhost:3210/*",
-    "*://*/*"
+    "ws://localhost:3210/*"
   ],
   "background": {
     "service_worker": "background.js",
@@ -35,9 +35,9 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content/page-button.js"],
-      "run_at": "document_idle",
-      "all_frames": false
+      "js": ["content/page-targets.js"],
+      "run_at": "document_start",
+      "all_frames": true
     }
   ],
   "options_ui": {

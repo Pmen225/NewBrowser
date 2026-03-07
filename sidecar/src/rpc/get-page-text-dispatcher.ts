@@ -1,9 +1,10 @@
 import { parseGetPageTextParams, type GetPageTextParams, type JsonObject } from "../../../shared/src/transport";
-import type { TabRecord } from "../../../src/cdp/types";
+import type { JavaScriptDialogRecord, TabRecord } from "../../../src/cdp/types";
 import type { ActionDispatcher } from "./dispatcher";
 
 export interface GetPageTextDispatcherOptions {
   getTab: (tabId: string) => TabRecord | undefined;
+  getDialogForTab?: (tabId: string) => JavaScriptDialogRecord | undefined;
   send: <T>(method: string, params?: object, sessionId?: string) => Promise<T>;
 }
 
@@ -49,6 +50,15 @@ function readTextValue(payload: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+function formatDialogText(dialog: JavaScriptDialogRecord): string {
+  const lines = [`JavaScript ${dialog.type} dialog is open.`, `Message: ${dialog.message}`];
+  if (typeof dialog.defaultPrompt === "string" && dialog.defaultPrompt.length > 0) {
+    lines.push(`Default prompt: ${dialog.defaultPrompt}`);
+  }
+  lines.push('Use the computer tool with {"kind":"dialog","accept":true} or {"kind":"dialog","accept":false}.');
+  return lines.join("\n");
+}
+
 export function createGetPageTextDispatcher(options: GetPageTextDispatcherOptions): ActionDispatcher {
   return {
     supports(action: string): boolean {
@@ -75,6 +85,20 @@ export function createGetPageTextDispatcher(options: GetPageTextDispatcherOption
         throw createDispatcherError("TAB_NOT_FOUND", `No active CDP session for tab_id=${resolvedTabId}`, false, {
           tab_id: resolvedTabId
         });
+      }
+
+      const dialog = options.getDialogForTab?.(resolvedTabId);
+      if (dialog) {
+        return {
+          text: formatDialogText(dialog),
+          truncated: false,
+          dialog: {
+            open: true,
+            type: dialog.type,
+            message: dialog.message,
+            ...(typeof dialog.defaultPrompt === "string" ? { default_prompt: dialog.defaultPrompt } : {})
+          }
+        };
       }
 
       const evaluateResult = await options.send<unknown>(

@@ -1,0 +1,60 @@
+interactables:
+  - frame_id: "A2DF86DB049950BC4E1388AC10C96E41"
+    nodes:
+      - ref_id: "f0:717"
+        role: "rootwebarea"
+        name: "The Internet"
+        bbox: {x: 0, y: 0, w: 3360, h: 1682}
+        click: {x: 1680, y: 841}
+        source: "ax"
+        actions: ["click"]
+      - ref_id: "f0:718"
+        role: "generic"
+        bbox: {x: 0, y: 0, w: 3360, h: 1398.67}
+        click: {x: 1680, y: 699.34}
+        source: "dom_clickable"
+        actions: ["click"]
+      - ref_id: "f0:720"
+        role: "button"
+        name: "Open Assistant"
+        bbox: {x: 3250, y: 20, w: 90, h: 68}
+        click: {x: 3295, y: 54}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:747"
+        role: "button"
+        name: "Remove"
+        bbox: {x: 710, y: 371.16, w: 225.03, h: 93}
+        click: {x: 822.52, y: 417.66}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:837"
+        role: "checkbox"
+        state:
+          checked: false
+        bbox: {x: 710, y: 505.16, w: 26, h: 26}
+        click: {x: 723, y: 518.16}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:716"
+        role: "textbox"
+        state:
+          value: "Atlas works"
+        bbox: {x: 710, y: 867.73, w: 582, h: 64.75}
+        click: {x: 1001, y: 900.11}
+        source: "ax"
+        actions: ["click", "type", "key"]
+      - ref_id: "f0:751"
+        role: "button"
+        name: "Disable"
+        bbox: {x: 710, y: 960.48, w: 213.7, h: 93}
+        click: {x: 816.85, y: 1006.98}
+        source: "ax"
+        actions: ["click", "key"]
+      - ref_id: "f0:757"
+        role: "link"
+        name: "Elemental Selenium"
+        bbox: {x: 1628.98, y: 1363.67, w: 281.58, h: 37}
+        click: {x: 1769.77, y: 1382.17}
+        source: "ax"
+        actions: ["click", "key"]

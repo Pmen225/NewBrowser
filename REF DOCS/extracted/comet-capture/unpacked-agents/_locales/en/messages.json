@@ -1,0 +1,80 @@
+{
+  "0074160d3a": {
+    "message": "Thinking"
+  },
+  "030dea45fe": {
+    "message": "Reasoning"
+  },
+  "03f061b7c6": {
+    "message": "Dragging"
+  },
+  "21f13489fd": {
+    "message": "Searching"
+  },
+  "23045a21df": {
+    "message": "Taking screenshot"
+  },
+  "25775ba3c5": {
+    "message": "Done"
+  },
+  "30e2bfc8a2": {
+    "message": "Reading"
+  },
+  "35a04090d5": {
+    "message": "Searching for images"
+  },
+  "369af10d6e": {
+    "message": "Creating tab"
+  },
+  "3766ea77d9": {
+    "message": "Typing"
+  },
+  "3e27114cbf": {
+    "message": "Finding elements"
+  },
+  "47a6e6833b": {
+    "message": "Pressing key"
+  },
+  "600c5eccac": {
+    "message": "Right clicking"
+  },
+  "6a7ca32ad4": {
+    "message": "Double clicking"
+  },
+  "6aa1f9dca7": {
+    "message": "Triple clicking"
+  },
+  "75977c1ff2": {
+    "message": "Waiting"
+  },
+  "78465ac56a": {
+    "message": "Reading page"
+  },
+  "8004746ada": {
+    "message": "Working"
+  },
+  "9f8dff28c1": {
+    "message": "Clicking"
+  },
+  "ad9a8f8763": {
+    "message": "Getting page text"
+  },
+  "b274adbb48": {
+    "message": "Take control"
+  },
+  "dcee8b30d8": {
+    "message": "Navigating"
+  },
+  "df2f431a0b": {
+    "message": "Resume"
+  },
+  "e62d17e437": {
+    "message": "Filling out a form"
+  },
+  "fa09fc41f8": {
+    "message": "Filling form"
+  },
+  "fd4514a9d7": {
+    "message": "Scrolling"
+  }
+}
