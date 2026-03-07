@@ -5,10 +5,16 @@ import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { hardenAssistantProfile } from "./lib/assistant-profile-lock.js";
+import {
+  activateChromiumDesktop,
+  openAssistantSidePanel,
+  waitForSidecarHealth
+} from "./lib/assistant-activation.js";
 
 const DEFAULT_POLL_INTERVAL_MS = 250;
 const DEFAULT_STARTUP_TIMEOUT_MS = 20_000;
 const DEFAULT_PORT_CANDIDATES = [9555, 9444, 9333, 9222];
+const DEFAULT_HEALTH_TIMEOUT_MS = 30_000;
 
 function parseNumber(value, fallback) {
   if (!value) {
@@ -243,6 +249,17 @@ async function main() {
       stdio: "inherit",
       env: serverEnv
     });
+
+    const healthUrl = `http://${process.env.SIDECAR_HOST?.trim() || "127.0.0.1"}:${parseNumber(process.env.SIDECAR_PORT, 3210)}/health`;
+
+    await waitForSidecarHealth({
+      healthUrl,
+      timeoutMs: DEFAULT_HEALTH_TIMEOUT_MS
+    });
+    await openAssistantSidePanel({
+      browserWsUrl: cdpWsUrl
+    });
+    await activateChromiumDesktop().catch(() => {});
 
     const shutdown = (signal) => {
       if (browserProcess && !browserProcess.killed) {
