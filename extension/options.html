@@ -313,7 +313,123 @@
             </span>
           </label>
         </div>
+        <div class="settings-form-grid">
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Transcription model</span>
+              <span class="settings-row-desc">Uses the same provider session as browser control.</span>
+            </span>
+            <input id="transcription-model-input" class="settings-input" type="text" placeholder="models/gemini-2.5-flash" autocomplete="off" />
+          </label>
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Transcription language <span class="settings-row-optional">optional</span></span>
+            </span>
+            <input id="transcription-language-input" class="settings-input" type="text" placeholder="en-GB" autocomplete="off" />
+          </label>
+        </div>
         <div id="audio-support" class="settings-status" role="status" aria-live="polite"></div>
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-subsection-header">
+          <span class="settings-subsection-label">Memory</span>
+        </div>
+        <div class="settings-rows">
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Manual memories</span>
+              <span class="settings-row-desc">Use notes you add yourself as reusable context.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="memory-manual-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Bookmarks</span>
+              <span class="settings-row-desc">Let Atlas draw memory from your recent bookmarks.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="memory-bookmarks-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">History</span>
+              <span class="settings-row-desc">Use recent browsing history as optional memory context.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="memory-history-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Settings</span>
+              <span class="settings-row-desc">Let Atlas remember its own configured browser and model settings.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="memory-settings-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+        </div>
+        <div class="settings-form-grid">
+          <input id="memory-entry-id" type="hidden" />
+          <label class="settings-row settings-row--stacked">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Manual memory</span>
+              <span class="settings-row-desc">Pinned facts or instructions Atlas should remember.</span>
+            </span>
+            <textarea id="memory-entry-text" class="settings-input settings-input--multiline" rows="3" placeholder="Prince works IT support in Halo, Exchange Hybrid, and Intune."></textarea>
+          </label>
+          <div class="settings-form-actions">
+            <button id="memory-cancel-btn" class="settings-button" type="button">Cancel</button>
+            <button id="memory-save-btn" class="settings-button settings-button--primary" type="button">Save</button>
+          </div>
+        </div>
+        <div id="memory-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+
+        <div class="settings-subsection-header">
+          <span class="settings-subsection-label">Manual memories</span>
+        </div>
+        <div id="memory-manual-list" class="settings-item-list" aria-live="polite"></div>
+
+        <div class="settings-subsection-header">
+          <span class="settings-subsection-label">Derived memories</span>
+        </div>
+        <div id="memory-derived-list" class="settings-item-list" aria-live="polite"></div>
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-subsection-header">
+          <span class="settings-subsection-label">Browser access</span>
+        </div>
+        <div class="settings-rows">
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Browser admin pages</span>
+              <span class="settings-row-desc">Allow explicit access to browser settings, flags, bookmarks, and history pages.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="browser-admin-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+          <label class="settings-row">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">Extension management</span>
+              <span class="settings-row-desc">Allow explicit list, enable, disable, and uninstall actions for other extensions.</span>
+            </span>
+            <span class="settings-toggle-wrap">
+              <input id="extension-management-toggle" class="settings-toggle" type="checkbox" role="switch" />
+              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+            </span>
+          </label>
+        </div>
 
         <div class="settings-divider"></div>
 

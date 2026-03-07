@@ -216,6 +216,7 @@ describe("SessionRegistry", () => {
     const tab = await registry.attachTab("target-1");
 
     registry.registerJavaScriptDialogForTab(tab.tabId, {
+      frameId: "root",
       url: "https://example.com/javascript_alerts",
       message: "I am a JS Prompt",
       type: "prompt",

@@ -6,12 +6,14 @@ import {
   isTask4Action,
   normalizeTask4Action,
   type ComputerBatchParams,
+  type ExtensionOperationParams,
   type FormInputParams,
   type NavigateParams,
   type TabOperationParams
 } from "../../../src/sidecar/tools/browser-action-types";
 import {
   executeComputerBatch,
+  executeExtensionOperation,
   executeFormInput,
   executeNavigate,
   executeTabOperation,
@@ -188,6 +190,23 @@ function normalizeUrl(raw: string): string {
   }
 }
 
+function normalizeInternalNavigationUrl(raw: string): string {
+  const normalized = normalizeUrl(raw).trim();
+  if (normalized.startsWith("chrome://") || normalized.startsWith("chrome-extension://")) {
+    return normalized.replace(/\/+$/, "");
+  }
+  return normalized;
+}
+
+function isInternalNavigationUrl(raw: string | undefined): boolean {
+  if (!isNonEmptyString(raw)) {
+    return false;
+  }
+
+  const normalized = normalizeInternalNavigationUrl(raw);
+  return normalized.startsWith("chrome://") || normalized.startsWith("chrome-extension://");
+}
+
 function isSameHttpsUpgrade(currentUrl: string, expectedUrl: string): boolean {
   try {
     const current = new URL(currentUrl);
@@ -210,8 +229,8 @@ function isSameHttpsUpgrade(currentUrl: string, expectedUrl: string): boolean {
 }
 
 function urlsMatchForNavigation(currentUrl: string, expectedUrl: string): boolean {
-  const normalizedCurrent = normalizeUrl(currentUrl);
-  const normalizedExpected = normalizeUrl(expectedUrl);
+  const normalizedCurrent = normalizeInternalNavigationUrl(currentUrl);
+  const normalizedExpected = normalizeInternalNavigationUrl(expectedUrl);
   return normalizedCurrent === normalizedExpected || isSameHttpsUpgrade(normalizedCurrent, normalizedExpected);
 }
 
@@ -394,6 +413,16 @@ function ensureTabOperationParams(params: JsonObject): TabOperationParams {
   return parsed;
 }
 
+function ensureExtensionOperationParams(params: JsonObject): ExtensionOperationParams {
+  const parsed = parseTask4Params("ExtensionsManage", params);
+  if (!parsed) {
+    throw createDispatcherError("INVALID_REQUEST", "Invalid params for action ExtensionsManage", false, {
+      action: "ExtensionsManage"
+    });
+  }
+  return parsed;
+}
+
 export function createBrowserActionDispatcher(options: BrowserActionDispatcherOptions): ActionDispatcher {
   return {
     supports(action: string): boolean {
@@ -421,6 +450,12 @@ export function createBrowserActionDispatcher(options: BrowserActionDispatcherOp
       if (task4Action === "FormInput") {
         const parsed = ensureFormInputParams(params);
         const result = await executeFormInput(runtime, tabId, parsed, signal);
+        return result as unknown as JsonObject;
+      }
+
+      if (task4Action === "ExtensionsManage") {
+        const parsed = ensureExtensionOperationParams(params);
+        const result = await executeExtensionOperation(runtime, tabId, parsed, signal);
         return result as unknown as JsonObject;
       }
 
@@ -452,12 +487,16 @@ export function createBrowserActionDispatcher(options: BrowserActionDispatcherOp
 
       const runtime = getObservedRuntime(options.runtime, options.traceLogger, normalizedAction, tabId);
       const baseHooks = buildNavigateReliabilityHooks(runtime, tabId, normalizeNavigateParams(parsed));
+      const skipNetworkIdle = parsed.mode === "to" && isInternalNavigationUrl(parsed.url);
 
       return {
         ...baseHooks,
         getInflightRequestCount: async () => 0,
         waitFor: async (ctx) => {
           const navigationWait = await baseHooks.waitFor(ctx);
+          if (skipNetworkIdle) {
+            return navigationWait;
+          }
           return [
             ...navigationWait,
             {

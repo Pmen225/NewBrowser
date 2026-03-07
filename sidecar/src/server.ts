@@ -45,7 +45,12 @@ import {
 } from "./rpc/dispatcher";
 import { createRpcWebSocketServer } from "./ws/rpcServer";
 import { ChromeCdpTransport } from "./cdp/chrome-cdp-transport";
-import { groupTabsViaExtensionContext, ungroupTabsViaExtensionContext } from "./cdp/extension-tab-groups";
+import {
+  groupTabsViaExtensionContext,
+  navigateSensitiveTabViaExtensionContext,
+  ungroupTabsViaExtensionContext
+} from "./cdp/extension-tab-groups";
+import { manageExtensionsViaExtensionContext } from "./cdp/extension-management";
 import { BrowserActionError } from "../../src/cdp/browser-actions";
 
 interface TargetInfoLike {
@@ -349,7 +354,8 @@ function createBrowserRuntime(transport: ChromeCdpTransport, sessionRegistry: Se
         }
         return {
           tabId,
-          targetId: tab.targetId
+          targetId: tab.targetId,
+          chromeTabId: tab.chromeTabId
         };
       });
       return groupTabsViaExtensionContext(transport, targets, options);
@@ -364,10 +370,29 @@ function createBrowserRuntime(transport: ChromeCdpTransport, sessionRegistry: Se
         }
         return {
           tabId,
-          targetId: tab.targetId
+          targetId: tab.targetId,
+          chromeTabId: tab.chromeTabId
         };
       });
       return ungroupTabsViaExtensionContext(transport, targets);
+    },
+    manageExtensions: async (params) => manageExtensionsViaExtensionContext(transport, params),
+    navigateSensitivePage: async (tabId, url) => {
+      const tab = sessionRegistry.getTab(tabId);
+      if (!tab) {
+        throw new BrowserActionError("TAB_NOT_FOUND", `Tab ${tabId} is not registered`, false, {
+          tab_id: tabId
+        });
+      }
+      const result = await navigateSensitiveTabViaExtensionContext(transport, {
+        tabId,
+        targetId: tab.targetId,
+        chromeTabId: tab.chromeTabId
+      }, url);
+      if (result.chromeTabId >= 0) {
+        sessionRegistry.bindChromeTabId(tabId, result.chromeTabId);
+      }
+      return result;
     },
     attachTab: sessionRegistry.attachTab.bind(sessionRegistry),
     enableDomains: sessionRegistry.enableDomains.bind(sessionRegistry),

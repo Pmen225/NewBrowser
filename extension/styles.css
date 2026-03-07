@@ -1350,6 +1350,15 @@ html, body {
 .dock-btn:focus-visible { outline: 2px solid oklch(var(--warm-carbuncle-500)/.6); outline-offset: 1px; }
 .dock-btn svg    { width: 15px; height: 15px; flex-shrink: 0; }
 .dock-btn.active { color: oklch(62.8% .258 29.23); }  /* mic recording = red */
+.dock-btn.is-transcribing {
+  color: var(--brand);
+  animation: atlasPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes atlasPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: .72; }
+}
 .dock-btn--icon  { padding: 0 6px; }
 .dock-btn--pill  { border: 1px solid var(--border); background: var(--surface); padding: 0 8px; gap: 3px; }
 .dock-btn--pill:hover { background: var(--surface-hover); border-color: var(--border-strong); }
@@ -1425,6 +1434,11 @@ html, body {
   min-width: 0;
 }
 .palette-item:hover, .palette-item:focus-visible { background: var(--surface-hover); outline: none; }
+.palette-item[disabled] {
+  opacity: .52;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .palette-item--active { color: var(--super-color); }
 .pi-icon  { width: 14px; height: 14px; color: var(--text-quiet); flex-shrink: 0; }
 .pi-icon svg { width: 14px; height: 14px; }

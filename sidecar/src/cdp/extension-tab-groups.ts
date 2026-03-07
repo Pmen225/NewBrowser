@@ -15,16 +15,19 @@ interface RuntimeEvaluateValue {
   chromeTabIds?: number[];
   groupId?: number;
   groupName?: string;
+  url?: string;
+  title?: string;
 }
 
 interface ChromeTargetDescriptor {
   tabId: string;
   targetId: string;
+  chromeTabId?: number;
 }
 
 interface ResolvedTargetDescriptor extends ChromeTargetDescriptor {
-  url: string;
-  title: string;
+  url?: string;
+  title?: string;
 }
 
 interface GroupTabsOptions {
@@ -44,10 +47,17 @@ interface UngroupTabsResult {
   chromeTabIds: number[];
 }
 
+interface NavigateSensitiveTabResult {
+  tabId: string;
+  chromeTabId: number;
+  url: string;
+  title?: string;
+}
+
 function chooseExtensionTarget(targetInfos: TargetInfoLike[]): TargetInfoLike | undefined {
   return (
-    targetInfos.find((target) => target.type === "page" && typeof target.url === "string" && target.url.endsWith("/panel.html")) ??
     targetInfos.find((target) => target.type === "service_worker" && typeof target.url === "string" && target.url.endsWith("/background.js")) ??
+    targetInfos.find((target) => target.type === "page" && typeof target.url === "string" && target.url.endsWith("/panel.html")) ??
     targetInfos.find((target) => typeof target.url === "string" && target.url.startsWith("chrome-extension://"))
   );
 }
@@ -58,7 +68,7 @@ function resolveTargetDescriptors(
 ): ResolvedTargetDescriptor[] {
   return targets.map((target) => {
     const targetInfo = targetInfos.find((candidate) => candidate.targetId === target.targetId);
-    if (!targetInfo || typeof targetInfo.url !== "string" || targetInfo.url.trim().length === 0) {
+    if (!targetInfo && typeof target.chromeTabId !== "number") {
       throw new BrowserActionError("TAB_NOT_FOUND", `Missing target metadata for ${target.tabId}`, false, {
         tab_id: target.tabId,
         target_id: target.targetId
@@ -67,22 +77,23 @@ function resolveTargetDescriptors(
 
     return {
       ...target,
-      url: targetInfo.url,
-      title: typeof targetInfo.title === "string" ? targetInfo.title : ""
+      url: typeof targetInfo?.url === "string" && targetInfo.url.trim().length > 0 ? targetInfo.url : undefined,
+      title: typeof targetInfo?.title === "string" && targetInfo.title.trim().length > 0 ? targetInfo.title : undefined
     };
   });
 }
 
 function buildRuntimeExpression(
-  operation: "group" | "ungroup",
+  operation: "group" | "ungroup" | "navigate",
   descriptors: ResolvedTargetDescriptor[],
-  options?: GroupTabsOptions
+  options?: GroupTabsOptions & { url?: string }
 ): string {
   const payload = JSON.stringify({
     operation,
     descriptors,
     groupName: options?.groupName ?? "Atlas",
-    groupColor: options?.groupColor
+    groupColor: options?.groupColor,
+    url: options?.url
   });
 
   return `(
@@ -97,8 +108,22 @@ function buildRuntimeExpression(
 
       const matchedIds = [];
       for (const descriptor of payload.descriptors) {
+        if (typeof descriptor.chromeTabId === "number") {
+          const directMatch = tabs.find((tab) => tab.id === descriptor.chromeTabId);
+          if (!directMatch || typeof directMatch.id !== "number") {
+            return {
+              ok: false,
+              code: "TAB_GROUPING_TARGET_MISSING",
+              error: "No Chrome tab matched id " + descriptor.chromeTabId
+            };
+          }
+          matchedIds.push(directMatch.id);
+          continue;
+        }
+
         const candidates = tabs.filter((tab) => {
           if (typeof tab.id !== "number") return false;
+          if (typeof descriptor.url !== "string" || descriptor.url.length === 0) return false;
           if (resolveTabUrl(tab) !== descriptor.url) return false;
           if (descriptor.title && typeof tab.title === "string" && tab.title.length > 0) {
             return tab.title === descriptor.title;
@@ -123,6 +148,18 @@ function buildRuntimeExpression(
         }
 
         matchedIds.push(candidates[0].id);
+      }
+
+      if (payload.operation === "navigate") {
+        const targetUrl = typeof payload.url === 'string' ? payload.url : '';
+        const updatedTab = await chrome.tabs.update(matchedIds[0], { url: targetUrl });
+        const resolvedUrl = resolveTabUrl(updatedTab) || targetUrl;
+        return {
+          ok: true,
+          chromeTabIds: [updatedTab.id],
+          url: resolvedUrl,
+          title: typeof updatedTab.title === "string" ? updatedTab.title : ""
+        };
       }
 
       if (payload.operation === "ungroup") {
@@ -160,7 +197,7 @@ function buildRuntimeExpression(
 async function withExtensionContext<T>(
   transport: ICdpTransport,
   targets: ChromeTargetDescriptor[],
-  operation: "group" | "ungroup",
+  operation: "group" | "ungroup" | "navigate",
   options?: GroupTabsOptions
 ): Promise<T> {
   const targetInfoResult = await transport.send<{ targetInfos?: TargetInfoLike[] }>("Target.getTargets", {});
@@ -226,5 +263,19 @@ export async function ungroupTabsViaExtensionContext(
   return {
     tabIds: targets.map((target) => target.tabId),
     chromeTabIds: value.chromeTabIds ?? []
+  };
+}
+
+export async function navigateSensitiveTabViaExtensionContext(
+  transport: ICdpTransport,
+  target: ChromeTargetDescriptor,
+  url: string
+): Promise<NavigateSensitiveTabResult> {
+  const value = await withExtensionContext<RuntimeEvaluateValue>(transport, [target], "navigate", { url });
+  return {
+    tabId: target.tabId,
+    chromeTabId: value.chromeTabIds?.[0] ?? -1,
+    url: value.url ?? url,
+    title: typeof value.title === "string" && value.title.trim().length > 0 ? value.title : undefined
   };
 }

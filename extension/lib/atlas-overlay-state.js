@@ -49,15 +49,15 @@ export function controlButtonState(state) {
     String(state).toLowerCase();
 
   if (controlState === 'paused') {
-    return { label: 'Resume', primary: false, status: 'Paused, you have control' };
+    return { label: 'Resume', primary: false, status: 'Paused — you have control' };
   }
   if (controlState === 'pausing') {
-    return { label: 'Take control', primary: false, status: 'Pausing' };
+    return { label: 'Take control', primary: false, status: 'Pausing…' };
   }
   if (controlState === 'stopping') {
     return { label: 'Take control', primary: false, status: 'Stopping agent' };
   }
-  return { label: 'Take control', primary: true, status: 'Browser control active' };
+  return { label: 'Take control', primary: true, status: 'Logged in · Agent is using your accounts' };
 }
 
 export function stoppingControlState() {

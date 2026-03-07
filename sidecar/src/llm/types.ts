@@ -3,6 +3,8 @@ import type {
   LlmProvider,
   ProviderListModelsParams,
   ProviderListModelsResult,
+  ProviderTranscribeAudioParams,
+  ProviderTranscribeAudioResult,
   ProviderValidateParams,
   ProviderValidateResult
 } from "../../../shared/src/transport";
@@ -109,11 +111,13 @@ export interface ProviderAdapter {
   listModels(params: ProviderListModelsParams): Promise<ProviderModelsPayload>;
   buildExecutionConfig?(preferences: ProviderRuntimePreferences): ProviderExecutionConfig;
   runTurn?(input: ProviderTurnInput): Promise<ProviderTurnOutput>;
+  transcribeAudio?(params: ProviderTranscribeAudioParams): Promise<ProviderTranscribeAudioResult>;
 }
 
 export interface ProviderRegistry {
   validate(params: ProviderValidateParams): Promise<ProviderValidateResult>;
   listModels(params: ProviderListModelsParams): Promise<ProviderListModelsResult>;
+  transcribeAudio?(params: ProviderTranscribeAudioParams): Promise<ProviderTranscribeAudioResult>;
   buildExecutionConfig?(provider: LlmProvider, preferences: ProviderRuntimePreferences): ProviderExecutionConfig;
   runTurn?(provider: LlmProvider, input: ProviderTurnInput): Promise<ProviderTurnOutput>;
 }

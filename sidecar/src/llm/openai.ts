@@ -1,4 +1,4 @@
-import type { ProviderListModelsParams, ProviderValidateParams } from "../../../shared/src/transport";
+import type { ProviderListModelsParams, ProviderTranscribeAudioParams, ProviderValidateParams } from "../../../shared/src/transport";
 import {
   chooseDefaultModel,
   createProviderAdapterError,
@@ -17,6 +17,7 @@ import {
 const OPENAI_DEFAULT_BASE_URL = "https://api.openai.com/v1";
 const OPENAI_DEFAULT_TIMEOUT_MS = 10_000;
 const OPENAI_RUN_TURN_TIMEOUT_MS = 120_000;
+const OPENAI_TRANSCRIBE_TIMEOUT_MS = 120_000;
 
 function mapOpenAiReasoningEffort(level: string | undefined): "low" | "medium" | "high" {
   if (level === "minimal" || level === "low") {
@@ -184,6 +185,51 @@ async function runOpenAiTurn(
   };
 }
 
+async function transcribeOpenAiAudio(
+  fetchImpl: FetchLike,
+  params: ProviderTranscribeAudioParams
+) {
+  const normalizedBaseUrl = normalizeBaseUrl(params.base_url, OPENAI_DEFAULT_BASE_URL);
+  const audioBuffer = Buffer.from(params.audio_b64, "base64");
+  const audioBlob = new Blob([audioBuffer], { type: params.mime_type });
+  const form = new FormData();
+  form.set("file", audioBlob, `atlas-audio.${params.mime_type.includes("wav") ? "wav" : "webm"}`);
+  form.set("model", params.model_id);
+  if (params.language) {
+    form.set("language", params.language);
+  }
+
+  const response = await fetchJsonWithTimeout(
+    fetchImpl,
+    `${normalizedBaseUrl}/audio/transcriptions`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${params.api_key}`,
+        Accept: "application/json"
+      },
+      body: form
+    },
+    OPENAI_TRANSCRIBE_TIMEOUT_MS
+  );
+
+  if (!response.ok) {
+    throw toProviderError(response.status, "OpenAI");
+  }
+
+  const payload = toJsonObject(response.data) ?? {};
+  const text = typeof payload.text === "string" ? payload.text.trim() : "";
+  if (!text) {
+    throw createProviderAdapterError("PROVIDER_EMPTY_TRANSCRIPTION", "OpenAI returned an empty transcription", true);
+  }
+
+  return {
+    provider: "openai" as const,
+    model_id: params.model_id,
+    text
+  };
+}
+
 export function createOpenAiAdapter(fetchImpl: FetchLike = fetch): ProviderAdapter {
   return {
     provider: "openai",
@@ -245,6 +291,9 @@ export function createOpenAiAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
     },
     async runTurn(input) {
       return runOpenAiTurn(fetchImpl, input);
+    },
+    async transcribeAudio(params) {
+      return transcribeOpenAiAudio(fetchImpl, params);
     }
   };
 }

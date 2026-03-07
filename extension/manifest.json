@@ -8,7 +8,10 @@
     "tabs",
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "bookmarks",
+    "history",
+    "management"
   ],
   "host_permissions": [
     "<all_urls>",

@@ -63,7 +63,7 @@ function classifyTarget(target: TargetInfoLike | undefined): ExecutionTargetKind
   return "page";
 }
 
-function isPageLikeTarget(target: TargetInfoLike | undefined): boolean {
+function isActionableTarget(target: TargetInfoLike | undefined): boolean {
   if (!target) {
     return false;
   }
@@ -72,7 +72,8 @@ function isPageLikeTarget(target: TargetInfoLike | undefined): boolean {
     return false;
   }
 
-  return classifyTarget(target) === "page";
+  const kind = classifyTarget(target);
+  return kind === "page" || kind === "internal";
 }
 
 function uniqueTabIds(values: Array<string | undefined>): string[] {
@@ -180,26 +181,26 @@ export function createExecutionTargetResolver(options: ExecutionTargetResolverOp
       }
 
       const target = targets.get(tab.targetId);
-      if (!isPageLikeTarget(target)) {
+      if (!isActionableTarget(target)) {
         continue;
       }
 
       options.onResolvedPageTab?.(candidateTabId, target?.url);
       return {
         tabId: candidateTabId,
-        kind: "page",
+        kind: classifyTarget(target),
         recovered: candidateTabId !== requestedTabId,
         url: target?.url
       };
     }
 
-    const fallbackTarget = [...targets.values()].find((target) => isPageLikeTarget(target));
+    const fallbackTarget = [...targets.values()].find((target) => isActionableTarget(target));
     if (fallbackTarget) {
       const attached = await attachTargetAsTab(options.sessionRegistry, fallbackTarget);
       options.onResolvedPageTab?.(attached.tabId, fallbackTarget.url);
       return {
         tabId: attached.tabId,
-        kind: "page",
+        kind: classifyTarget(fallbackTarget),
         recovered: attached.tabId !== requestedTabId,
         url: fallbackTarget.url
       };

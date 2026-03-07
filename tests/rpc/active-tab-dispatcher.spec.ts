@@ -7,6 +7,7 @@ import { FakeTransport } from "../cdp/helpers/fake-transport";
 interface MockSessionRegistry {
   listTabs: () => TabRecord[];
   attachTab: ReturnType<typeof vi.fn>;
+  bindChromeTabId: ReturnType<typeof vi.fn>;
   enableDomains: ReturnType<typeof vi.fn>;
   refreshFrameTree: ReturnType<typeof vi.fn>;
   tabs: Map<string, TabRecord>;
@@ -28,6 +29,13 @@ function createMockSessionRegistry(): MockSessionRegistry {
       };
       tabs.set(tab.tabId, tab);
       return tab;
+    }),
+    bindChromeTabId: vi.fn((tabId: string, chromeTabId: number) => {
+      const current = tabs.get(tabId);
+      if (!current) {
+        return;
+      }
+      tabs.set(tabId, { ...current, chromeTabId });
     }),
     enableDomains: vi.fn(async () => undefined),
     refreshFrameTree: vi.fn(async (tabId: string): Promise<FrameTreeSnapshot> => ({
@@ -97,6 +105,7 @@ describe("active tab dispatcher", () => {
 
     expect(result).toEqual({ tab_id: "tab-1", status: "ok" });
     expect(registry.attachTab).not.toHaveBeenCalled();
+    expect(registry.bindChromeTabId).toHaveBeenCalledWith("tab-1", 42);
     expect(onChanged).toHaveBeenCalledWith("tab-1");
   });
 
@@ -152,6 +161,7 @@ describe("active tab dispatcher", () => {
 
     expect(second).toEqual({ tab_id: "tab-1", status: "ok" });
     expect(registry.attachTab).toHaveBeenCalledTimes(1);
+    expect(registry.bindChromeTabId).toHaveBeenLastCalledWith("tab-1", 77);
   });
 
   it("returns not_found when no target matches", async () => {

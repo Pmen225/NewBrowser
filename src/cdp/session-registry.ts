@@ -125,6 +125,14 @@ export class SessionRegistry implements ISessionRegistry {
     }
   }
 
+  bindChromeTabId(tabId: string, chromeTabId: number): void {
+    const tab = this.requireTab(tabId);
+    this.tabsById.set(tabId, {
+      ...tab,
+      chromeTabId
+    });
+  }
+
   async enableDomains(tabId: string): Promise<void> {
     const tab = this.requireTab(tabId);
     await this.enableDomainsForSession(tab.sessionId, tabId);

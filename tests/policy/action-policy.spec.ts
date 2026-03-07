@@ -104,6 +104,26 @@ describe("action policy guard", () => {
     });
   });
 
+  it("allows explicit browser-admin navigation when the request is elevated on purpose", async () => {
+    const base = createBase();
+    const guard = createActionPolicyGuard(base, {
+      policy: createPolicy()
+    });
+
+    await expect(
+      guard.dispatch(
+        "navigate",
+        "tab-1",
+        {
+          mode: "to",
+          url: "chrome://flags",
+          allow_sensitive_browser_pages: true
+        },
+        new AbortController().signal
+      )
+    ).resolves.toEqual({ ok: true });
+  });
+
   it("blocks sensitive identity and financial data entry", async () => {
     const base = createBase();
     const guard = createActionPolicyGuard(base, {

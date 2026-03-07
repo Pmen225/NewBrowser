@@ -1,92 +1,70 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createAudioRecorderController, resolveRecordingMimeType } from "../../extension/lib/speech.js";
 
-import { createDictationController } from "../../extension/lib/speech.js";
+function makeWindow({ supportedMimeTypes }) {
+  class FakeMediaRecorder {
+    static isTypeSupported(value) {
+      return supportedMimeTypes.includes(value);
+    }
 
-class MockSpeechRecognition {
-  static instances = [];
+    constructor(stream, options = {}) {
+      this.stream = stream;
+      this.mimeType = options.mimeType ?? "";
+    }
 
-  continuous = false;
-  interimResults = false;
-  maxAlternatives = 0;
-  onresult = null;
-  onerror = null;
-  onend = null;
-  started = 0;
-  stopped = 0;
+    start() {}
 
-  constructor() {
-    MockSpeechRecognition.instances.push(this);
+    stop() {
+      if (typeof this.onstop === "function") {
+        this.onstop();
+      }
+    }
   }
 
-  start() {
-    this.started += 1;
-  }
-
-  stop() {
-    this.stopped += 1;
-    this.onend?.();
-  }
+  return {
+    MediaRecorder: FakeMediaRecorder,
+    navigator: {
+      mediaDevices: {
+        async getUserMedia() {
+          return {
+            getTracks() {
+              return [{ stop() {} }];
+            }
+          };
+        }
+      }
+    }
+  };
 }
 
-describe("dictation controller", () => {
+describe("speech recording helpers", () => {
   afterEach(() => {
-    MockSpeechRecognition.instances.length = 0;
     vi.unstubAllGlobals();
   });
 
-  it("forwards only finalized transcripts by default", () => {
-    const onText = vi.fn();
-
-    vi.stubGlobal("window", {
-      SpeechRecognition: MockSpeechRecognition
+  it("picks the first supported recording mime type", () => {
+    const fakeWindow = makeWindow({
+      supportedMimeTypes: ["audio/mp4", "audio/webm"]
     });
-
-    const controller = createDictationController({ onText });
-    controller.start();
-
-    const recognition = MockSpeechRecognition.instances[0];
-    expect(recognition.interimResults).toBe(false);
-
-    const interim = Object.assign([{ transcript: "draft" }], { isFinal: false });
-    const final = Object.assign([{ transcript: "final text" }], { isFinal: true });
-
-    recognition.onresult?.({
-      resultIndex: 0,
-      results: [interim, final]
-    });
-    expect(onText).not.toHaveBeenCalled();
-
-    recognition.onresult?.({
-      resultIndex: 1,
-      results: [interim, final]
-    });
-    expect(onText).toHaveBeenCalledTimes(1);
-    expect(onText).toHaveBeenCalledWith("final text");
+    expect(resolveRecordingMimeType("audio/ogg;codecs=opus", fakeWindow)).toBe("audio/webm");
   });
 
-  it("only emits interim callbacks when interim mode is explicitly enabled", () => {
-    const onText = vi.fn();
-    const onInterim = vi.fn();
+  it("falls back to a supported mime type when the preferred one is unavailable", async () => {
+    const fakeWindow = makeWindow({
+      supportedMimeTypes: ["audio/mp4"]
+    });
+    vi.stubGlobal("window", fakeWindow);
 
-    vi.stubGlobal("window", {
-      SpeechRecognition: MockSpeechRecognition
+    const controller = createAudioRecorderController({
+      mimeType: "audio/webm;codecs=opus",
+      onError: vi.fn()
     });
 
-    const controller = createDictationController({ onText, onInterim, interim: true });
-    controller.start();
+    await controller.start();
 
-    const recognition = MockSpeechRecognition.instances[0];
-    expect(recognition.interimResults).toBe(true);
-
-    const interim = Object.assign([{ transcript: "draft" }], { isFinal: false });
-    const final = Object.assign([{ transcript: "final text" }], { isFinal: true });
-
-    recognition.onresult?.({
-      resultIndex: 0,
-      results: [interim, final]
-    });
-
-    expect(onInterim).toHaveBeenCalledWith("draft");
-    expect(onText).toHaveBeenCalledWith("final text");
+    expect(controller.state).toBe("recording");
+    expect(controller.supported).toBe(true);
+    expect(controller.stop).toBeTypeOf("function");
+    expect(controller.state).toBe("recording");
   });
 });

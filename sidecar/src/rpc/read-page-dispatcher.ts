@@ -181,17 +181,18 @@ export function createReadPageDispatcher(options: ReadPageDispatcherOptions): Ac
         if (options.traceLogger) {
           await recordReadPageTraceArtifacts(options.traceLogger, request, response);
         }
+        const result = response.result;
         await traceLog(options.traceLogger, {
           request_id: request.request_id,
           action: request.action,
           tab_id: tabId,
           event: "read_page.response",
           result: {
-            frame_count: response.result.meta.frame_count,
-            interactable_count: response.result.meta.interactable_count
+            frame_count: result.meta.frame_count,
+            interactable_count: result.meta.interactable_count
           }
         });
-        return response.result as unknown as JsonObject;
+        return result as unknown as JsonObject;
       }
 
       const response = await handleReadPageTool(
@@ -212,6 +213,7 @@ export function createReadPageDispatcher(options: ReadPageDispatcherOptions): Ac
       if (!response.ok) {
         throw createDispatcherError(response.error.code, response.error.message, response.error.retryable);
       }
+      const result = response.result;
 
       await traceLog(options.traceLogger, {
         request_id: request.request_id,
@@ -219,12 +221,12 @@ export function createReadPageDispatcher(options: ReadPageDispatcherOptions): Ac
         tab_id: tabId,
         event: "read_page.response",
         result: {
-          frame_count: response.result.meta.frame_count,
-          interactable_count: response.result.meta.interactable_count
+          frame_count: result.meta.frame_count,
+          interactable_count: result.meta.interactable_count
         }
       });
 
-      return response.result as unknown as JsonObject;
+      return result as unknown as JsonObject;
     }
   };
 }

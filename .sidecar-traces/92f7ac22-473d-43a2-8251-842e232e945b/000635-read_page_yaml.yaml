@@ -1,7 +1,0 @@
-javascript_dialog:
-  open: true
-  type: "alert"
-  message: "I am a JS Alert"
-  default_prompt: ""
-  action_hint: "Use computer with {\"kind\":\"dialog\",\"accept\":true} or {\"kind\":\"dialog\",\"accept\":false}."
-interactables: []

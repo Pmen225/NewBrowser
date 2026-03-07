@@ -8,7 +8,16 @@ import {
   PANEL_SETTINGS_STORAGE_KEY,
   savePanelSettings
 } from "./lib/panel-settings.js";
-import { isDictationSupported, isNarrationSupported } from "./lib/speech.js";
+import {
+  MEMORY_STORE_STORAGE_KEY,
+  buildMemoryViewModel,
+  deleteManualMemory,
+  hideDerivedMemory,
+  loadMemoryStore,
+  saveMemoryStore,
+  upsertManualMemory
+} from "./lib/memory.js";
+import { isAudioRecordingSupported, isNarrationSupported } from "./lib/speech.js";
 import {
   readUnlockedProviders,
   rememberUnlockedProviderSession,
@@ -83,7 +92,22 @@ const modelSaveDot        = document.getElementById("model-save-dot");
 // Audio
 const narrationToggle     = document.getElementById("narration-toggle");
 const transcriptionToggle = document.getElementById("transcription-toggle");
+const transcriptionModelInput = document.getElementById("transcription-model-input");
+const transcriptionLanguageInput = document.getElementById("transcription-language-input");
 const audioSupport        = document.getElementById("audio-support");
+const memoryManualToggle  = document.getElementById("memory-manual-toggle");
+const memoryBookmarksToggle = document.getElementById("memory-bookmarks-toggle");
+const memoryHistoryToggle = document.getElementById("memory-history-toggle");
+const memorySettingsToggle = document.getElementById("memory-settings-toggle");
+const memoryEntryId       = document.getElementById("memory-entry-id");
+const memoryEntryText     = document.getElementById("memory-entry-text");
+const memorySaveBtn       = document.getElementById("memory-save-btn");
+const memoryCancelBtn     = document.getElementById("memory-cancel-btn");
+const memoryStatus        = document.getElementById("memory-status");
+const memoryManualList    = document.getElementById("memory-manual-list");
+const memoryDerivedList   = document.getElementById("memory-derived-list");
+const browserAdminToggle  = document.getElementById("browser-admin-toggle");
+const extensionManagementToggle = document.getElementById("extension-management-toggle");
 
 // Chats
 const clearChatsBtn       = document.getElementById("clear-chats-btn");
@@ -534,6 +558,109 @@ async function loadChats() {
   return normalizeChatSessionsStore(result[CHAT_SESSIONS_STORAGE_KEY]);
 }
 
+async function renderMemory(settings, modelConfig) {
+  const store = await loadMemoryStore();
+  const viewModel = await buildMemoryViewModel(settings, store, { modelConfig });
+
+  memoryManualList.replaceChildren();
+  if (viewModel.manualItems.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "settings-empty";
+    empty.textContent = "No manual memories yet.";
+    memoryManualList.append(empty);
+  } else {
+    viewModel.manualItems.forEach((item) => {
+      const node = document.createElement("div");
+      node.className = "settings-item";
+
+      const copy = document.createElement("div");
+      copy.className = "settings-item-copy";
+
+      const title = document.createElement("div");
+      title.className = "settings-item-title";
+      title.textContent = "Manual memory";
+
+      const meta = document.createElement("div");
+      meta.className = "settings-item-meta";
+      meta.textContent = item.text;
+
+      copy.append(title, meta);
+
+      const actions = document.createElement("div");
+      actions.className = "settings-item-actions";
+
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "settings-button";
+      edit.textContent = "Edit";
+      edit.addEventListener("click", () => {
+        memoryEntryId.value = item.id;
+        memoryEntryText.value = item.text;
+        memoryEntryText.focus();
+      });
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "settings-button settings-button--danger";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", async () => {
+        const next = deleteManualMemory(await loadMemoryStore(), item.id);
+        await saveMemoryStore(next);
+        await renderMemory(settings, modelConfig);
+        showStatus(memoryStatus, "Memory removed.");
+      });
+
+      actions.append(edit, remove);
+      node.append(copy, actions);
+      memoryManualList.append(node);
+    });
+  }
+
+  memoryDerivedList.replaceChildren();
+  if (viewModel.derivedItems.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "settings-empty";
+    empty.textContent = "No derived memories enabled.";
+    memoryDerivedList.append(empty);
+  } else {
+    viewModel.derivedItems.forEach((item) => {
+      const node = document.createElement("div");
+      node.className = "settings-item";
+
+      const copy = document.createElement("div");
+      copy.className = "settings-item-copy";
+
+      const title = document.createElement("div");
+      title.className = "settings-item-title";
+      title.textContent = item.title || item.source;
+
+      const meta = document.createElement("div");
+      meta.className = "settings-item-meta";
+      meta.textContent = item.text;
+
+      copy.append(title, meta);
+
+      const actions = document.createElement("div");
+      actions.className = "settings-item-actions";
+
+      const hide = document.createElement("button");
+      hide.type = "button";
+      hide.className = "settings-button";
+      hide.textContent = "Hide";
+      hide.addEventListener("click", async () => {
+        const next = hideDerivedMemory(await loadMemoryStore(), item.key);
+        await saveMemoryStore(next);
+        await renderMemory(settings, modelConfig);
+        showStatus(memoryStatus, "Derived memory hidden.");
+      });
+
+      actions.append(hide);
+      node.append(copy, actions);
+      memoryDerivedList.append(node);
+    });
+  }
+}
+
 function renderChats(store) {
   const sessions = store.sessions.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   chatList.replaceChildren();
@@ -683,7 +810,7 @@ async function main() {
   // Render audio support line
   audioSupport.textContent =
     `Narration: ${isNarrationSupported() ? "supported" : "unavailable"} · ` +
-    `Dictation: ${isDictationSupported() ? "supported" : "unavailable"}`;
+    `Recording: ${isAudioRecordingSupported() ? "supported" : "unavailable"}`;
 
   // Load everything in parallel
   const [rawSettings, store, providers, modelConfig, agentConfig, catalog, benchmarkManifest, shortcuts] = await Promise.all([
@@ -701,6 +828,14 @@ async function main() {
   let currentSettings = normalizePanelSettings(rawSettings);
   narrationToggle.checked    = currentSettings.narrationEnabled;
   transcriptionToggle.checked= currentSettings.transcriptionEnabled;
+  transcriptionModelInput.value = currentSettings.transcriptionModelId;
+  transcriptionLanguageInput.value = currentSettings.transcriptionLanguage;
+  browserAdminToggle.checked = currentSettings.browserAdminEnabled;
+  extensionManagementToggle.checked = currentSettings.extensionManagementEnabled;
+  memoryManualToggle.checked = currentSettings.memoryManualEnabled;
+  memoryBookmarksToggle.checked = currentSettings.memoryBookmarksEnabled;
+  memoryHistoryToggle.checked = currentSettings.memoryHistoryEnabled;
+  memorySettingsToggle.checked = currentSettings.memorySettingsEnabled;
 
   narrationToggle.addEventListener("change", async () => {
     currentSettings = await savePanelSettings({ ...currentSettings, narrationEnabled: narrationToggle.checked });
@@ -708,6 +843,47 @@ async function main() {
   transcriptionToggle.addEventListener("change", async () => {
     currentSettings = await savePanelSettings({ ...currentSettings, transcriptionEnabled: transcriptionToggle.checked });
   });
+  const saveTranscriptionFields = async () => {
+    currentSettings = await savePanelSettings({
+      ...currentSettings,
+      transcriptionModelId: transcriptionModelInput.value,
+      transcriptionLanguage: transcriptionLanguageInput.value
+    });
+  };
+  transcriptionModelInput.addEventListener("blur", saveTranscriptionFields);
+  transcriptionLanguageInput.addEventListener("blur", saveTranscriptionFields);
+  for (const [element, key] of [
+    [browserAdminToggle, "browserAdminEnabled"],
+    [extensionManagementToggle, "extensionManagementEnabled"],
+    [memoryManualToggle, "memoryManualEnabled"],
+    [memoryBookmarksToggle, "memoryBookmarksEnabled"],
+    [memoryHistoryToggle, "memoryHistoryEnabled"],
+    [memorySettingsToggle, "memorySettingsEnabled"]
+  ]) {
+    element?.addEventListener("change", async () => {
+      currentSettings = await savePanelSettings({
+        ...currentSettings,
+        [key]: element.checked
+      });
+      await renderMemory(currentSettings, await loadModelConfig());
+    });
+  }
+  memoryCancelBtn?.addEventListener("click", () => {
+    memoryEntryId.value = "";
+    memoryEntryText.value = "";
+  });
+  memorySaveBtn?.addEventListener("click", async () => {
+    const next = upsertManualMemory(await loadMemoryStore(), {
+      id: memoryEntryId.value,
+      text: memoryEntryText.value
+    });
+    await saveMemoryStore(next);
+    memoryEntryId.value = "";
+    memoryEntryText.value = "";
+    await renderMemory(currentSettings, await loadModelConfig());
+    showStatus(memoryStatus, "Memory saved.");
+  });
+  await renderMemory(currentSettings, modelConfig);
 
   // ── Agent config — auto-save ──
   applyAgentConfigToForm(agentConfig);
@@ -846,6 +1022,18 @@ async function main() {
         currentSettings = next;
         narrationToggle.checked     = next.narrationEnabled;
         transcriptionToggle.checked = next.transcriptionEnabled;
+        transcriptionModelInput.value = next.transcriptionModelId;
+        transcriptionLanguageInput.value = next.transcriptionLanguage;
+        browserAdminToggle.checked = next.browserAdminEnabled;
+        extensionManagementToggle.checked = next.extensionManagementEnabled;
+        memoryManualToggle.checked = next.memoryManualEnabled;
+        memoryBookmarksToggle.checked = next.memoryBookmarksEnabled;
+        memoryHistoryToggle.checked = next.memoryHistoryEnabled;
+        memorySettingsToggle.checked = next.memorySettingsEnabled;
+        await renderMemory(next, await loadModelConfig());
+      }
+      if (changes[MEMORY_STORE_STORAGE_KEY]) {
+        await renderMemory(currentSettings, await loadModelConfig());
       }
       if (changes[CHAT_SESSIONS_STORAGE_KEY]) {
         renderChats(normalizeChatSessionsStore(changes[CHAT_SESSIONS_STORAGE_KEY].newValue));

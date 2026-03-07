@@ -168,6 +168,83 @@ describe("agent orchestrator", () => {
     ]);
   });
 
+  it("queues steer prompts onto the active run and replays them on the next provider turn", async () => {
+    const actionDeferred = createDeferred<{ url: string }>();
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will open the site first.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "navigate",
+            arguments: {
+              mode: "to",
+              url: "https://example.com"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I used the updated instruction.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => actionDeferred.promise),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Open example.com and summarize it.",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      api_key: "sk-test"
+    });
+
+    await vi.waitFor(() => {
+      expect(runTurn).toHaveBeenCalledTimes(1);
+    });
+
+    await expect(
+      orchestrator.steer({
+        run_id: started.run_id,
+        prompt: "Focus on the pricing section once the page loads."
+      })
+    ).resolves.toEqual({
+      run_id: started.run_id,
+      status: "queued",
+      queued_count: 1
+    });
+
+    actionDeferred.resolve({ url: "https://example.com" });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>I used the updated instruction.</answer>");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(2);
+    expect(runTurn.mock.calls[1]?.[1]?.messages).toEqual(
+      expect.arrayContaining([
+        {
+          role: "tool",
+          tool_name: "navigate",
+          tool_call_id: "call-1",
+          content: expect.stringContaining("https://example.com")
+        },
+        {
+          role: "user",
+          content: "Follow-up from the user while the task was running: Focus on the pricing section once the page loads."
+        }
+      ])
+    );
+  });
+
   it("adds a terse plain-text observation instruction for direct observation prompts", async () => {
     const runTurn = vi.fn().mockResolvedValue({
       assistantText: "Image: Google homepage.[screenshot:1]",
@@ -289,6 +366,376 @@ describe("agent orchestrator", () => {
     });
 
     expect(runTurn).toHaveBeenCalledTimes(3);
+  });
+
+  it("retries once when the model falsely refuses an allowed browser admin request", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I am unable to navigate to chrome://settings directly. This is a restricted internal Chrome page that I cannot access.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "The main heading is Settings.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Open chrome://settings and tell me the main heading on that page.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>The main heading is Settings.</answer>");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(2);
+    const retryMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "user" &&
+          typeof message.content === "string" &&
+          message.content.includes("Browser admin pages were explicitly allowed")
+      )
+    ).toBe(true);
+  });
+
+  it("forces a page inspection after an allowed browser-admin navigation before accepting an answer", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will open the requested settings page.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "navigate",
+            arguments: {
+              mode: "url",
+              url: "chrome://settings"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I am unable to open chrome://settings directly. I cannot access internal Chrome URLs.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I will inspect the current page.",
+        toolCalls: [
+          {
+            id: "call-2",
+            name: "read_page",
+            arguments: {}
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "The main heading is Settings.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async (action: string) => {
+      if (action === "navigate") {
+        return { url: "chrome://settings" };
+      }
+      if (action === "read_page") {
+        return {
+          title: "Settings",
+          text: "You and Google Chrome"
+        };
+      }
+      return {};
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Open chrome://settings and tell me the first visible line only.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>The main heading is Settings. [web:1]</answer>");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(4);
+    const retryMessages = runTurn.mock.calls[2]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "user" &&
+          typeof message.content === "string" &&
+          message.content.includes("Navigation already succeeded")
+      )
+    ).toBe(true);
+  });
+
+  it("falls back to the observed browser-admin title when the page is open but the model still refuses", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will open the requested settings page.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "navigate",
+            arguments: {
+              mode: "primary",
+              url: "chrome://settings"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I am unable to open chrome://settings directly. This is an internal Chrome URL that the browser automation tool cannot access.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async () => ({
+      url: "chrome://settings/",
+      title: "Settings"
+    }));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Open chrome://settings and tell me the main heading only.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>The main heading is Settings.</answer>");
+    });
+  });
+
+  it("falls back to the inferred browser-admin title for chrome://flags when the model still refuses", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will open the requested flags page.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "navigate",
+            arguments: {
+              mode: "primary",
+              url: "chrome://flags"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I am unable to access chrome://flags. This is likely an unsupported URL in this browsing environment.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async () => ({
+      url: "chrome://flags/"
+    }));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Open chrome://flags and tell me the main heading only.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>The main heading is Experiments.</answer>");
+    });
+  });
+
+  it("retries once when the model falsely denies provided memory on a recall prompt", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I don't have any instructions from Prince.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "Prince wants the assistant to investigate before emailing users.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "What do you remember about how Prince wants you to work?",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      memory_items: [
+        {
+          id: "manual:ops-style",
+          source: "manual",
+          title: "Manual memory",
+          text: "Prince wants the assistant to investigate before emailing users."
+        }
+      ]
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>Prince wants the assistant to investigate before emailing users.</answer>");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(2);
+    const retryMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "user" &&
+          typeof message.content === "string" &&
+          message.content.includes("Local memory was provided for this run")
+      )
+    ).toBe(true);
+  });
+
+  it("falls back to provided memory when recall still fails after the retry", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I don't have any instructions from Prince.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I don't remember anything about Prince. I am the New Browser assistant.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "What do you remember about how Prince wants you to work?",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      memory_items: [
+        {
+          id: "manual:ops-style",
+          source: "manual",
+          title: "Manual memory",
+          text: "Prince wants the assistant to investigate before emailing users."
+        }
+      ]
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>Prince wants the assistant to investigate before emailing users.</answer>");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(2);
+  });
+
+  it("prefers manual memory over settings memory in the final recall fallback", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I don't have any instructions from Prince.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I do not have any information or instructions from an individual named Prince. My operational guidelines come from the New Browser team.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "What do you remember about how Prince wants you to work?",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      memory_items: [
+        {
+          id: "settings:current",
+          source: "settings",
+          title: "Current settings",
+          text: "Dictation enabled with models/gemini-2.5-flash."
+        },
+        {
+          id: "manual:ops-style",
+          source: "manual",
+          title: "Manual memory",
+          text: "Prince wants the assistant to investigate before emailing users."
+        }
+      ]
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>Prince wants the assistant to investigate before emailing users.</answer>");
+    });
   });
 
   it("retries empty post-tool turns with the validated observation and escalates tool mode before failing", async () => {
@@ -424,6 +871,187 @@ describe("agent orchestrator", () => {
 
     const toolNames = (runTurn.mock.calls[0]?.[1]?.tools ?? []).map((tool: { name: string }) => tool.name);
     expect(toolNames).toContain("tabs_create");
+  });
+
+  it("adds explicit capability guidance for allowed browser admin pages", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "Opened settings.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Open chrome://settings and tell me the heading.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" && message.content.includes("Do not say those pages are inaccessible.")
+      )
+    ).toBe(true);
+  });
+
+  it("adds explicit capability guidance for allowed extension management", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I listed the extensions.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "List my extensions and tell me whether Atlas can be disabled.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_extension_management: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" && message.content.includes("Never disable or uninstall the Assistant extension itself")
+      )
+    ).toBe(true);
+  });
+
+  it("adds explicit completion guidance for file upload tasks", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "The file upload is complete.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: 'Upload the file "/tmp/test.txt" on this page and tell me the uploaded filename.',
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" &&
+        message.content.includes("selecting a file is not enough") &&
+        message.content.includes("Upload or Submit control")
+      )
+    ).toBe(true);
+  });
+
+  it("exposes extension management for natural installed-browser-extensions wording", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I listed the installed browser extensions.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "List the installed browser extensions only.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_extension_management: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const tools = runTurn.mock.calls[0]?.[1]?.tools ?? [];
+    expect(tools.some((tool: { name?: string }) => tool.name === "extensions_manage")).toBe(true);
+  });
+
+  it("injects local memory with explicit recall guidance", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "Prince wants careful investigations before user emails.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "What do you remember about how Prince wants you to work?",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      memory_items: [
+        {
+          id: "manual:ops-style",
+          source: "manual",
+          title: "Manual memory",
+          text: "Prince works IT support in Microsoft admin portals and wants the assistant to investigate before emailing users."
+        }
+      ]
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" &&
+        message.content.includes("If the user asks what you remember") &&
+        message.content.includes("Prince works IT support in Microsoft admin portals")
+      )
+    ).toBe(true);
   });
 
   it("includes task metadata in AgentGetState for primary runs", async () => {
@@ -611,6 +1239,277 @@ describe("agent orchestrator", () => {
       const state = await orchestrator.getState({ run_id: started.run_id });
       expect(state.status).toBe("completed");
       expect(state.final_answer).toBe("<answer>I can handle that on the current site.</answer>");
+    });
+
+    const firstTurn = runTurn.mock.calls[0]?.[1];
+    expect(firstTurn?.allowBrowserSearch).toBe(false);
+    expect(firstTurn?.tools.some((tool: { name?: string }) => tool.name === "search_web")).toBe(false);
+  });
+
+  it("adds current-page guidance before the model starts navigating away", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I will inspect the current page first.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Validate whether this criticism of the current website is correct.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" &&
+        message.content.includes("Inspect the current page before navigating anywhere else.") &&
+        message.content.includes("do not conclude the whole site is unavailable")
+      )
+    ).toBe(true);
+  });
+
+  it("treats current-website validation prompts as page-grounded local tasks", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I will validate the current website from the observed page.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt:
+        "Looking at the current website of Maranatha College of Wisdom, validate whether the criticism about missing mission, vision, brochure, and assessments is correct.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const firstTurn = runTurn.mock.calls[0]?.[1];
+    expect(firstTurn?.allowBrowserSearch).toBe(false);
+    expect(firstTurn?.tools.some((tool: { name?: string }) => tool.name === "search_web")).toBe(false);
+
+    const systemMessages = (firstTurn?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" &&
+        message.content.includes("Inspect the current page before navigating anywhere else.") &&
+        message.content.includes("Do not guess internal page slugs") &&
+        message.content.includes("same website before using any outside sources")
+      )
+    ).toBe(true);
+  });
+
+  it("retries once when the model overgeneralizes one failed page into a whole-site outage", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText:
+          "I am unable to validate the criticism because the website may be inaccessible or not functioning after the attempted pages timed out.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "From the current website page, aims are visible, but mission, vision, brochure, and assessments are not clearly present.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt:
+        "Looking at the current website of Maranatha College of Wisdom, validate this criticism and do not guess.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("aims are visible");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(2);
+    const retryMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "user" &&
+          typeof message.content === "string" &&
+          message.content.includes("Do not conclude the whole website is inaccessible") &&
+          message.content.includes("Inspect the current page")
+      )
+    ).toBe(true);
+  });
+
+  it("blocks off-site navigation before first inspection on current-website validation tasks", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will look up the website first.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "navigate",
+            arguments: {
+              mode: "to",
+              url: "https://www.google.com/search?q=Maranatha+College+of+Wisdom+website"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I need to inspect the current website before leaving it.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async () => ({}));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt:
+        "Looking at the current website of Maranatha College of Wisdom, validate this criticism and do not guess.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>I need to inspect the current website before leaving it.</answer>");
+    });
+
+    expect(performAction).not.toHaveBeenCalled();
+    const retryMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "tool" &&
+          typeof message.content === "string" &&
+          message.content.includes("CURRENT_SITE_INSPECTION_REQUIRED")
+      )
+    ).toBe(true);
+  });
+
+  it("blocks blind interactive actions for non-interactive current-website validation tasks", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will interact with the page to investigate.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "computer",
+            arguments: {
+              steps: [{ kind: "click" }]
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I should gather evidence from the current website without clicking blindly.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async () => ({}));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt:
+        "Looking at the current website of Maranatha College of Wisdom, validate this criticism and do not guess.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>I should gather evidence from the current website without clicking blindly.</answer>");
+    });
+
+    expect(performAction).not.toHaveBeenCalled();
+    const retryMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "tool" &&
+          typeof message.content === "string" &&
+          message.content.includes("CURRENT_SITE_NONINTERACTIVE_REVIEW_REQUIRED")
+      )
+    ).toBe(true);
+  });
+
+  it("suppresses web search tools for explicit browser admin prompts", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I can handle that in browser settings.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Open chrome://settings and tell me the main heading on that page.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
     });
 
     const firstTurn = runTurn.mock.calls[0]?.[1];

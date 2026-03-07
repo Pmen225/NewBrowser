@@ -1,9 +1,0 @@
-interactables:
-  - frame_id: "EEA99F4C85A2650B650F44C76730D719"
-    nodes:
-      - ref_id: "f0:1"
-        role: "rootwebarea"
-        bbox: {x: 0, y: 0, w: 3360, h: 1682}
-        click: {x: 1680, y: 841}
-        source: "ax"
-        actions: ["click"]

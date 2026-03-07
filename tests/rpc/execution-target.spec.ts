@@ -142,4 +142,56 @@ describe("execution target resolver", () => {
     expect(sessionRegistry.enableDomains).toHaveBeenCalledWith("tab-2");
     expect(sessionRegistry.refreshFrameTree).toHaveBeenCalledWith("tab-2");
   });
+
+  it("keeps an internal chrome tab as the active execution target for follow-up actions", async () => {
+    const transport = new FakeTransport();
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "target-settings",
+          type: "page",
+          url: "chrome://settings/"
+        },
+        {
+          targetId: "target-page",
+          type: "page",
+          url: "https://example.com"
+        }
+      ]
+    });
+
+    const sessionRegistry = createMockSessionRegistry([
+      {
+        tabId: "tab-settings",
+        targetId: "target-settings",
+        sessionId: "session-settings",
+        status: "attached",
+        attachedAt: "2026-03-02T00:00:00.000Z"
+      },
+      {
+        tabId: "tab-page",
+        targetId: "target-page",
+        sessionId: "session-page",
+        status: "attached",
+        attachedAt: "2026-03-02T00:00:00.000Z"
+      }
+    ]);
+
+    const resolver = createExecutionTargetResolver({
+      transport,
+      sessionRegistry,
+      getActiveTabId: () => "tab-settings",
+      getDefaultTabId: () => "tab-settings",
+      getLastPageTabId: () => "tab-page"
+    });
+
+    const resolved = await resolver.resolveForAction("ReadPage", "tab-settings", {});
+
+    expect(resolved).toEqual({
+      tabId: "tab-settings",
+      kind: "internal",
+      recovered: false,
+      url: "chrome://settings/"
+    });
+  });
 });

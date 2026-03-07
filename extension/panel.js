@@ -8,13 +8,16 @@ import {
 import { OVERLAY_NONE, normalizeOverlayKind, toggleOverlay } from "./lib/overlay-controller.js";
 import { listMatchingShortcuts, SHORTCUTS_STORAGE_KEY } from "./lib/shortcuts.js";
 import { readImportedAttachments, buildAttachmentPromptPrefix } from "./lib/file-import.js";
-import { createDictationController, isDictationSupported } from "./lib/speech.js";
+import { createAudioRecorderController, isAudioRecordingSupported } from "./lib/speech.js";
 import { overlayPhaseForTool } from "./lib/atlas-overlay-state.js";
+import { buildMemoryContextItems, loadMemoryStore } from "./lib/memory.js";
+import { hasAccessibleWebTab, isPageContextPrompt, normalizePanelErrorMessage } from "./lib/page-context.js";
 import {
   normalizeChatSessionsStore, ensureActiveSession,
   appendSessionMessage, pruneChatSessions, CHAT_SESSIONS_STORAGE_KEY
 } from "./lib/recent-chats.js";
 import { readUnlockedProviders } from "./lib/provider-session.js";
+import { loadPanelSettings, PANEL_SETTINGS_STORAGE_KEY } from "./lib/panel-settings.js";
 
 const SIDECAR_WS   = "ws://127.0.0.1:3210";
 const EVENTS_URL   = "http://127.0.0.1:3210/events";
@@ -532,7 +535,7 @@ let overlayKind     = OVERLAY_NONE;
 let attachments     = [];
 let sessionStore    = null;
 let activeSessionId = null;
-let dictation       = null;
+let recorder        = null;
 
 // Page overlay state
 let overlayTabId  = null;
@@ -567,7 +570,7 @@ function transitionState(newState) {
     btn.innerHTML = SVG.stop;
     btn.classList.add("stop-mode");
     btn.disabled  = false;
-    if (input) input.disabled = true;
+    if (input) input.disabled = false;
   } else {
     clearRunStatePollTimer();
     btn.innerHTML = SVG.send;
@@ -612,6 +615,83 @@ async function resolveProvider(taskRequest = {}) {
   if (!VALID_PROVIDERS.includes(provider)) provider = "google";
 
   return { provider, model, apiKey, baseUrl };
+}
+
+async function resolveTranscriptionProvider() {
+  const settings = await loadPanelSettings();
+  const stored = await new Promise(r =>
+    chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY], r)
+  );
+  const config = normalizeModelConfig(stored[MODEL_CONFIG_STORAGE_KEY]);
+  const sessions = await readUnlockedProviders();
+  const preferred = config.selectedProvider ?? "google";
+  const session = sessions.find(s => s.provider === preferred) ?? sessions[0] ?? null;
+  let provider = session?.provider ?? preferred;
+  let model = settings.transcriptionModelId || session?.preferredModel || config.selectedModelId || "";
+  const apiKey = session?.apiKey ?? "";
+  const baseUrl = session?.baseUrl ?? undefined;
+
+  if (model === "auto" || !model) {
+    if (provider === "openai") {
+      model = "gpt-4o-mini-transcribe";
+    } else if (provider === "google") {
+      model = "models/gemini-2.5-flash";
+    }
+  }
+
+  if (!apiKey) {
+    throw new Error("Provider API key required for transcription.");
+  }
+  if (!model) {
+    throw new Error("No transcription model configured.");
+  }
+
+  return {
+    provider,
+    model,
+    apiKey,
+    baseUrl,
+    language: settings.transcriptionLanguage || undefined
+  };
+}
+
+function setMicButtonState(micBtn, nextState) {
+  if (!micBtn) return;
+  micBtn.classList.toggle("active", nextState === "recording");
+  micBtn.classList.toggle("is-transcribing", nextState === "transcribing");
+  micBtn.dataset.state = nextState;
+  if (nextState === "recording") {
+    micBtn.title = "Stop recording";
+    micBtn.setAttribute("aria-label", "Stop recording");
+  } else if (nextState === "transcribing") {
+    micBtn.title = "Transcribing";
+    micBtn.setAttribute("aria-label", "Transcribing");
+  } else {
+    micBtn.title = "Voice input";
+    micBtn.setAttribute("aria-label", "Voice input");
+  }
+}
+
+async function transcribeCapturedAudio(audioPayload) {
+  if (!audioPayload?.base64 || !audioPayload?.mimeType) {
+    throw new Error("Recorded audio was empty.");
+  }
+
+  const transcriptionProvider = await resolveTranscriptionProvider();
+  const result = await rpc.call("ProviderTranscribeAudio", null, {
+    provider: transcriptionProvider.provider,
+    model_id: transcriptionProvider.model,
+    api_key: transcriptionProvider.apiKey,
+    ...(transcriptionProvider.baseUrl ? { base_url: transcriptionProvider.baseUrl } : {}),
+    audio_b64: audioPayload.base64,
+    mime_type: audioPayload.mimeType,
+    ...(transcriptionProvider.language ? { language: transcriptionProvider.language } : {})
+  });
+  const text = typeof result?.text === "string" ? result.text.trim() : "";
+  if (!text) {
+    throw new Error("Transcription returned no text.");
+  }
+  return text;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -934,7 +1014,7 @@ function showToast(msg, type = "default", durationMs = 3200) {
   if (!container) return;
   const t = document.createElement("div");
   t.className = `toast${type === "error" ? " error" : ""}`;
-  t.textContent = msg;
+  t.textContent = type === "error" ? normalizePanelErrorMessage(msg) : String(msg ?? "");
   container.appendChild(t);
   setTimeout(() => {
     t.classList.add("hiding");
@@ -1154,16 +1234,30 @@ async function renderAtPalette(panel, token = "") {
     }));
 
   const items = [
-    { id: "page", label: "Current page",  desc: tab?.title ?? "Active tab",       icon: SVG.globe,  mentionLabel: "Current page" },
+    {
+      id: "page",
+      label: "Current page",
+      desc: hasAccessibleWebTab(tab) ? (tab?.title ?? "Active tab") : "Open a website tab first",
+      icon: SVG.globe,
+      mentionLabel: "Current page",
+      disabled: !hasAccessibleWebTab(tab)
+    },
     { id: "shot", label: "Screenshot",    desc: "Capture current page",           icon: SVG.camera, action: "screenshot" },
-    { id: "tabs", label: "All open tabs", desc: "Reference all open tabs",        icon: SVG.newChat, mentionLabel: "All open tabs" },
+    {
+      id: "tabs",
+      label: "All open tabs",
+      desc: tabItems.length > 0 ? "Reference all open tabs" : "No website tabs available",
+      icon: SVG.newChat,
+      mentionLabel: "All open tabs",
+      disabled: tabItems.length === 0
+    },
     ...tabItems
   ];
 
   panel.innerHTML = `
     <div class="palette-header">Context</div>
     ${items.map(item => `
-      <button class="palette-item" data-at-id="${escHtml(item.id)}">
+      <button class="palette-item" data-at-id="${escHtml(item.id)}"${item.disabled ? " disabled" : ""}>
         <span class="pi-icon">${item.icon}</span>
         <span class="pi-label">${escHtml(item.label)}</span>
         <span class="pi-desc">${escHtml(item.desc)}</span>
@@ -1173,7 +1267,7 @@ async function renderAtPalette(panel, token = "") {
   panel.querySelectorAll(".palette-item").forEach(btn => {
     btn.addEventListener("click", async () => {
       const item = items.find(i => i.id === btn.dataset.atId);
-      if (!item) return;
+      if (!item || item.disabled) return;
       const input = document.getElementById("prompt-input");
       if (!input) return;
       const val    = input.value;
@@ -1830,11 +1924,29 @@ function setConnStatus(ok) {
 // ═══════════════════════════════════════════════════════════════════
 // RPC client
 // ═══════════════════════════════════════════════════════════════════
-const rpc = createPanelRpcClient({
-  wsUrl:   `${SIDECAR_WS}/rpc`,
-  onOpen:  () => setConnStatus(true),
-  onClose: () => setConnStatus(false),
-});
+function createUnavailableRpcClient() {
+  return {
+    connect() {},
+    disconnect() {},
+    reconnect() {},
+    cancelPending() {},
+    isOpen() {
+      return false;
+    },
+    async call() {
+      throw new Error("Panel RPC is unavailable outside the live extension runtime.");
+    }
+  };
+}
+
+const hasLivePanelRuntime =
+  typeof window !== "undefined" &&
+  typeof document !== "undefined" &&
+  typeof chrome !== "undefined" &&
+  typeof chrome.runtime?.sendMessage === "function" &&
+  typeof chrome.storage?.local?.get === "function";
+
+let rpc = createUnavailableRpcClient();
 
 function finalizeCurrentRun(runId, payload) {
   const terminal = deriveTerminalRunSnapshot(payload);
@@ -1948,13 +2060,71 @@ async function pollCurrentRunState(runId) {
 // ═══════════════════════════════════════════════════════════════════
 // Send & stop
 // ═══════════════════════════════════════════════════════════════════
+async function queueSteerPrompt(promptText) {
+  const text = promptText.trim();
+  if (!text || state !== "running" || !currentRunId) return false;
+
+  if (attachments.length > 0) {
+    showToast("Attachments are not supported while the agent is already running.", "error");
+    return false;
+  }
+
+  const resolvedPromptText = await expandMentionTokens(text);
+  appendUserMsg(text);
+  scrollToBottom();
+
+  const input = document.getElementById("prompt-input");
+  if (input) {
+    input.value = "";
+    input.style.height = "";
+  }
+
+  try {
+    const stored = await new Promise(r => chrome.storage.local.get([CHAT_SESSIONS_STORAGE_KEY], r));
+    sessionStore = normalizeChatSessionsStore(stored[CHAT_SESSIONS_STORAGE_KEY]);
+    if (!activeSessionId) {
+      sessionStore = ensureActiveSession(sessionStore);
+      activeSessionId = sessionStore.activeSessionId ?? sessionStore.sessions[0]?.id ?? null;
+    }
+    if (activeSessionId) {
+      sessionStore = appendSessionMessage(sessionStore, activeSessionId, { role: "user", text, ts: nowIso() });
+      chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore });
+    }
+  } catch {}
+
+  try {
+    const result = await rpc.call("AgentSteer", null, {
+      run_id: currentRunId,
+      prompt: resolvedPromptText
+    });
+    showToast(currentControlState === "paused" ? "Follow-up queued. Resume to apply it." : "Follow-up queued.", "default", 1400);
+    if (result?.status === "queued") {
+      scheduleRunStatePoll(currentRunId, 300);
+      return true;
+    }
+  } catch (err) {
+    showToast(err?.message ?? "Failed to queue follow-up", "error");
+  }
+
+  return false;
+}
+
 async function sendPrompt(promptText) {
   const text = promptText.trim();
-  if (!text || state === "running") return;
+  if (!text) return;
+  if (state === "running" && currentRunId) {
+    await queueSteerPrompt(text);
+    return;
+  }
 
   const pendingAttachments = attachments.slice();
   let historyMessages = [];
   const resolvedPromptText = await expandMentionTokens(text);
+  const activeTabForPrompt = await getActiveWebTab().catch(() => null);
+  if (isPageContextPrompt(resolvedPromptText) && !hasAccessibleWebTab(activeTabForPrompt)) {
+    showToast("Atlas cannot use this page. Switch to a normal website tab.", "error");
+    return;
+  }
 
   // Build full prompt with attachments prefix
   let fullPrompt = resolvedPromptText;
@@ -2025,6 +2195,14 @@ async function sendPrompt(promptText) {
     hasImageInput: imageDataUrls.length > 0
   });
   const { provider, model, apiKey, baseUrl } = await resolveProvider(capabilityRequest);
+  const panelSettings = await loadPanelSettings();
+  const memoryStore = await loadMemoryStore();
+  const modelConfig = normalizeModelConfig((await chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY]))?.[MODEL_CONFIG_STORAGE_KEY]);
+  const memoryItems = await buildMemoryContextItems(resolvedPromptText, {
+    settings: panelSettings,
+    store: memoryStore,
+    modelConfig
+  });
 
   try {
     const result = await rpc.call("AgentRun", tabId, {
@@ -2034,7 +2212,10 @@ async function sendPrompt(promptText) {
       ...(apiKey  ? { api_key:  apiKey }  : {}),
       ...(baseUrl ? { base_url: baseUrl } : {}),
       ...(historyMessages.length ? { history_messages: historyMessages, replay_history: true } : {}),
+      ...(memoryItems.length ? { memory_items: memoryItems } : {}),
       ...(imageDataUrls.length ? { images: imageDataUrls, has_image_input: true } : {}),
+      allow_browser_admin_pages: panelSettings.browserAdminEnabled === true,
+      allow_extension_management: panelSettings.extensionManagementEnabled === true,
     });
     currentRunId = result?.run_id ?? result?.id ?? null;
     lastTerminalRunId = null;
@@ -2159,7 +2340,12 @@ function autoResize(el) {
 // Init
 // ═══════════════════════════════════════════════════════════════════
 (function init() {
-  if (typeof document === "undefined") return;
+  if (!hasLivePanelRuntime) return;
+  rpc = createPanelRpcClient({
+    wsUrl: `${SIDECAR_WS}/rpc`,
+    onOpen: () => setConnStatus(true),
+    onClose: () => setConnStatus(false),
+  });
   const root = document.getElementById("root");
   if (!root) return;
 
@@ -2217,7 +2403,7 @@ function autoResize(el) {
     if (e.key === "Enter" && !e.shiftKey) {
       if (overlayKind !== OVERLAY_NONE) return; // let palette handle Enter
       e.preventDefault();
-      if (state === "running") stopRun();
+      if (state === "running" && !input.value.trim()) stopRun();
       else sendPrompt(input.value);
     }
   });
@@ -2240,7 +2426,7 @@ function autoResize(el) {
   });
 
   sendBtn.addEventListener("click", () => {
-    if (state === "running") stopRun();
+    if (state === "running" && !input.value.trim()) stopRun();
     else sendPrompt(input.value);
   });
 
@@ -2286,20 +2472,50 @@ function autoResize(el) {
     if (!kebabWrap?.contains(e.target)) closeKebab();
   });
 
-  // Mic button
-  if (isDictationSupported()) {
-    const micBtn = document.getElementById("btn-mic");
-    if (micBtn) {
-      micBtn.hidden = false;
-      dictation = createDictationController({
-        onText:  (t) => { input.value += t; autoResize(input); },
-        onError: (e) => showToast(String(e), "error"),
-      });
-      micBtn.addEventListener("click", () => {
-        dictation.toggle();
-        micBtn.classList.toggle("active", dictation.active);
-      });
-    }
+  const micBtn = document.getElementById("btn-mic");
+  const applyMicVisibility = async () => {
+    if (!micBtn) return;
+    const settings = await loadPanelSettings();
+    micBtn.hidden = !(settings.transcriptionEnabled && isAudioRecordingSupported());
+  };
+  void applyMicVisibility();
+  if (isAudioRecordingSupported() && micBtn) {
+    recorder = createAudioRecorderController({
+      onError: (error) => {
+        setMicButtonState(micBtn, "idle");
+        showToast(String(error), "error");
+      }
+    });
+
+    micBtn.addEventListener("click", async () => {
+      if (!recorder) return;
+      if (recorder.state === "recording") {
+        const audioPayload = await recorder.stop();
+        setMicButtonState(micBtn, "transcribing");
+        showToast("Recording stopped. Transcribing…", "default", 1400);
+        try {
+          const transcript = await transcribeCapturedAudio(audioPayload);
+          input.value = input.value.trim().length > 0 ? `${input.value.trimEnd()} ${transcript}` : transcript;
+          autoResize(input);
+          showToast("Transcription added", "default", 1200);
+        } catch (error) {
+          showToast(error?.message ?? "Transcription failed", "error");
+        } finally {
+          setMicButtonState(micBtn, "idle");
+        }
+        return;
+      }
+
+      if (recorder.state !== "idle") {
+        return;
+      }
+
+      await recorder.start();
+      if (recorder.state === "recording") {
+        setMicButtonState(micBtn, "recording");
+        showToast("Recording…", "default", 900);
+      }
+    });
   }
 
   // Listen for stop from page overlay content script
@@ -2316,6 +2532,13 @@ function autoResize(el) {
     if (msg.action === "resume") {
       void resumeRun();
     }
+  });
+
+  chrome.storage.onChanged.addListener((changes) => {
+    if (!changes[PANEL_SETTINGS_STORAGE_KEY] || !micBtn) {
+      return;
+    }
+    void applyMicVisibility();
   });
 
   chrome.runtime.onMessage.addListener((msg) => {

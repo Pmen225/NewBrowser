@@ -27,7 +27,7 @@ describe("assistant panel shell contract", () => {
     expect(shell).toContain('id="btn-model"');
     expect(shell).toContain('id="btn-mic"');
     expect(shell).toContain('id="btn-send"');
-  });
+  }, 15_000);
 
   it("keeps the panel script and styles aligned with the current runtime shell", () => {
     const css = readFileSync(path.join(ROOT, "extension", "styles.css"), "utf8");

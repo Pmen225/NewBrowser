@@ -190,6 +190,70 @@ describe("browser action dispatcher", () => {
     expect(navigationReady).toBe(true);
   });
 
+  it("treats chrome internal URLs with optional trailing slash as the same navigation target", async () => {
+    const { runtime, transport } = createRuntime();
+    const dispatcher = createBrowserActionDispatcher({ runtime });
+
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 1,
+      entries: [
+        { id: 1, url: "about:blank" },
+        { id: 2, url: "chrome://settings/" }
+      ]
+    });
+
+    const hooks = dispatcher.getReliabilityHooks?.(
+      "Navigate",
+      "tab-1",
+      {
+        mode: "to",
+        url: "chrome://settings"
+      }
+    );
+
+    const navigationReady = await hooks?.waitForNavigation?.("chrome://settings");
+    expect(navigationReady).toBe(true);
+  });
+
+  it("skips network-idle waits for chrome internal navigation targets", async () => {
+    const { runtime } = createRuntime();
+    const dispatcher = createBrowserActionDispatcher({ runtime });
+
+    const hooks = dispatcher.getReliabilityHooks?.(
+      "Navigate",
+      "tab-1",
+      {
+        mode: "to",
+        url: "chrome://flags"
+      }
+    );
+
+    const waits = await hooks?.waitFor?.({
+      action: "Navigate",
+      tab_id: "tab-1",
+      params: {
+        mode: "to",
+        url: "chrome://flags"
+      },
+      attempt: 1,
+      signal: new AbortController().signal,
+      policy: {
+        max_attempts: 3,
+        wait_timeout_ms: 2_000,
+        network_idle_quiet_ms: 300,
+        selector_poll_ms: 50
+      },
+      result: {}
+    });
+
+    expect(waits).toEqual([
+      {
+        kind: "navigation",
+        expected_url: "chrome://flags"
+      }
+    ]);
+  });
+
   it("rejects invalid Navigate payloads with INVALID_REQUEST", async () => {
     const { runtime } = createRuntime();
     const dispatcher = createBrowserActionDispatcher({ runtime });

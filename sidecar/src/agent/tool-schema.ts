@@ -174,6 +174,23 @@ const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
     tabScope: "system"
   },
   {
+    name: "extensions_manage",
+    description: "List, enable, disable, or uninstall browser extensions. Never disable or uninstall the Assistant extension.",
+    parameters: {
+      type: "object",
+      properties: {
+        operation: {
+          type: "string",
+          enum: ["list", "enable", "disable", "uninstall"]
+        },
+        extension_id: { type: "string" },
+        query: { type: "string" }
+      },
+      required: ["operation"]
+    },
+    tabScope: "system"
+  },
+  {
     name: "todo_write",
     description: "Write task progress notes for the current run.",
     parameters: {
@@ -200,6 +217,7 @@ export const SYSTEM_REQUIRED_TOOL_NAMES = [
   "computer",
   "form_input",
   "draft_email",
+  "extensions_manage",
   "todo_write"
 ] as const;
 

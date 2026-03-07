@@ -13,6 +13,7 @@ export type TabStatus = "attached" | "detached";
 export interface TabRecord {
   tabId: string;
   targetId: string;
+  chromeTabId?: number;
   sessionId: string;
   status: TabStatus;
   attachedAt: string;
@@ -91,6 +92,7 @@ export interface IFrameRegistry {
 export interface ISessionRegistry {
   attachTab(targetId: string): Promise<TabRecord>;
   reattachTab(tabId: string): Promise<TabRecord>;
+  bindChromeTabId(tabId: string, chromeTabId: number): void;
   enableDomains(tabId: string): Promise<void>;
   refreshFrameTree(tabId: string): Promise<FrameTreeSnapshot>;
   route(tabId: string, frameId?: string): SessionRoute;

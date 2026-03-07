@@ -6,6 +6,8 @@ import type {
   ComputerBatchParams,
   ComputerBatchResult,
   ComputerStep,
+  ExtensionOperationParams,
+  ExtensionOperationResult,
   FormInputField,
   FormInputParams,
   FormInputResult,
@@ -126,6 +128,13 @@ export interface BrowserActionRuntime extends RouteLike {
     tabIds: string[];
     chromeTabIds: number[];
   }>;
+  manageExtensions?: (params: ExtensionOperationParams) => Promise<ExtensionOperationResult>;
+  navigateSensitivePage?: (tabId: string, url: string) => Promise<{
+    tabId: string;
+    chromeTabId: number;
+    url: string;
+    title?: string;
+  }>;
   attachTab?: (targetId: string) => Promise<TabRecord>;
   enableDomains?: (tabId: string) => Promise<void>;
   refreshFrameTree?: (tabId: string) => Promise<FrameTreeSnapshot>;
@@ -150,6 +159,10 @@ export class BrowserActionError extends Error {
 interface Point {
   x: number;
   y: number;
+}
+
+interface LegacySyntheticClickResult {
+  kind: "legacy_synthetic_click";
 }
 
 interface ResolvedNode {
@@ -356,6 +369,45 @@ async function getCenterPoint(runtime: BrowserActionRuntime, node: ResolvedNode)
       },
       node.route.sessionId
     );
+
+    const value = response.result?.value;
+    if (!value || typeof value !== "object") {
+      throw new BrowserActionError("ACTION_TARGET_INVALID", "Unable to derive click coordinates for element", true);
+    }
+
+    const x = (value as { x?: unknown }).x;
+    const y = (value as { y?: unknown }).y;
+    if (typeof x !== "number" || typeof y !== "number" || !Number.isFinite(x) || !Number.isFinite(y)) {
+      throw new BrowserActionError("ACTION_TARGET_INVALID", "Element click coordinates are invalid", true);
+    }
+
+    return { x, y };
+  } catch (error) {
+    throw toBrowserActionError(error, "ACTION_TARGET_INVALID", true, {
+      backend_node_id: node.backendNodeId
+    });
+  }
+}
+
+async function getClickPoint(runtime: BrowserActionRuntime, node: ResolvedNode): Promise<Point | LegacySyntheticClickResult> {
+  try {
+    await runtime.send("DOM.scrollIntoViewIfNeeded", { backendNodeId: node.backendNodeId }, node.route.sessionId);
+
+    const response = await runtime.send<{ result?: { value?: unknown } }>(
+      "Runtime.callFunctionOn",
+      {
+        objectId: node.objectId,
+        functionDeclaration:
+          "function() { const rect = this.getBoundingClientRect && this.getBoundingClientRect(); if (!rect || !Number.isFinite(rect.left) || !Number.isFinite(rect.top) || rect.width <= 0 || rect.height <= 0) return null; return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }",
+        returnByValue: true,
+        awaitPromise: true
+      },
+      node.route.sessionId
+    );
+
+    if (response.result?.value === true) {
+      return { kind: "legacy_synthetic_click" };
+    }
 
     const value = response.result?.value;
     if (!value || typeof value !== "object") {
@@ -714,7 +766,10 @@ async function runComputerStep(
     if (step.ref) {
       const node = await resolveNode(runtime, tabId, step.ref);
       try {
-        const point = await getCenterPoint(runtime, node);
+        const point = await getClickPoint(runtime, node);
+        if ("kind" in point && point.kind === "legacy_synthetic_click") {
+          return undefined;
+        }
         return await dispatchClickWithDialogObservation(
           runtime,
           tabId,
@@ -1188,8 +1243,14 @@ const BLOCKED_URL_EXTENSIONS = new Set([
   ".zip", ".tar", ".gz", ".7z", ".rar", ".dmg", ".exe", ".pkg",                      // Archives/installers — trigger download
 ]);
 
-function checkUrlBlocked(url: string): string | null {
-  if (url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
+function checkUrlBlocked(url: string, allowSensitiveBrowserPages = false): string | null {
+  if (url.startsWith("chrome://")) {
+    if (!allowSensitiveBrowserPages) {
+      return "This is an internal browser page. Navigate to a regular website instead.";
+    }
+    return null;
+  }
+  if (url.startsWith("chrome-extension://")) {
     return "This is an internal browser page. Navigate to a regular website instead.";
   }
   if (url.startsWith("file://") || url.startsWith("view-source:file://")) {
@@ -1231,12 +1292,45 @@ export async function executeNavigate(
     const resolvedUrl = resolveNavigationUrl(params.url ?? "");
 
     // Comet hard boundary: isUrlBlocked check before navigating
-    const blockedReason = checkUrlBlocked(resolvedUrl);
+    const blockedReason = checkUrlBlocked(resolvedUrl, params.allow_sensitive_browser_pages === true);
     if (blockedReason) {
       throw new BrowserActionError("NAVIGATION_BLOCKED", blockedReason, false, {
         tab_id: tabId,
         url: resolvedUrl
       });
+    }
+
+    if (resolvedUrl.startsWith("chrome://") && params.allow_sensitive_browser_pages === true) {
+      if (typeof runtime.navigateSensitivePage !== "function") {
+        throw new BrowserActionError("NAVIGATION_BLOCKED", "Sensitive browser page navigation is unavailable in this runtime.", false, {
+          tab_id: tabId,
+          url: resolvedUrl
+        });
+      }
+
+      try {
+        throwIfAborted(signal);
+        const result = await runtime.navigateSensitivePage(tabId, resolvedUrl);
+        if (typeof runtime.waitForLoadEvent === "function") {
+          await runtime.waitForLoadEvent(route.sessionId, timeoutMs, signal).catch(() => undefined);
+        }
+        return {
+          url: result.url,
+          ...(typeof result.title === "string" ? { title: result.title } : {})
+        };
+      } catch (error) {
+        if (error instanceof BrowserActionError) {
+          throw error;
+        }
+        if (signal.aborted || isAbortLikeError(error)) {
+          throw createRequestAbortedError();
+        }
+        throw toBrowserActionError(error, "NAVIGATION_FAILED", false, {
+          tab_id: tabId,
+          mode: params.mode,
+          url: resolvedUrl
+        });
+      }
     }
 
     try {
@@ -1554,4 +1648,30 @@ export async function executeTabOperation(
     tab_id: targetTabId,
     status: "ok"
   };
+}
+
+export async function executeExtensionOperation(
+  runtime: BrowserActionRuntime,
+  _tabId: string,
+  params: ExtensionOperationParams,
+  signal: AbortSignal
+): Promise<ExtensionOperationResult> {
+  throwIfAborted(signal);
+
+  if (!runtime.manageExtensions) {
+    throw new BrowserActionError("EXTENSION_MANAGEMENT_UNAVAILABLE", "Extension management is not available in this runtime", false);
+  }
+
+  try {
+    return await runtime.manageExtensions(params);
+  } catch (error) {
+    if (error instanceof BrowserActionError) {
+      throw error;
+    }
+
+    throw toBrowserActionError(error, "EXTENSION_MANAGEMENT_FAILED", false, {
+      operation: params.operation,
+      extension_id: params.extension_id
+    });
+  }
 }

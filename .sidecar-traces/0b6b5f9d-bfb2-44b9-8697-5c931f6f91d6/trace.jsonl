@@ -1,2 +1,0 @@
-{"timestamp":"2026-03-01T00:26:08.775Z","backend_uuid":"05abec7a-680d-4d67-855b-ba4c7dcf53e0","run_id":"0b6b5f9d-bfb2-44b9-8697-5c931f6f91d6","step_index":1,"request_id":"r1","action":"ping","tab_id":"tab-1","event":"rpc.request","params":{"hello":"world"}}
-{"timestamp":"2026-03-01T00:26:08.777Z","backend_uuid":"05abec7a-680d-4d67-855b-ba4c7dcf53e0","run_id":"0b6b5f9d-bfb2-44b9-8697-5c931f6f91d6","step_index":2,"request_id":"r1","action":"ping","tab_id":"tab-1","event":"rpc.response","result":{"pong":true,"tabId":"tab-1","echo":{"hello":"world"}}}

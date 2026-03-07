@@ -1,4 +1,4 @@
-import type { ProviderListModelsParams, ProviderValidateParams } from "../../../shared/src/transport";
+import type { ProviderListModelsParams, ProviderTranscribeAudioParams, ProviderValidateParams } from "../../../shared/src/transport";
 import {
   chooseDefaultModel,
   createProviderAdapterError,
@@ -17,6 +17,7 @@ import {
 const GOOGLE_DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 const GOOGLE_DEFAULT_TIMEOUT_MS = 10_000;
 const GOOGLE_RUN_TURN_TIMEOUT_MS = 120_000;
+const GOOGLE_TRANSCRIBE_TIMEOUT_MS = 120_000;
 const GOOGLE_FALLBACK_MODEL = "models/gemini-2.5-flash";
 const GOOGLE_CURATED_MODELS = [
   "models/gemini-flash-latest",
@@ -120,7 +121,7 @@ function normalizeGoogleToolResponse(content: string): Record<string, unknown> {
 }
 
 function mapGoogleInlineParts(parts: ProviderContentPart[]): Array<Record<string, unknown>> {
-  return parts.flatMap((part) => {
+  return parts.flatMap<Array<Record<string, unknown>>>((part) => {
     if (part.type === "text") {
       const text = part.text.trim();
       return text ? [{ text }] : [];
@@ -475,6 +476,74 @@ async function runGoogleTurn(
   };
 }
 
+async function transcribeGoogleAudio(
+  fetchImpl: FetchLike,
+  params: ProviderTranscribeAudioParams
+) {
+  const normalizedBaseUrl = normalizeBaseUrl(params.base_url, GOOGLE_DEFAULT_BASE_URL);
+  const modelId = normalizeGoogleModelId(params.model_id);
+  const url = new URL(`${normalizedBaseUrl}/${modelId}:generateContent`);
+  url.searchParams.set("key", params.api_key);
+
+  const prompt = params.language
+    ? `Transcribe this audio in ${params.language}. Return plain text only.`
+    : "Transcribe this audio. Return plain text only.";
+
+  const response = await fetchJsonWithTimeout(
+    fetchImpl,
+    url.toString(),
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: params.mime_type, data: params.audio_b64 } }
+            ]
+          }
+        ],
+        generationConfig: {
+          thinkingConfig: {
+            thinkingBudget: 128
+          }
+        }
+      })
+    },
+    GOOGLE_TRANSCRIBE_TIMEOUT_MS
+  );
+
+  if (!response.ok) {
+    throw toProviderError(response.status, "Google");
+  }
+
+  const raw = toJsonObject(response.data) ?? {};
+  const parts =
+    Array.isArray((raw.candidates as { content?: { parts?: unknown[] } }[] | undefined)?.[0]?.content?.parts)
+      ? (((raw.candidates as { content?: { parts?: unknown[] } }[])[0]?.content?.parts as unknown[]) ?? [])
+      : [];
+  const text = parts
+    .filter((part) => part && typeof part === "object" && !Array.isArray(part) && typeof (part as { text?: unknown }).text === "string")
+    .map((part) => (part as { text: string }).text)
+    .join("\n")
+    .trim();
+
+  if (!text) {
+    throw createProviderAdapterError("PROVIDER_EMPTY_TRANSCRIPTION", "Google returned an empty transcription", true);
+  }
+
+  return {
+    provider: "google" as const,
+    model_id: modelId,
+    text
+  };
+}
+
 export function createGoogleAdapter(fetchImpl: FetchLike = fetch): ProviderAdapter {
   return {
     provider: "google",
@@ -550,6 +619,9 @@ export function createGoogleAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
     },
     async runTurn(input) {
       return runGoogleTurn(fetchImpl, input);
+    },
+    async transcribeAudio(params) {
+      return transcribeGoogleAudio(fetchImpl, params);
     }
   };
 }

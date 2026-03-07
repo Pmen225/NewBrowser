@@ -2,6 +2,8 @@ import type {
   LlmProvider,
   ProviderListModelsParams,
   ProviderListModelsResult,
+  ProviderTranscribeAudioParams,
+  ProviderTranscribeAudioResult,
   ProviderValidateParams,
   ProviderValidateResult
 } from "../../../shared/src/transport";
@@ -66,6 +68,21 @@ export function createProviderRegistry(fetchImpl: FetchLike = fetch): ProviderRe
           models: result.models,
           default_model: result.default_model
         };
+      } catch (error) {
+        const normalized = normalizeProviderError(error);
+        throw createProviderAdapterError(normalized.code, normalized.message, normalized.retryable, normalized.details);
+      }
+    },
+    async transcribeAudio(params: ProviderTranscribeAudioParams): Promise<ProviderTranscribeAudioResult> {
+      const adapter = resolveAdapter(adapters, params.provider);
+      if (typeof adapter.transcribeAudio !== "function") {
+        throw createProviderAdapterError("PROVIDER_UNSUPPORTED", `Provider transcription is not available for: ${params.provider}`, false, {
+          provider: params.provider
+        });
+      }
+
+      try {
+        return await adapter.transcribeAudio(params);
       } catch (error) {
         const normalized = normalizeProviderError(error);
         throw createProviderAdapterError(normalized.code, normalized.message, normalized.retryable, normalized.details);

@@ -34,6 +34,12 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain('id="btn-mic"');
   });
 
+  it("uses provider-backed transcription instead of browser speech recognition", () => {
+    expect(panelJs).toContain('ProviderTranscribeAudio');
+    expect(panelJs).toContain("createAudioRecorderController");
+    expect(panelJs).not.toContain("createDictationController");
+  });
+
   it("derives task capability hints before resolving the auto model", () => {
     expect(panelJs).toContain("buildTaskCapabilityRequest");
     expect(panelJs).toContain("const capabilityRequest = buildTaskCapabilityRequest(");
@@ -46,6 +52,20 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("history_messages: historyMessages");
   });
 
+  it("injects selected memory and browser-admin capabilities into AgentRun payloads", () => {
+    expect(panelJs).toContain("buildMemoryContextItems");
+    expect(panelJs).toContain("memory_items: memoryItems");
+    expect(panelJs).toContain("allow_browser_admin_pages: panelSettings.browserAdminEnabled === true");
+    expect(panelJs).toContain("allow_extension_management: panelSettings.extensionManagementEnabled === true");
+  });
+
+  it("queues follow-up prompts onto the active run instead of forcing a stop", () => {
+    expect(panelJs).toContain('await rpc.call("AgentSteer"');
+    expect(panelJs).toContain('result?.status === "queued"');
+    expect(panelJs).toContain('if (state === "running" && currentRunId)');
+    expect(panelJs).toContain('if (input) input.disabled = false;');
+  });
+
   it("stores session message timestamps as ISO strings", () => {
     expect(panelJs).toContain("function nowIso()");
     expect(panelJs).toContain('ts: nowIso()');
@@ -56,6 +76,17 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("function getTrailingAtQuery(text, cursor = text.length)");
     expect(panelJs).toContain("function insertAtMentionToken(input, label)");
     expect(panelJs).toContain("function expandMentionTokens(text)");
+  });
+
+  it("guards page-dependent prompts when no normal website tab is available", () => {
+    expect(panelJs).toContain('isPageContextPrompt(resolvedPromptText)');
+    expect(panelJs).toContain('hasAccessibleWebTab(activeTabForPrompt)');
+    expect(panelJs).toContain('Atlas cannot use this page. Switch to a normal website tab.');
+  });
+
+  it("normalizes raw Chrome permission errors before showing error toasts", () => {
+    expect(panelJs).toContain('normalizePanelErrorMessage');
+    expect(panelJs).toContain('type === "error" ? normalizePanelErrorMessage(msg) : String(msg ?? "")');
   });
 
   it("has scroll FAB", () => {

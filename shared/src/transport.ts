@@ -16,8 +16,8 @@ export interface SseEnvelope {
   retry?: number;
 }
 
-export type LegacyBrowserRpcAction = "ComputerBatch" | "Navigate" | "FormInput" | "TabOperation";
-export type CanonicalBrowserRpcAction = "computer" | "navigate" | "form_input" | "tabs_create";
+export type LegacyBrowserRpcAction = "ComputerBatch" | "Navigate" | "FormInput" | "TabOperation" | "ExtensionsManage";
+export type CanonicalBrowserRpcAction = "computer" | "navigate" | "form_input" | "tabs_create" | "extensions_manage";
 export type BrowserRpcAction = LegacyBrowserRpcAction | CanonicalBrowserRpcAction;
 export type LegacyToolRpcAction = "ReadPage" | "Find" | "GetPageText" | "SearchWeb" | "TodoWrite";
 export type CanonicalToolRpcAction =
@@ -27,7 +27,7 @@ export type CanonicalToolRpcAction =
   | "search_web"
   | "todo_write";
 export type ToolRpcAction = LegacyToolRpcAction | CanonicalToolRpcAction;
-export type AgentRpcAction = "AgentRun" | "AgentPause" | "AgentResume" | "AgentStop" | "AgentGetState";
+export type AgentRpcAction = "AgentRun" | "AgentPause" | "AgentResume" | "AgentSteer" | "AgentStop" | "AgentGetState";
 export type LlmProvider = "openai" | "anthropic" | "google" | "deepseek";
 export type ProviderStateRpcAction =
   | "ProviderDefaultsGet"
@@ -39,6 +39,7 @@ export type SystemRpcAction =
   | "GetRuntimeState"
   | "ProviderValidate"
   | "ProviderListModels"
+  | "ProviderTranscribeAudio"
   | "ProviderBenchmarkBrowserControl"
   | ProviderStateRpcAction
   | AgentRpcAction;
@@ -136,6 +137,7 @@ export interface NavigateParams {
   mode: "to" | "back" | "forward";
   url?: string;
   timeout_ms?: number;
+  allow_sensitive_browser_pages?: boolean;
 }
 
 export interface NavigateResult {
@@ -203,6 +205,27 @@ export interface TabOperationGroupResult {
 
 export type TabOperationResult = TabOperationStatusResult | TabOperationListResult | TabOperationGroupResult;
 
+export interface ExtensionOperationParams {
+  operation: "list" | "enable" | "disable" | "uninstall";
+  extension_id?: string;
+  query?: string;
+}
+
+export interface ExtensionManagementItem {
+  extension_id: string;
+  name: string;
+  enabled: boolean;
+  install_type?: string;
+  description?: string;
+}
+
+export interface ExtensionOperationResult {
+  status: "ok";
+  operation: ExtensionOperationParams["operation"];
+  extension_id?: string;
+  extensions?: ExtensionManagementItem[];
+}
+
 export interface SetActiveTabParams {
   chrome_tab_id: number;
   target_id?: string;
@@ -256,6 +279,22 @@ export interface ProviderListModelsResult {
   provider: LlmProvider;
   models: string[];
   default_model?: string;
+}
+
+export interface ProviderTranscribeAudioParams {
+  provider: LlmProvider;
+  model_id: string;
+  api_key: string;
+  base_url?: string;
+  audio_b64: string;
+  mime_type: string;
+  language?: string;
+}
+
+export interface ProviderTranscribeAudioResult {
+  provider: LlmProvider;
+  model_id: string;
+  text: string;
 }
 
 export interface ProviderBenchmarkBrowserControlParams {
@@ -381,6 +420,7 @@ export interface AgentRunParams {
   page_load_wait_ms?: number;
   replay_history?: boolean;
   history_messages?: AgentHistoryMessage[];
+  memory_items?: AgentMemoryItem[];
   has_image_input?: boolean;
   images?: string[];
   api_key?: string;
@@ -389,11 +429,20 @@ export interface AgentRunParams {
   enable_function_calling?: boolean;
   allow_browser_search?: boolean;
   enable_code_execution?: boolean;
+  allow_browser_admin_pages?: boolean;
+  allow_extension_management?: boolean;
 }
 
 export interface AgentHistoryMessage {
   role: "user" | "assistant";
   text: string;
+}
+
+export interface AgentMemoryItem {
+  id: string;
+  source: "manual" | "bookmark" | "history" | "settings";
+  text: string;
+  title?: string;
 }
 
 export interface AgentRunResult {
@@ -425,6 +474,17 @@ export interface AgentResumeParams {
 export interface AgentResumeResult {
   run_id: string;
   status: "running";
+}
+
+export interface AgentSteerParams {
+  run_id: string;
+  prompt: string;
+}
+
+export interface AgentSteerResult {
+  run_id: string;
+  status: "queued";
+  queued_count: number;
 }
 
 export interface AgentStopParams {
@@ -492,7 +552,7 @@ export interface AgentStateResult {
   task?: AgentTaskState;
 }
 
-export type BrowserActionParams = ComputerBatchParams | NavigateParams | FormInputParams | TabOperationParams;
+export type BrowserActionParams = ComputerBatchParams | NavigateParams | FormInputParams | TabOperationParams | ExtensionOperationParams;
 
 export interface RpcRequest {
   request_id: string;
@@ -1033,6 +1093,10 @@ function parseNavigateParams(value: unknown): NavigateParams | null {
   } else if (
     rawMode === "url" ||
     rawMode === "open" ||
+    rawMode === "primary" ||
+    rawMode === "active_tab" ||
+    rawMode === "new_tab" ||
+    rawMode === "current_tab" ||
     rawMode === "goto" ||
     rawMode === "direct" ||
     rawMode === "gpt_history"
@@ -1067,10 +1131,15 @@ function parseNavigateParams(value: unknown): NavigateParams | null {
     return null;
   }
 
+  if (value.allow_sensitive_browser_pages !== undefined && !isBoolean(value.allow_sensitive_browser_pages)) {
+    return null;
+  }
+
   return {
     mode,
     url,
-    timeout_ms: value.timeout_ms
+    timeout_ms: value.timeout_ms,
+    allow_sensitive_browser_pages: value.allow_sensitive_browser_pages
   };
 }
 
@@ -1186,6 +1255,37 @@ function parseTabOperationParams(value: unknown): TabOperationParams | null {
   };
 }
 
+function parseExtensionOperationParams(value: unknown): ExtensionOperationParams | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const extensionIdValue = value.extension_id ?? value.extensionId;
+
+  const VALID_OPS = ["list", "enable", "disable", "uninstall"] as const;
+  if (!VALID_OPS.includes(value.operation as (typeof VALID_OPS)[number])) {
+    return null;
+  }
+
+  if (extensionIdValue !== undefined && !isNonEmptyString(extensionIdValue)) {
+    return null;
+  }
+
+  if (value.query !== undefined && !isNonEmptyString(value.query)) {
+    return null;
+  }
+
+  if (value.operation !== "list" && !isNonEmptyString(extensionIdValue)) {
+    return null;
+  }
+
+  return {
+    operation: value.operation as ExtensionOperationParams["operation"],
+    extension_id: isNonEmptyString(extensionIdValue) ? extensionIdValue.trim() : undefined,
+    query: isNonEmptyString(value.query) ? value.query.trim() : undefined
+  };
+}
+
 export function parseSetActiveTabParams(value: unknown): SetActiveTabParams | null {
   if (!isRecord(value)) {
     return null;
@@ -1278,6 +1378,37 @@ export function parseProviderListModelsParams(value: unknown): ProviderListModel
     provider: value.provider,
     api_key: value.api_key,
     base_url: value.base_url
+  };
+}
+
+export function parseProviderTranscribeAudioParams(value: unknown): ProviderTranscribeAudioParams | null {
+  if (
+    !isRecord(value) ||
+    !isLlmProvider(value.provider) ||
+    !isNonEmptyString(value.model_id) ||
+    !isNonEmptyString(value.api_key) ||
+    !isNonEmptyString(value.audio_b64) ||
+    !isNonEmptyString(value.mime_type)
+  ) {
+    return null;
+  }
+
+  if (value.base_url !== undefined && !isNonEmptyString(value.base_url)) {
+    return null;
+  }
+
+  if (value.language !== undefined && !isNonEmptyString(value.language)) {
+    return null;
+  }
+
+  return {
+    provider: value.provider,
+    model_id: value.model_id.trim(),
+    api_key: value.api_key.trim(),
+    base_url: typeof value.base_url === "string" ? value.base_url.trim() : undefined,
+    audio_b64: value.audio_b64.trim(),
+    mime_type: value.mime_type.trim(),
+    language: typeof value.language === "string" ? value.language.trim() : undefined
   };
 }
 
@@ -1465,6 +1596,33 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     }
   }
 
+  let memoryItems: AgentMemoryItem[] | undefined;
+  if (value.memory_items !== undefined) {
+    if (!Array.isArray(value.memory_items) || value.memory_items.length > 64) {
+      return null;
+    }
+    memoryItems = [];
+    for (const entry of value.memory_items) {
+      if (
+        !isRecord(entry) ||
+        !isNonEmptyString(entry.id) ||
+        !isNonEmptyString(entry.text) ||
+        (entry.source !== "manual" && entry.source !== "bookmark" && entry.source !== "history" && entry.source !== "settings")
+      ) {
+        return null;
+      }
+      if (entry.title !== undefined && !isNonEmptyString(entry.title)) {
+        return null;
+      }
+      memoryItems.push({
+        id: entry.id.trim(),
+        source: entry.source,
+        text: entry.text.trim(),
+        title: typeof entry.title === "string" ? entry.title.trim() : undefined
+      });
+    }
+  }
+
   if (value.has_image_input !== undefined && !isBoolean(value.has_image_input)) {
     return null;
   }
@@ -1506,6 +1664,14 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     return null;
   }
 
+  if (value.allow_browser_admin_pages !== undefined && !isBoolean(value.allow_browser_admin_pages)) {
+    return null;
+  }
+
+  if (value.allow_extension_management !== undefined && !isBoolean(value.allow_extension_management)) {
+    return null;
+  }
+
   return {
     prompt: value.prompt.trim(),
     tab_id: value.tab_id,
@@ -1520,6 +1686,7 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     page_load_wait_ms: value.page_load_wait_ms,
     replay_history: value.replay_history,
     history_messages: historyMessages,
+    memory_items: memoryItems,
     has_image_input: value.has_image_input,
     images: Array.isArray(value.images) ? (value.images as string[]) : undefined,
     api_key: typeof value.api_key === "string" ? value.api_key.trim() : undefined,
@@ -1527,7 +1694,9 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     thinking_level: typeof value.thinking_level === "string" ? value.thinking_level : undefined,
     enable_function_calling: value.enable_function_calling,
     allow_browser_search: value.allow_browser_search,
-    enable_code_execution: value.enable_code_execution
+    enable_code_execution: value.enable_code_execution,
+    allow_browser_admin_pages: value.allow_browser_admin_pages,
+    allow_extension_management: value.allow_extension_management
   };
 }
 
@@ -1558,6 +1727,17 @@ export function parseAgentResumeParams(value: unknown): AgentResumeParams | null
 
   return {
     run_id: value.run_id
+  };
+}
+
+export function parseAgentSteerParams(value: unknown): AgentSteerParams | null {
+  if (!isRecord(value) || !isNonEmptyString(value.run_id) || !isNonEmptyString(value.prompt)) {
+    return null;
+  }
+
+  return {
+    run_id: value.run_id,
+    prompt: value.prompt.trim()
   };
 }
 
@@ -1608,6 +1788,10 @@ export function normalizeBrowserRpcAction(action: string): LegacyBrowserRpcActio
     return "TabOperation";
   }
 
+  if (action === "ExtensionsManage" || action === "extensions_manage") {
+    return "ExtensionsManage";
+  }
+
   return null;
 }
 
@@ -1643,6 +1827,7 @@ export function parseBrowserRpcParams(action: "ComputerBatch" | "computer", para
 export function parseBrowserRpcParams(action: "Navigate" | "navigate", params: JsonObject): NavigateParams | null;
 export function parseBrowserRpcParams(action: "FormInput" | "form_input", params: JsonObject): FormInputParams | null;
 export function parseBrowserRpcParams(action: "TabOperation" | "tabs_create", params: JsonObject): TabOperationParams | null;
+export function parseBrowserRpcParams(action: "ExtensionsManage" | "extensions_manage", params: JsonObject): ExtensionOperationParams | null;
 export function parseBrowserRpcParams(action: BrowserRpcAction, params: JsonObject): BrowserActionParams | null;
 export function parseBrowserRpcParams(action: BrowserRpcAction, params: JsonObject): BrowserActionParams | null {
   if (action === "computer") {
@@ -1668,6 +1853,10 @@ export function parseBrowserRpcParams(action: BrowserRpcAction, params: JsonObje
 
   if (normalized === "FormInput") {
     return parseFormInputParams(params);
+  }
+
+  if (normalized === "ExtensionsManage") {
+    return parseExtensionOperationParams(params);
   }
 
   if (normalized === null) {

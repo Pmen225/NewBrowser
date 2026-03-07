@@ -7,6 +7,8 @@ import {
   type LegacyBrowserRpcAction,
   type ComputerBatchParams,
   type ComputerBatchResult,
+  type ExtensionOperationParams,
+  type ExtensionOperationResult,
   type FormInputParams,
   type FormInputResult,
   type NavigateParams,
@@ -21,6 +23,8 @@ export type {
   LegacyBrowserRpcAction,
   ComputerBatchParams,
   ComputerBatchResult,
+  ExtensionOperationParams,
+  ExtensionOperationResult,
   FormInputParams,
   FormInputResult,
   NavigateParams,
@@ -71,6 +75,7 @@ export function parseTask4Params(action: "ComputerBatch", params: Record<string,
 export function parseTask4Params(action: "Navigate", params: Record<string, unknown>): NavigateParams | null;
 export function parseTask4Params(action: "FormInput", params: Record<string, unknown>): FormInputParams | null;
 export function parseTask4Params(action: "TabOperation", params: Record<string, unknown>): TabOperationParams | null;
+export function parseTask4Params(action: "ExtensionsManage", params: Record<string, unknown>): ExtensionOperationParams | null;
 export function parseTask4Params(action: BrowserRpcAction, params: Record<string, unknown>): BrowserActionParams | null;
 export function parseTask4Params(action: BrowserRpcAction, params: Record<string, unknown>): BrowserActionParams | null {
   return parseBrowserRpcParams(action, params);

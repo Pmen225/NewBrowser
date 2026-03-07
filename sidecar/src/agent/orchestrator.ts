@@ -5,6 +5,7 @@ import type {
   AgentPauseParams,
   AgentRunParams,
   AgentResumeParams,
+  AgentSteerParams,
   AgentStateResult,
   AgentTaskError,
   AgentTaskState,
@@ -13,6 +14,7 @@ import type {
   DraftArtifact,
   FindMatch,
   AgentStopParams,
+  AgentMemoryItem,
   JsonObject,
   SourceAttribution,
   TodoItem
@@ -84,6 +86,7 @@ const KNOWN_TOOL_NAMES = [
   "get_page_text",
   "search_web",
   "tabs_create",
+  "extensions_manage",
   "draft_email",
   "todo_write"
 ] as const;
@@ -104,6 +107,7 @@ function cloneState(state: AgentRunState): AgentRunState {
     steps: [...state.steps],
     sources: [...state.sources],
     children: [...state.children],
+    pendingUserMessages: [...state.pendingUserMessages],
     childError: state.childError ? { ...state.childError } : undefined
   };
 }
@@ -155,6 +159,16 @@ function isDirectObservationPrompt(prompt: string, hasImageInput: boolean): bool
   ]);
 }
 
+function isMemoryRecallPrompt(prompt: string): boolean {
+  const lower = normalizeText(prompt).toLowerCase();
+  return includesAny(lower, [
+    "what do you remember",
+    "what do you know about me",
+    "remember about how",
+    "remember about me"
+  ]);
+}
+
 function buildObservationResponseInstruction(prompt: string, hasImageInput: boolean): ProviderRuntimeMessage[] {
   if (!isDirectObservationPrompt(prompt, hasImageInput)) {
     return [];
@@ -184,6 +198,424 @@ function shouldExposeTabManagementTool(prompt: string): boolean {
     "tab group",
     "move tab"
   ]);
+}
+
+function shouldAllowBrowserAdminPages(params: AgentRunParams): boolean {
+  if (params.allow_browser_admin_pages !== true) {
+    return false;
+  }
+
+  const lower = normalizeText(params.prompt).toLowerCase();
+  return includesAny(lower, [
+    "browser settings",
+    "chrome settings",
+    "browser flags",
+    "chrome flags",
+    "chrome://settings",
+    "chrome://flags",
+    "chrome://extensions",
+    "browser history",
+    "browser bookmarks"
+  ]);
+}
+
+function shouldExposeExtensionManagementTool(params: AgentRunParams): boolean {
+  if (params.allow_extension_management !== true) {
+    return false;
+  }
+
+  const lower = normalizeText(params.prompt).toLowerCase();
+  return includesAny(lower, [
+    "manage extensions",
+    "list extensions",
+    "list my extensions",
+    "installed extensions",
+    "installed browser extensions",
+    "browser extensions",
+    "extensions installed",
+    "my extensions",
+    "enable extension",
+    "disable extension",
+    "uninstall extension",
+    "remove extension"
+  ]);
+}
+
+function buildMemoryContextMessages(params: AgentRunParams): ProviderRuntimeMessage[] {
+  if (!Array.isArray(params.memory_items) || params.memory_items.length === 0) {
+    return [];
+  }
+
+  const compact = params.memory_items
+    .map((item: AgentMemoryItem) => {
+      const source = typeof item.source === "string" ? item.source.trim() : "memory";
+      const title = typeof item.title === "string" && item.title.trim().length > 0 ? `${item.title.trim()}: ` : "";
+      return `- [${source}] ${title}${item.text}`;
+    })
+    .join("\n");
+
+  return [
+    {
+      role: "system",
+      content:
+        "Use the following local memory when it is relevant. If the user asks what you remember, answer from this memory instead of claiming you do not remember anything.\n" +
+        compact
+    }
+  ];
+}
+
+function buildCapabilityContextMessages(params: AgentRunParams): ProviderRuntimeMessage[] {
+  const messages: ProviderRuntimeMessage[] = [];
+  if (shouldAllowBrowserAdminPages(params)) {
+    messages.push({
+      role: "system",
+      content: "The user explicitly allowed browser admin pages for this run. You may navigate to chrome://settings, chrome://flags, or chrome://extensions when needed. Do not say those pages are inaccessible. For direct browser-admin requests, you must use browser tools before answering. If a chrome:// navigation succeeds, use read_page or get_page_text next and answer from the resulting page state."
+    });
+  }
+  if (shouldExposeExtensionManagementTool(params)) {
+    messages.push({
+      role: "system",
+      content: "The user explicitly allowed extension management for this run. You may use extensions_manage to list, enable, disable, or uninstall extensions. Never disable or uninstall the Assistant extension itself because it is protected."
+    });
+  }
+  return messages;
+}
+
+function buildCurrentPageTaskGuidanceMessages(prompt: string): ProviderRuntimeMessage[] {
+  const lower = normalizeText(prompt).toLowerCase();
+  if (!hasCurrentPageCue(lower)) {
+    return [];
+  }
+
+  const extraValidationGuidance = isCurrentSiteValidationPrompt(lower)
+    ? " This is a same-website validation task. Stay on the same website before using any outside sources. Treat one failed internal link or timeout as missing evidence, not proof the whole website is down. If a detail is not visible, say it is not clearly present on the current website."
+    : "";
+
+  return [
+    {
+      role: "system",
+      content:
+        `The user is asking about the page or site already open in the browser. Inspect the current page before navigating anywhere else. Do not guess internal page slugs or switch pages until you have read the current page. If one internal link or guessed URL fails, do not conclude the whole site is unavailable. Answer from the observed current page first, then only navigate if you still need missing evidence.${extraValidationGuidance}`
+    }
+  ];
+}
+
+function buildUploadTaskGuidanceMessages(prompt: string): ProviderRuntimeMessage[] {
+  const lower = normalizeText(prompt).toLowerCase();
+  if (!includesAny(lower, ["file upload", "upload the file", "uploaded filename", "uploaded file"])) {
+    return [];
+  }
+
+  return [
+    {
+      role: "system",
+      content:
+        "For file upload tasks, selecting a file is not enough. If the page has an Upload or Submit control, you must activate it and then verify success from the updated page state. Do not claim the file was uploaded unless the page confirms it, for example with a success heading, uploaded-files text, or another explicit confirmation outside the file picker."
+    }
+  ];
+}
+
+function isBrowserAdminCapabilityRefusal(text: string, params: AgentRunParams): boolean {
+  if (!shouldAllowBrowserAdminPages(params)) {
+    return false;
+  }
+
+  const normalized = normalizeText(text).toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("cannot directly open chrome://settings") ||
+    normalized.includes("unable to open chrome://settings directly") ||
+    normalized.includes("cannot open chrome://flags") ||
+    normalized.includes("unable to access chrome://flags") ||
+    normalized.includes("unable to open chrome://flags") ||
+    normalized.includes("cannot open chrome://extensions") ||
+    normalized.includes("unable to access chrome://extensions") ||
+    normalized.includes("unable to open chrome://extensions") ||
+    normalized.includes("cannot access internal browser settings pages") ||
+    normalized.includes("unable to access internal browser settings pages") ||
+    normalized.includes("cannot open chrome://settings") ||
+    normalized.includes("unable to navigate to chrome://settings directly") ||
+    normalized.includes("internal chrome url") ||
+    normalized.includes("restricted internal chrome page") ||
+    normalized.includes("cannot access internal chrome page")
+  );
+}
+
+function inferBrowserAdminTitle(rawUrl: string): string | null {
+  const normalized = normalizeText(rawUrl).toLowerCase();
+  if (!normalized.startsWith("chrome://")) {
+    return null;
+  }
+
+  if (normalized.startsWith("chrome://settings")) {
+    return "Settings";
+  }
+  if (normalized.startsWith("chrome://flags")) {
+    return "Experiments";
+  }
+  if (normalized.startsWith("chrome://extensions")) {
+    return "Extensions";
+  }
+  if (normalized.startsWith("chrome://history")) {
+    return "History";
+  }
+  if (normalized.startsWith("chrome://bookmarks")) {
+    return "Bookmarks";
+  }
+
+  return null;
+}
+
+function isMemoryRecallCapabilityRefusal(text: string, params: AgentRunParams): boolean {
+  if (!isMemoryRecallPrompt(params.prompt)) {
+    return false;
+  }
+  if (!Array.isArray(params.memory_items) || params.memory_items.length === 0) {
+    return false;
+  }
+
+  const normalized = normalizeText(text).toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("don't have any instructions") ||
+    normalized.includes("do not have any instructions") ||
+    normalized.includes("don't have any information about someone named") ||
+    normalized.includes("do not have any information about someone named") ||
+    normalized.includes("don't have any specific instructions") ||
+    normalized.includes("do not retain information from previous prompts") ||
+    normalized.includes("i don't remember") ||
+    normalized.includes("i do not remember") ||
+    normalized.includes("new browser team")
+  );
+}
+
+function requiresBrowserAdminInspectionRetry(
+  text: string,
+  params: AgentRunParams,
+  needsStructuredInspectionAfterNavigation: boolean
+): boolean {
+  if (!shouldAllowBrowserAdminPages(params) || !needsStructuredInspectionAfterNavigation) {
+    return false;
+  }
+
+  return normalizeText(text).length > 0;
+}
+
+function isCurrentSiteValidationPrompt(prompt: string): boolean {
+  const normalized = normalizeText(prompt).toLowerCase();
+  if (!hasCurrentPageCue(normalized)) {
+    return false;
+  }
+
+  return includesAny(normalized, [
+    "validate",
+    "verification",
+    "verify",
+    "check whether",
+    "is this correct",
+    "criticism",
+    "correct",
+    "acceptable",
+    "accreditation",
+    "missing",
+    "present",
+    "cut off",
+    "brochure",
+    "mission",
+    "vision",
+    "objectives",
+    "aims"
+  ]);
+}
+
+function isCurrentSiteAccessOvergeneralization(text: string, params: AgentRunParams): boolean {
+  if (!isCurrentSiteValidationPrompt(params.prompt)) {
+    return false;
+  }
+
+  const normalized = normalizeText(text).toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return includesAny(normalized, [
+    "website may be inaccessible",
+    "site may be inaccessible",
+    "website is inaccessible",
+    "site is inaccessible",
+    "website is unavailable",
+    "site is unavailable",
+    "website may be unavailable",
+    "site may be unavailable",
+    "not functioning at present",
+    "website is not functioning",
+    "site is not functioning"
+  ]);
+}
+
+function buildCurrentSiteValidationRetryPrompt(): string {
+  return "Do not conclude the whole website is inaccessible from one failed internal page or timeout. Inspect the current page now. Stay on the same website before using any outside sources. Answer only from what is clearly present or missing on the current website. If something is not visible, say it is not clearly present, not that the whole website is down.";
+}
+
+function buildCurrentSiteValidationFallbackAnswer(state: AgentRunState): string | null {
+  if (!isCurrentSiteValidationPrompt(state.params.prompt) || !state.lastValidatedObservation) {
+    return null;
+  }
+
+  return `I could inspect the current website, so I cannot conclude the whole site is inaccessible from one failed internal page. Based on the observed page: ${state.lastValidatedObservation}`;
+}
+
+function extractUrlLikeTarget(action: string, payload: JsonObject): string | null {
+  if (action !== "navigate" && action !== "tabs_create") {
+    return null;
+  }
+
+  const rawUrl = typeof payload.url === "string" ? normalizeText(payload.url) : "";
+  return rawUrl || null;
+}
+
+function normalizeHostname(value: string): string {
+  return normalizeText(value).toLowerCase().replace(/^www\./, "");
+}
+
+function isLikelyExternalResearchUrl(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl);
+    const host = normalizeHostname(url.hostname);
+    return (
+      host === "google.com" ||
+      host.endsWith(".google.com") ||
+      host === "bing.com" ||
+      host.endsWith(".bing.com") ||
+      host === "duckduckgo.com" ||
+      host.endsWith(".duckduckgo.com") ||
+      host === "search.yahoo.com"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function getCurrentSiteNavigationBlock(
+  action: string,
+  payload: JsonObject,
+  params: AgentRunParams,
+  lastValidatedObservation: string | undefined,
+  observedPageUrl: string | undefined
+): { code: string; message: string } | null {
+  if (!isCurrentSiteValidationPrompt(params.prompt)) {
+    return null;
+  }
+
+  const targetUrl = extractUrlLikeTarget(action, payload);
+  if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+    return null;
+  }
+
+  if (!lastValidatedObservation) {
+    return {
+      code: "CURRENT_SITE_INSPECTION_REQUIRED",
+      message:
+        "Inspect the current page before leaving this website. Do not navigate to external pages or search engines until you have read the current website."
+    };
+  }
+
+  if (hasExplicitWebResearchIntent(normalizeText(params.prompt).toLowerCase())) {
+    return null;
+  }
+
+  if (!observedPageUrl) {
+    if (isLikelyExternalResearchUrl(targetUrl)) {
+      return {
+        code: "CURRENT_SITE_SCOPE_REQUIRED",
+        message:
+          "Stay on the current website for this validation task. Do not navigate to external pages or search engines unless the user explicitly asks for outside research."
+      };
+    }
+    return null;
+  }
+
+  try {
+    const targetHost = normalizeHostname(new URL(targetUrl).hostname);
+    const currentHost = normalizeHostname(new URL(observedPageUrl).hostname);
+    if (targetHost && currentHost && targetHost !== currentHost) {
+      return {
+        code: "CURRENT_SITE_SCOPE_REQUIRED",
+        message:
+          "Stay on the current website for this validation task. Do not navigate to external pages or search engines unless the user explicitly asks for outside research."
+      };
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function getCurrentSiteInteractionBlock(action: string, params: AgentRunParams): { code: string; message: string } | null {
+  if (!isCurrentSiteValidationPrompt(params.prompt)) {
+    return null;
+  }
+
+  const normalized = normalizeText(params.prompt).toLowerCase();
+  if (isClickIntent(normalized) || hasFormActionVerb(normalized)) {
+    return null;
+  }
+
+  if (action !== "computer" && action !== "form_input") {
+    return null;
+  }
+
+  return {
+    code: "CURRENT_SITE_NONINTERACTIVE_REVIEW_REQUIRED",
+    message:
+      "This is a non-interactive current-website validation task. Do not click or type blindly. Use read_page, get_page_text, or find to gather evidence before answering."
+  };
+}
+
+function buildMemoryRecallFallbackAnswer(params: AgentRunParams): string | null {
+  if (!isMemoryRecallPrompt(params.prompt) || !Array.isArray(params.memory_items) || params.memory_items.length === 0) {
+    return null;
+  }
+
+  const manual = params.memory_items.filter((item) => item.source === "manual");
+  const settings = params.memory_items.filter((item) => item.source === "settings");
+  const selectedPool = manual.length > 0 ? manual : settings.length > 0 ? settings : params.memory_items;
+  const selected = selectedPool
+    .map((item) => normalizeText(item.text))
+    .filter((text) => text.length > 0);
+
+  if (selected.length === 0) {
+    return null;
+  }
+
+  return selected.join(" ");
+}
+
+function buildBrowserAdminFallbackAnswer(params: AgentRunParams, lastResult: JsonObject | undefined): string | null {
+  if (!shouldAllowBrowserAdminPages(params) || !lastResult) {
+    return null;
+  }
+
+  const url = typeof lastResult.url === "string" ? lastResult.url.trim() : "";
+  const titleFromResult = typeof lastResult.title === "string" ? normalizeText(lastResult.title) : "";
+  const title = titleFromResult || inferBrowserAdminTitle(url) || "";
+  if (!url.startsWith("chrome://") || title.length === 0) {
+    return null;
+  }
+
+  const prompt = normalizeText(params.prompt).toLowerCase();
+  if (includesAny(prompt, ["main heading", "heading", "page title", "title only", "title"])) {
+    return `The main heading is ${title}.`;
+  }
+
+  return null;
 }
 
 function buildTaskState(state: AgentRunState): AgentTaskState {
@@ -269,6 +701,7 @@ function createRunState(
     pauseRequested: false,
     resumeRequested: false,
     resumeNeedsReassessment: false,
+    pendingUserMessages: [],
     resumeGate: undefined,
     releaseResumeGate: null,
     activeChildTaskId: undefined,
@@ -405,6 +838,20 @@ function injectResumeReassessmentMessage(state: AgentRunState, messages: Provide
   });
   state.resumeNeedsReassessment = false;
   state.resumeRequested = false;
+}
+
+function injectQueuedSteerMessages(state: AgentRunState, messages: ProviderRuntimeMessage[]): void {
+  if (!Array.isArray(state.pendingUserMessages) || state.pendingUserMessages.length === 0) {
+    return;
+  }
+
+  const queued = state.pendingUserMessages.splice(0);
+  for (const prompt of queued) {
+    messages.push({
+      role: "user",
+      content: `Follow-up from the user while the task was running: ${prompt}`
+    });
+  }
 }
 
 function normalizeText(value: string): string {
@@ -570,6 +1017,9 @@ function hasCurrentPageCue(value: string): boolean {
     "this site",
     "on this site",
     "current site",
+    "this website",
+    "current website",
+    "website in its current format",
     "current tab",
     "this tab",
     "here"
@@ -681,6 +1131,20 @@ function shouldDisableWebSearchForRun(prompt: string, tabId: string): boolean {
   }
 
   const normalized = normalizeText(prompt).toLowerCase();
+  if (
+    includesAny(normalized, [
+      "chrome://settings",
+      "chrome://flags",
+      "chrome://extensions",
+      "browser settings",
+      "chrome settings",
+      "browser flags",
+      "chrome flags"
+    ])
+  ) {
+    return true;
+  }
+
   if (hasCurrentPageCue(normalized)) {
     return true;
   }
@@ -756,6 +1220,9 @@ function summarizeResult(result: JsonObject): JsonObject {
   }
   if (typeof result.url === "string") {
     summary.url = result.url;
+  }
+  if (typeof result.title === "string") {
+    summary.title = result.title;
   }
   if (typeof result.tab_id === "string") {
     summary.tab_id = result.tab_id;
@@ -1179,7 +1646,7 @@ function createPlannerAgent(): PlannerAgent {
         );
       }
 
-      if (includesAny(lower, ["read", "summarize", "summarise", "extract", "text", "content", "analyze"])) {
+      if (includesAny(lower, ["read", "summarize", "summarise", "extract", "text", "content", "analyze", "validate", "verify", "criticism", "check whether"])) {
         pushStep("read_page", "Read the page structure", "active_tab", {});
         if (policy.preferGetPageTextForLongReading) {
           pushStep(
@@ -1347,6 +1814,7 @@ function createExecutorAgent(performAction: OrchestratorOptions["performAction"]
       const boundedTodos = params.todos.slice(0, Math.max(1, boundedSteps.length));
       let executedSteps = 0;
       let lastResult: JsonObject | undefined;
+      let observedPageUrl: string | undefined;
       let latestFindMatches: FindMatch[] = [];
       const availableCitations: string[] = [];
       let webCitationIndex = 0;
@@ -1662,7 +2130,10 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         });
       }
 
-      const fullToolCatalog = buildToolSchemaCatalog(promptSpecs.toolNames);
+      const browserAdminAllowedForRun = shouldAllowBrowserAdminPages(state.params);
+      const extensionManagementAllowedForRun = shouldExposeExtensionManagementTool(state.params);
+      const extraToolNames = extensionManagementAllowedForRun ? ["extensions_manage"] : [];
+      const fullToolCatalog = buildToolSchemaCatalog([...promptSpecs.toolNames, ...extraToolNames]);
       const toolingMismatches = findToolCatalogMismatches(promptSpecs.declaredTools, fullToolCatalog);
       if (toolingMismatches.length > 0) {
         throw Object.assign(new Error(`Tool definitions from REF DOCS mismatch sidecar implementation: ${toolingMismatches.join(", ")}`), {
@@ -1674,6 +2145,9 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       let toolCatalog = fullToolCatalog.filter((tool) => tool.name !== "todo_write");
       if (!shouldExposeTabManagementTool(state.params.prompt)) {
         toolCatalog = toolCatalog.filter((tool) => tool.name !== "tabs_create");
+      }
+      if (!extensionManagementAllowedForRun) {
+        toolCatalog = toolCatalog.filter((tool) => tool.name !== "extensions_manage");
       }
       if (!funcCallingEnabled) {
         toolCatalog = [];
@@ -1746,6 +2220,10 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       const messages: ProviderRuntimeMessage[] = [
         { role: "system", content: promptSpecs.systemPrompt },
         ...buildObservationResponseInstruction(state.params.prompt, state.hasImageInput),
+        ...buildCurrentPageTaskGuidanceMessages(state.params.prompt),
+        ...buildCapabilityContextMessages(state.params),
+        ...buildUploadTaskGuidanceMessages(state.params.prompt),
+        ...buildMemoryContextMessages(state.params),
         ...buildConversationHistoryMessages(state.params),
         { role: "user", content: userContent }
       ];
@@ -1754,6 +2232,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       let webCitationIndex = 0;
       let screenshotCitationIndex = 0;
       let lastResult: JsonObject | undefined;
+      let observedPageUrl: string | undefined;
       const recentToolSignatures: string[] = [];
       let loopGuardTrips = 0;
       let consecutiveFailures = 0;
@@ -1762,6 +2241,10 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       let needsPostActionValidation = false;
       let postActionValidationReminderTrips = 0;
       let emptyProviderTurnRetries = 0;
+      let browserAdminRefusalRetries = 0;
+      let browserAdminInspectionRetries = 0;
+      let memoryRecallRefusalRetries = 0;
+      let currentSiteOvergeneralizationRetries = 0;
       let pendingJavaScriptDialog: ComputerBatchResult["javascript_dialog"] | undefined;
       let forceFunctionCallingContinuation = false;
 
@@ -1809,6 +2292,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         }
 
         injectResumeReassessmentMessage(state, messages);
+        injectQueuedSteerMessages(state, messages);
         const turn = await providerRegistry.runTurn(state.params.provider, {
           apiKey,
           baseUrl: state.params.base_url,
@@ -1943,6 +2427,51 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
               continue;
             }
 
+            const currentSiteNavigationBlock = getCurrentSiteNavigationBlock(
+              action,
+              payload,
+              state.params,
+              state.lastValidatedObservation,
+              observedPageUrl
+            );
+            if (currentSiteNavigationBlock) {
+              appendRecentSignature(recentToolSignatures, toolSignature);
+              executedSteps += 1;
+
+              appendStep(
+                state,
+                {
+                  ts: nowIso(),
+                  phase: "executor",
+                  action,
+                  status: "failed",
+                  details: {
+                    step_id: toolCall.id,
+                    step_index: executedSteps,
+                    description: `Execute ${toolCall.name}`,
+                    input_hash: inputHash,
+                    payload,
+                    error_code: currentSiteNavigationBlock.code,
+                    error_message: currentSiteNavigationBlock.message
+                  }
+                },
+                memoryStore,
+                options.onRunUpdated
+              );
+
+              messages.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.name,
+                content: JSON.stringify({
+                  ok: false,
+                  error_code: currentSiteNavigationBlock.code,
+                  error_message: currentSiteNavigationBlock.message
+                })
+              });
+              continue;
+            }
+
             if (policy.requireSingleStateChangingComputerAction && action === "computer" && hasMultipleStateChangingComputerSteps(payload)) {
               const validationMessage =
                 "Perform only one state-changing computer action per tool call. After it completes, validate the page state with read_page, find, or get_page_text before continuing.";
@@ -1978,6 +2507,45 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                   ok: false,
                   error_code: "ACTION_VALIDATION_REQUIRED",
                   error_message: validationMessage
+                })
+              });
+              continue;
+            }
+
+            const currentSiteInteractionBlock = getCurrentSiteInteractionBlock(action, state.params);
+            if (currentSiteInteractionBlock) {
+              appendRecentSignature(recentToolSignatures, toolSignature);
+              executedSteps += 1;
+
+              appendStep(
+                state,
+                {
+                  ts: nowIso(),
+                  phase: "executor",
+                  action,
+                  status: "failed",
+                  details: {
+                    step_id: toolCall.id,
+                    step_index: executedSteps,
+                    description: `Execute ${toolCall.name}`,
+                    input_hash: inputHash,
+                    payload,
+                    error_code: currentSiteInteractionBlock.code,
+                    error_message: currentSiteInteractionBlock.message
+                  }
+                },
+                memoryStore,
+                options.onRunUpdated
+              );
+
+              messages.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.name,
+                content: JSON.stringify({
+                  ok: false,
+                  error_code: currentSiteInteractionBlock.code,
+                  error_message: currentSiteInteractionBlock.message
                 })
               });
               continue;
@@ -2183,13 +2751,20 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
             });
 
             try {
+              const actionArgs =
+                action === "navigate" && browserAdminAllowedForRun
+                  ? { ...toolCall.arguments, allow_sensitive_browser_pages: true }
+                  : toolCall.arguments;
               const result =
                 action === "draft_email"
                   ? (normaliseEmailDraftArtifact(payload) as unknown as JsonObject)
                   : (redactSensitiveJson(
-                      toJsonObject(await options.performAction(action, requestTabId, toolCall.arguments, state.abortController.signal))
+                      toJsonObject(await options.performAction(action, requestTabId, actionArgs, state.abortController.signal))
                     ) ?? {});
               lastResult = summarizeResult(result);
+              if (typeof result.url === "string" && /^https?:\/\//i.test(result.url)) {
+                observedPageUrl = result.url;
+              }
               let source: SourceAttribution | undefined;
 
               if (action === "draft_email") {
@@ -2440,6 +3015,97 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         emptyProviderTurnRetries = 0;
         forceFunctionCallingContinuation = false;
 
+        const browserAdminFallbackAnswer = isBrowserAdminCapabilityRefusal(turn.assistantText, state.params)
+          ? buildBrowserAdminFallbackAnswer(state.params, lastResult)
+          : null;
+        if (browserAdminFallbackAnswer) {
+          turn.assistantText = browserAdminFallbackAnswer;
+        }
+
+        if (
+          !browserAdminFallbackAnswer &&
+          requiresBrowserAdminInspectionRetry(
+            turn.assistantText,
+            state.params,
+            needsStructuredInspectionAfterNavigation
+          ) &&
+          browserAdminInspectionRetries < 1
+        ) {
+          browserAdminInspectionRetries += 1;
+          forceFunctionCallingContinuation = availableToolNames.includes("read_page") || availableToolNames.includes("get_page_text");
+          messages.push({
+            role: "assistant",
+            content: turn.assistantText,
+            provider_parts: turn.provider_parts
+          });
+          messages.push({
+            role: "user",
+            content:
+              "Navigation already succeeded. Do not say the chrome:// page is inaccessible. Inspect the current page now with read_page or get_page_text, then answer from the observed page state only."
+          });
+          continue;
+        }
+
+        if (isBrowserAdminCapabilityRefusal(turn.assistantText, state.params) && browserAdminRefusalRetries < 1) {
+          browserAdminRefusalRetries += 1;
+          forceFunctionCallingContinuation = availableToolNames.includes("navigate");
+          messages.push({
+            role: "assistant",
+            content: turn.assistantText,
+            provider_parts: turn.provider_parts
+          });
+          messages.push({
+            role: "user",
+            content:
+              "That is incorrect. Browser admin pages were explicitly allowed for this run. Use browser tools now. Navigate to the requested chrome:// page, inspect it with read_page or get_page_text, then answer from the observed page state."
+          });
+          continue;
+        }
+
+        if (isCurrentSiteAccessOvergeneralization(turn.assistantText, state.params) && currentSiteOvergeneralizationRetries < 1) {
+          currentSiteOvergeneralizationRetries += 1;
+          forceFunctionCallingContinuation = availableToolNames.includes("read_page") || availableToolNames.includes("get_page_text");
+          messages.push({
+            role: "assistant",
+            content: turn.assistantText,
+            provider_parts: turn.provider_parts
+          });
+          messages.push({
+            role: "user",
+            content: buildCurrentSiteValidationRetryPrompt()
+          });
+          continue;
+        }
+
+        if (isCurrentSiteAccessOvergeneralization(turn.assistantText, state.params)) {
+          const fallbackAnswer = buildCurrentSiteValidationFallbackAnswer(state);
+          if (fallbackAnswer) {
+            turn.assistantText = fallbackAnswer;
+          }
+        }
+
+        if (isMemoryRecallCapabilityRefusal(turn.assistantText, state.params) && memoryRecallRefusalRetries < 1) {
+          memoryRecallRefusalRetries += 1;
+          messages.push({
+            role: "assistant",
+            content: turn.assistantText,
+            provider_parts: turn.provider_parts
+          });
+          messages.push({
+            role: "user",
+            content:
+              "That is incorrect. Local memory was provided for this run. Answer the memory-recall question using the provided memory items only. Do not say you lack memory or instructions."
+          });
+          continue;
+        }
+
+        if (isMemoryRecallCapabilityRefusal(turn.assistantText, state.params)) {
+          const memoryFallbackAnswer = buildMemoryRecallFallbackAnswer(state.params);
+          if (memoryFallbackAnswer) {
+            turn.assistantText = memoryFallbackAnswer;
+          }
+        }
+
         if (policy.requireValidationAfterPageActions && needsPostActionValidation) {
           postActionValidationReminderTrips += 1;
           if (postActionValidationReminderTrips > 3) {
@@ -2610,6 +3276,37 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       return {
         run_id: state.runId,
         status: "running"
+      };
+    },
+    async steer(params: AgentSteerParams) {
+      const state = taskManager.getByRunId(params.run_id);
+      if (!state) {
+        throw Object.assign(new Error(`Unknown run_id: ${params.run_id}`), {
+          code: "RUN_NOT_FOUND",
+          retryable: false
+        });
+      }
+
+      if (state.status !== "running" && state.status !== "pausing" && state.status !== "paused") {
+        throw Object.assign(new Error(`Run ${params.run_id} is not active`), {
+          code: "RUN_NOT_RUNNING",
+          retryable: false
+        });
+      }
+
+      state.pendingUserMessages.push(params.prompt);
+      state.updatedAt = nowIso();
+      memoryStore.upsert(state.runId, {
+        task: buildTaskState(state) as unknown as JsonObject,
+        last_queued_steer_prompt: params.prompt,
+        queued_steer_count: state.pendingUserMessages.length
+      });
+      publishTaskUpdate(state);
+
+      return {
+        run_id: state.runId,
+        status: "queued",
+        queued_count: state.pendingUserMessages.length
       };
     },
     async stop(params: AgentStopParams) {

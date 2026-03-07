@@ -5,6 +5,8 @@ import {
   normalizeToolRpcAction,
   parseAgentRunParams,
   parseAgentResumeParams,
+  parseAgentSteerParams,
+  parseProviderTranscribeAudioParams,
   parseBrowserRpcParams,
   parseFindParams,
   parseGetRuntimeStateParams,
@@ -88,7 +90,19 @@ describe("transport parsers", () => {
     expect(parseBrowserRpcParams("navigate", { mode: "to", url: "https://example.com" })).toEqual({
       mode: "to",
       url: "https://example.com",
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
+    });
+
+    expect(parseBrowserRpcParams("navigate", {
+      mode: "to",
+      url: "chrome://settings",
+      allow_sensitive_browser_pages: true
+    })).toEqual({
+      mode: "to",
+      url: "chrome://settings",
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: true
     });
 
     expect(parseBrowserRpcParams("tabs_create", { url: "https://example.com" })).toEqual({
@@ -243,6 +257,11 @@ describe("transport parsers", () => {
         prompt: "What did you just do?",
         provider: "google",
         model: "models/gemini-2.5-flash",
+        allow_browser_admin_pages: true,
+        allow_extension_management: true,
+        memory_items: [
+          { id: "manual:1", source: "manual", text: "Prince works in Halo Service Desk." }
+        ],
         history_messages: [
           { role: "user", text: "Go to Google." },
           { role: "assistant", text: "I navigated to Google." }
@@ -265,6 +284,9 @@ describe("transport parsers", () => {
         { role: "user", text: "Go to Google." },
         { role: "assistant", text: "I navigated to Google." }
       ],
+      memory_items: [
+        { id: "manual:1", source: "manual", text: "Prince works in Halo Service Desk." }
+      ],
       has_image_input: undefined,
       images: undefined,
       api_key: undefined,
@@ -272,7 +294,9 @@ describe("transport parsers", () => {
       thinking_level: undefined,
       enable_function_calling: undefined,
       allow_browser_search: undefined,
-      enable_code_execution: undefined
+      enable_code_execution: undefined,
+      allow_browser_admin_pages: true,
+      allow_extension_management: true
     });
 
     expect(
@@ -292,43 +316,147 @@ describe("transport parsers", () => {
     ).toBeNull();
   });
 
+  it("parses extension management browser actions", () => {
+    expect(parseBrowserRpcParams("extensions_manage", { operation: "list", query: "adblock" })).toEqual({
+      operation: "list",
+      extension_id: undefined,
+      query: "adblock"
+    });
+
+    expect(parseBrowserRpcParams("extensions_manage", { operation: "disable", extension_id: "abcdef" })).toEqual({
+      operation: "disable",
+      extension_id: "abcdef",
+      query: undefined
+    });
+
+    expect(parseBrowserRpcParams("extensions_manage", { operation: "disable" })).toBeNull();
+  });
+
+  it("parses queued steer prompts for active runs", () => {
+    expect(
+      parseAgentSteerParams({
+        run_id: "run-123",
+        prompt: "Actually use the current ticket title as the search term."
+      })
+    ).toEqual({
+      run_id: "run-123",
+      prompt: "Actually use the current ticket title as the search term."
+    });
+
+    expect(
+      parseAgentSteerParams({
+        run_id: "",
+        prompt: "bad"
+      })
+    ).toBeNull();
+
+    expect(
+      parseAgentSteerParams({
+        run_id: "run-123",
+        prompt: ""
+      })
+    ).toBeNull();
+  });
+
+  it("parses provider-backed audio transcription params", () => {
+    expect(
+      parseProviderTranscribeAudioParams({
+        provider: "google",
+        model_id: "models/gemini-2.5-flash",
+        api_key: "g-test",
+        audio_b64: "AAAA",
+        mime_type: "audio/webm",
+        language: "en-GB"
+      })
+    ).toEqual({
+      provider: "google",
+      model_id: "models/gemini-2.5-flash",
+      api_key: "g-test",
+      base_url: undefined,
+      audio_b64: "AAAA",
+      mime_type: "audio/webm",
+      language: "en-GB"
+    });
+
+    expect(
+      parseProviderTranscribeAudioParams({
+        provider: "google",
+        model_id: "",
+        api_key: "g-test",
+        audio_b64: "AAAA",
+        mime_type: "audio/webm"
+      })
+    ).toBeNull();
+  });
+
   it("normalizes documented navigate shortcut params", () => {
     expect(parseBrowserRpcParams("navigate", { url: "https://example.com" })).toEqual({
       mode: "to",
       url: "https://example.com",
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
     });
     expect(parseBrowserRpcParams("navigate", { url: "example.com" })).toEqual({
       mode: "to",
       url: "example.com",
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
     });
     expect(parseBrowserRpcParams("navigate", { mode: "url", url: "https://example.com/path" })).toEqual({
       mode: "to",
       url: "https://example.com/path",
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
     });
     expect(parseBrowserRpcParams("navigate", { mode: "direct", url: "https://example.com/direct" })).toEqual({
       mode: "to",
       url: "https://example.com/direct",
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
+    });
+    expect(parseBrowserRpcParams("navigate", { mode: "new_tab", url: "chrome://settings" })).toEqual({
+      mode: "to",
+      url: "chrome://settings",
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
+    });
+    expect(parseBrowserRpcParams("navigate", { mode: "current_tab", url: "chrome://flags" })).toEqual({
+      mode: "to",
+      url: "chrome://flags",
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
+    });
+    expect(parseBrowserRpcParams("navigate", { mode: "primary", url: "chrome://settings" })).toEqual({
+      mode: "to",
+      url: "chrome://settings",
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
+    });
+    expect(parseBrowserRpcParams("navigate", { mode: "active_tab", url: "https://example.com/active" })).toEqual({
+      mode: "to",
+      url: "https://example.com/active",
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
     });
     expect(parseBrowserRpcParams("navigate", { mode: "gpt_history", url: "https://example.com/history" })).toEqual({
       mode: "to",
       url: "https://example.com/history",
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
     });
 
     expect(parseBrowserRpcParams("navigate", { url: "back" })).toEqual({
       mode: "back",
       url: undefined,
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
     });
 
     expect(parseBrowserRpcParams("navigate", { url: "forward" })).toEqual({
       mode: "forward",
       url: undefined,
-      timeout_ms: undefined
+      timeout_ms: undefined,
+      allow_sensitive_browser_pages: undefined
     });
 
     expect(parseBrowserRpcParams("navigate", { url: "" })).toBeNull();

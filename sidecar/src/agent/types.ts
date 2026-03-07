@@ -5,6 +5,8 @@ import type {
   AgentRunParams,
   AgentStateResult,
   AgentStepTrace,
+  AgentSteerParams,
+  AgentSteerResult,
   AgentLifecycleStatus,
   AgentResumeParams,
   AgentResumeResult,
@@ -136,6 +138,7 @@ export interface AgentRunState {
   pauseRequested: boolean;
   resumeRequested: boolean;
   resumeNeedsReassessment: boolean;
+  pendingUserMessages: string[];
   resumeGate?: Promise<void>;
   releaseResumeGate?: (() => void) | null;
   errorMessage?: string;
@@ -149,6 +152,7 @@ export interface AgentOrchestrator {
   run(params: AgentRunParams): Promise<{ run_id: string; status: "started" }>;
   pause(params: AgentPauseParams): Promise<AgentPauseResult>;
   resume(params: AgentResumeParams): Promise<AgentResumeResult>;
+  steer(params: AgentSteerParams): Promise<AgentSteerResult>;
   stop(params: AgentStopParams): Promise<{ run_id: string; status: "stopped" }>;
   getState(params: AgentGetStateParams): Promise<AgentStateResult>;
   createSubagent?(params: CreateSubagentParams): Promise<CreateSubagentResult>;

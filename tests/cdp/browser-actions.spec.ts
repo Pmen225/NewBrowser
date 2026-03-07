@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 import type { BrowserActionRuntime } from "../../src/cdp/browser-actions";
+import type { JavaScriptDialogRecord } from "../../src/cdp/types";
 import { executeComputerBatch, executeFormInput, executeNavigate, executeTabOperation, resolveNavigationUrl } from "../../src/cdp/browser-actions";
 
 // ─── URL resolution (omnibox behaviour) ─────────────────────────────────────
@@ -76,7 +77,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".
 
 function createRuntime() {
   const transport = new FakeTransport();
-  let currentDialog;
+  let currentDialog: JavaScriptDialogRecord | undefined;
 
   const runtime: BrowserActionRuntime = {
     send: transport.send.bind(transport),
@@ -128,7 +129,7 @@ function createRuntime() {
     transport,
     runtime,
     getDialog: () => currentDialog,
-    setDialog: (dialog) => {
+    setDialog: (dialog: JavaScriptDialogRecord | undefined) => {
       currentDialog = dialog;
     }
   };
@@ -834,6 +835,37 @@ describe("browser CDP action wrappers", () => {
       frame_id: "root",
       loader_id: "loader-1"
     });
+  });
+
+  it("uses the sensitive-page bridge for allowed chrome:// navigation", async () => {
+    const { runtime } = createRuntime();
+    const navigateSensitivePage = vi.fn(async () => ({
+      tabId: "tab-1",
+      chromeTabId: 11,
+      url: "chrome://settings/"
+    }));
+    const waitForLoadEvent = vi.fn(async () => undefined);
+
+    runtime.navigateSensitivePage = navigateSensitivePage;
+    runtime.waitForLoadEvent = waitForLoadEvent;
+
+    await expect(
+      executeNavigate(
+        runtime,
+        "tab-1",
+        {
+          mode: "to",
+          url: "chrome://settings",
+          allow_sensitive_browser_pages: true
+        },
+        new AbortController().signal
+      )
+    ).resolves.toEqual({
+      url: "chrome://settings/"
+    });
+
+    expect(navigateSensitivePage).toHaveBeenCalledWith("tab-1", "chrome://settings");
+    expect(waitForLoadEvent).toHaveBeenCalled();
   });
 
   it("supports modifier key chords in ComputerBatch key steps", async () => {

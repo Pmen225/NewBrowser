@@ -4,7 +4,15 @@ export function normalizePanelSettings(raw) {
   const value = raw && typeof raw === "object" ? raw : {};
   return {
     narrationEnabled: value.narrationEnabled === true,
-    transcriptionEnabled: value.transcriptionEnabled === true
+    transcriptionEnabled: value.transcriptionEnabled === true,
+    transcriptionModelId: typeof value.transcriptionModelId === "string" ? value.transcriptionModelId.trim() : "",
+    transcriptionLanguage: typeof value.transcriptionLanguage === "string" ? value.transcriptionLanguage.trim() : "",
+    browserAdminEnabled: value.browserAdminEnabled === true,
+    extensionManagementEnabled: value.extensionManagementEnabled === true,
+    memoryManualEnabled: value.memoryManualEnabled !== false,
+    memoryBookmarksEnabled: value.memoryBookmarksEnabled === true,
+    memoryHistoryEnabled: value.memoryHistoryEnabled === true,
+    memorySettingsEnabled: value.memorySettingsEnabled === true
   };
 }
 
@@ -34,4 +42,3 @@ export async function savePanelSettings(nextSettings, storage = globalThis.chrom
   } catch {}
   return normalized;
 }
-
