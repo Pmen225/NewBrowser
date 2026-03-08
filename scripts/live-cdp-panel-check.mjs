@@ -265,6 +265,32 @@ export function isMissingSessionError(error) {
   return error instanceof Error && /session with given id not found/i.test(error.message);
 }
 
+export function isMissingTargetError(error) {
+  return error instanceof Error && /no target with given id found/i.test(error.message);
+}
+
+function normalizeTargetUrl(url) {
+  if (typeof url !== "string" || url.trim().length === 0) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}${parsed.search}`;
+  } catch {
+    return url.trim();
+  }
+}
+
+function targetUrlsMatch(candidateUrl, expectedUrl) {
+  const candidate = normalizeTargetUrl(candidateUrl);
+  const expected = normalizeTargetUrl(expectedUrl);
+  if (!candidate || !expected) {
+    return false;
+  }
+  return candidate === expected || candidate.startsWith(expected) || expected.startsWith(candidate);
+}
+
 async function attachToTargetSession(cdp, targetId) {
   const attached = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
   const sessionId = attached?.sessionId;
@@ -276,17 +302,79 @@ async function attachToTargetSession(cdp, targetId) {
   return sessionId;
 }
 
-export async function withRecoveredSession(cdp, target, operation) {
-  try {
-    return await operation(target.sessionId);
-  } catch (error) {
-    if (!isMissingSessionError(error)) {
-      throw error;
+async function resolveCurrentTargetId(cdp, target) {
+  if (typeof target.resolveTargetId === "function") {
+    const resolved = await target.resolveTargetId(cdp, target);
+    if (typeof resolved === "string" && resolved.length > 0) {
+      return resolved;
     }
-
-    target.sessionId = await attachToTargetSession(cdp, target.targetId);
-    return operation(target.sessionId);
   }
+
+  const expectedUrl = target.matchUrl || target.url;
+  if (typeof expectedUrl !== "string" || expectedUrl.length === 0) {
+    return null;
+  }
+
+  const response = await cdp.send("Target.getTargets", {});
+  const targetInfos = Array.isArray(response?.targetInfos) ? response.targetInfos : [];
+  const matches = targetInfos.filter((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return false;
+    }
+    if (typeof target.type === "string" && target.type.length > 0 && entry.type !== target.type) {
+      return false;
+    }
+    return targetUrlsMatch(entry.url, expectedUrl);
+  });
+
+  const exact = matches.find((entry) => normalizeTargetUrl(entry.url) === normalizeTargetUrl(expectedUrl));
+  return exact?.targetId || matches[0]?.targetId || null;
+}
+
+async function recoverTargetSession(cdp, target) {
+  const nextTargetId = await resolveCurrentTargetId(cdp, target);
+  if (typeof nextTargetId !== "string" || nextTargetId.length === 0) {
+    throw new Error(`Unable to recover a live target for ${target.matchUrl || target.url || target.targetId || "unknown target"}`);
+  }
+
+  target.targetId = nextTargetId;
+  target.sessionId = await attachToTargetSession(cdp, nextTargetId);
+  return target.sessionId;
+}
+
+export async function withRecoveredSession(cdp, target, operation) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await operation(target.sessionId);
+    } catch (error) {
+      lastError = error;
+
+      if (!isMissingSessionError(error) && !isMissingTargetError(error)) {
+        throw error;
+      }
+
+      try {
+        if (isMissingTargetError(error)) {
+          await recoverTargetSession(cdp, target);
+        } else {
+          try {
+            target.sessionId = await attachToTargetSession(cdp, target.targetId);
+          } catch (attachError) {
+            if (!isMissingTargetError(attachError)) {
+              throw attachError;
+            }
+            await recoverTargetSession(cdp, target);
+          }
+        }
+      } catch (recoveryError) {
+        throw recoveryError;
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 async function createPageSession(cdp) {
@@ -784,13 +872,17 @@ export async function runLivePanelCheck({
       scenarioName
     });
     site = await createPageSession(cdp);
+    site.type = "page";
     createdTargets.push(site.targetId);
     await navigateSession(cdp, site.sessionId, benchmarkWorkspace.siteUrl);
+    site.matchUrl = benchmarkWorkspace.siteUrl;
     console.log(`Loaded target page: ${benchmarkWorkspace.siteUrl}`);
 
     panel = await createPageSession(cdp);
+    panel.type = "page";
     createdTargets.push(panel.targetId);
     await navigateSession(cdp, panel.sessionId, benchmarkWorkspace.panelUrl);
+    panel.matchUrl = benchmarkWorkspace.panelUrl;
     await waitForFunction(
       cdp,
       panel.sessionId,

@@ -194,4 +194,57 @@ describe("execution target resolver", () => {
       url: "chrome://settings/"
     });
   });
+
+  it("prefers the explicit active tab over a stale last page tab when no tab_id is provided", async () => {
+    const transport = new FakeTransport();
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "target-active",
+          type: "page",
+          url: "https://the-internet.herokuapp.com/checkboxes"
+        },
+        {
+          targetId: "target-stale",
+          type: "page",
+          url: "https://oldest.org/"
+        }
+      ]
+    });
+
+    const sessionRegistry = createMockSessionRegistry([
+      {
+        tabId: "tab-active",
+        targetId: "target-active",
+        sessionId: "session-active",
+        status: "attached",
+        attachedAt: "2026-03-08T00:00:00.000Z"
+      },
+      {
+        tabId: "tab-stale",
+        targetId: "target-stale",
+        sessionId: "session-stale",
+        status: "attached",
+        attachedAt: "2026-03-08T00:00:00.000Z"
+      }
+    ]);
+
+    const resolver = createExecutionTargetResolver({
+      transport,
+      sessionRegistry,
+      getActiveTabId: () => "tab-active",
+      getDefaultTabId: () => "tab-stale",
+      getLastPageTabId: () => "tab-stale"
+    });
+
+    const resolved = await resolver.resolveForAction("ReadPage", undefined, {});
+
+    expect(resolved).toEqual({
+      tabId: "tab-active",
+      kind: "page",
+      recovered: true,
+      url: "https://the-internet.herokuapp.com/checkboxes"
+    });
+    expect(sessionRegistry.attachTab).not.toHaveBeenCalled();
+  });
 });

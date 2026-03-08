@@ -45,6 +45,7 @@ import {
 } from "./rpc/dispatcher";
 import { createRpcWebSocketServer } from "./ws/rpcServer";
 import { ChromeCdpTransport } from "./cdp/chrome-cdp-transport";
+import { detectExtensionPresence, resolveDefaultChromeProfileRoot } from "./extension-presence";
 import {
   groupTabsViaExtensionContext,
   navigateSensitiveTabViaExtensionContext,
@@ -344,6 +345,7 @@ function createBrowserRuntime(transport: ChromeCdpTransport, sessionRegistry: Se
     getTab: sessionRegistry.getTab.bind(sessionRegistry),
     listTabs: sessionRegistry.listTabs.bind(sessionRegistry),
     getJavaScriptDialog: sessionRegistry.getJavaScriptDialog.bind(sessionRegistry),
+    clearJavaScriptDialog: sessionRegistry.clearJavaScriptDialogForTab.bind(sessionRegistry),
     groupTabs: async (tabIds, options) => {
       const targets = tabIds.map((tabId) => {
         const tab = sessionRegistry.getTab(tabId);
@@ -442,33 +444,6 @@ async function attachInitialTab(
   await sessionRegistry.enableDomains(tab.tabId);
   await sessionRegistry.refreshFrameTree(tab.tabId);
   return tab.tabId;
-}
-
-async function detectExtensionLoaded(
-  transport: ChromeCdpTransport,
-  timeoutMs = 4_000,
-  pollIntervalMs = 250
-): Promise<boolean> {
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() <= deadline) {
-    try {
-      const targets = await transport.send<{ targetInfos?: TargetInfoLike[] }>("Target.getTargets", {});
-      const targetInfos = targets.targetInfos ?? [];
-      const loaded = targetInfos.some(
-        (target) => typeof target.url === "string" && target.url.startsWith("chrome-extension://")
-      );
-      if (loaded) {
-        return true;
-      }
-    } catch {
-      // Ignore temporary CDP target errors during startup.
-    }
-
-    await sleep(pollIntervalMs);
-  }
-
-  return false;
 }
 
 function jsonResponse(response: ServerResponse, statusCode: number, payload: Record<string, unknown>): void {
@@ -637,7 +612,12 @@ async function start(): Promise<void> {
   const strictBrowserLaunch = browserPolicy === "ungoogled_only";
   const browserBinaryPath = process.env.NEW_BROWSER_BROWSER_BINARY?.trim() || process.env.COMET_BROWSER_BINARY?.trim() || undefined;
   let extensionLoaded = false;
+  let extensionId: string | null = null;
+  let extensionDetectedViaTargets = false;
+  let extensionDetectionSource = "none";
   let cdpWsUrl = await resolveCdpWebSocketUrl();
+  const extensionPath = await resolveExtensionPath();
+  const profileRoot = resolveDefaultChromeProfileRoot();
 
   if (!cdpWsUrl) {
     try {
@@ -650,7 +630,7 @@ async function start(): Promise<void> {
         binaryPath: browserBinaryPath,
         debuggingPort,
         userDataDir: process.env.CHROME_USER_DATA_DIR?.trim() || undefined,
-        extensionPath: await resolveExtensionPath(),
+        extensionPath,
         browserPolicy
       });
       cdpWsUrl = launchedBrowser.cdpWsUrl;
@@ -720,11 +700,18 @@ async function start(): Promise<void> {
     });
     await transport.connect();
     startupLog("Transport connected");
-    extensionLoaded = await detectExtensionLoaded(transport);
-    startupLog(`Extension loaded: ${String(extensionLoaded)}`);
+    const extensionPresence = await detectExtensionPresence(transport, {
+      extensionPath,
+      profileRoot
+    });
+    extensionLoaded = extensionPresence.loaded;
+    extensionId = extensionPresence.extensionId;
+    extensionDetectedViaTargets = extensionPresence.targetDetected;
+    extensionDetectionSource = extensionPresence.detectionSource;
+    startupLog(`Extension loaded: ${String(extensionLoaded)} (${extensionDetectionSource})`);
     config.extensionLoaded = extensionLoaded;
     if (!extensionLoaded) {
-      console.warn("New Browser extension was not detected in Chrome targets.");
+      console.warn("New Browser extension was not detected through targets or profile state.");
     }
 
     const frameRegistry = new FrameRegistry();
@@ -781,6 +768,7 @@ async function start(): Promise<void> {
         sessionRegistry,
         onActiveTabChanged: (tabId: string) => {
           activeTabId = tabId;
+          lastPageTabId = tabId;
           void executionTargetResolver
             .describeTab(tabId)
             .then((resolved) => {
@@ -816,7 +804,7 @@ async function start(): Promise<void> {
     promptSpecs,
     providerRegistry,
     defaultMaxSteps: defaultAgentMaxSteps,
-    resolveDefaultTabId: () => lastPageTabId ?? activeTabId ?? defaultTabId,
+    resolveDefaultTabId: () => activeTabId ?? lastPageTabId ?? defaultTabId,
     performAction: async (action: string, tabId: string, params: Record<string, unknown>, signal: AbortSignal) => {
       let effectiveTabId = tabId;
 
@@ -913,7 +901,10 @@ async function start(): Promise<void> {
           target_id: tab.targetId
         })) ?? [],
       browser_policy: config.browserPolicy,
-      extension_loaded: config.extensionLoaded
+      extension_loaded: config.extensionLoaded,
+      extension_id: extensionId,
+      extension_detection_source: extensionDetectionSource,
+      extension_detected_via_targets: extensionDetectedViaTargets
     }),
     providerRegistry,
     providerState,
@@ -964,6 +955,9 @@ async function start(): Promise<void> {
         active_tab_id: activeTabId ?? defaultTabId,
         browser_policy: config.browserPolicy,
         extension_loaded: config.extensionLoaded,
+        extension_id: extensionId,
+        extension_detection_source: extensionDetectionSource,
+        extension_detected_via_targets: extensionDetectedViaTargets,
         rpc_path: config.rpcPath,
         events_path: config.eventsPath,
         traces_dir: resolve(config.traceDir),

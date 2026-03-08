@@ -21,6 +21,8 @@ import { parseRefId, type ParsedRefId } from "../sidecar/tools/browser-action-ty
 import type { FrameTreeSnapshot, JavaScriptDialogRecord, SessionRoute, TabRecord } from "./types";
 
 const DEFAULT_NAVIGATION_TIMEOUT_MS = 10_000;
+const DIALOG_OPEN_TIMEOUT_MS = 1_000;
+const DIALOG_CLOSE_TIMEOUT_MS = 1_500;
 
 // Track which CDP sessions have had the stealth + consent script injected
 const _stealthInjectedSessions = new Set<string>();
@@ -190,6 +192,7 @@ export interface BrowserActionRuntime extends RouteLike {
   getTab(tabId: string): TabRecord | undefined;
   listTabs(): TabRecord[];
   getJavaScriptDialog?: (tabId: string) => JavaScriptDialogRecord | undefined;
+  clearJavaScriptDialog?: (tabId: string) => void;
   groupTabs?: (
     tabIds: string[],
     options?: {
@@ -848,7 +851,7 @@ async function runComputerStep(
   nextStep?: ComputerStep
 ): Promise<ComputerStepOutcome | undefined> {
   if (step.kind === "click") {
-    const dialogTimeoutMs = nextStep?.kind === "dialog" ? 1_000 : 300;
+    const dialogTimeoutMs = nextStep?.kind === "dialog" ? DIALOG_OPEN_TIMEOUT_MS : 300;
     if (step.ref) {
       const node = await resolveNode(runtime, tabId, step.ref);
       try {
@@ -973,7 +976,7 @@ async function runComputerStep(
 
   if (step.kind === "dialog") {
     try {
-      await waitForJavaScriptDialogState(runtime, tabId, "open", 200, 25);
+      await waitForJavaScriptDialogState(runtime, tabId, "open", DIALOG_OPEN_TIMEOUT_MS, 25);
       await runtime.send(
         "Page.handleJavaScriptDialog",
         {
@@ -982,7 +985,8 @@ async function runComputerStep(
         },
         defaultRoute.sessionId
       );
-      await waitForJavaScriptDialogState(runtime, tabId, "closed", 1_000, 25);
+      runtime.clearJavaScriptDialog?.(tabId);
+      await waitForJavaScriptDialogState(runtime, tabId, "closed", DIALOG_CLOSE_TIMEOUT_MS, 25);
     } catch (error) {
       throw toBrowserActionError(error, "ACTION_TARGET_INVALID", true, {
         accept: step.accept

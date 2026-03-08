@@ -92,5 +92,22 @@ describe("assistant panel shell contract", () => {
     expect(script).toContain('type: "ATLAS_CONTROL_STATE"');
     expect(script).toContain('msg.action === "pause"');
     expect(script).toContain('msg.action === "resume"');
+    expect(script).toContain('const message = normalizePanelErrorMessage(err?.message ?? "Failed to start run.");');
+    expect(script).toContain('if (currentAiEl) {');
+    expect(script).toContain('showToast(message, "error");');
+    expect(script).toContain('transitionState("idle");');
+    expect(script).toContain('else void sendPrompt(input.value);');
+  });
+
+  it("wraps sendPrompt preflight in a top-level try/catch so pre-AgentRun failures cannot strand the UI", () => {
+    const script = readFileSync(path.join(ROOT, "extension", "panel.js"), "utf8");
+    const sendPromptStart = script.indexOf("async function sendPrompt(promptText) {");
+    const sendPromptBody = script.slice(sendPromptStart, script.indexOf("async function stopRun()", sendPromptStart));
+
+    expect(sendPromptBody).toContain("try {");
+    expect(sendPromptBody).toContain("const resolvedPromptText = await expandMentionTokens(text);");
+    expect(sendPromptBody).toContain("const { provider, model, apiKey, baseUrl, missingProviderSession } = await resolveProvider(capabilityRequest);");
+    expect(sendPromptBody).toContain('showToast(message, "error");');
+    expect(sendPromptBody).toContain('transitionState("idle");');
   });
 });

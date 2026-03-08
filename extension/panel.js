@@ -2217,109 +2217,109 @@ async function queueSteerPrompt(promptText) {
 async function sendPrompt(promptText) {
   const text = promptText.trim();
   if (!text) return;
-  if (state === "running" && currentRunId) {
-    await queueSteerPrompt(text);
-    return;
-  }
+  try {
+    if (state === "running" && currentRunId) {
+      await queueSteerPrompt(text);
+      return;
+    }
 
-  const pendingAttachments = attachments.slice();
-  let historyMessages = [];
-  const resolvedPromptText = await expandMentionTokens(text);
-  const activeTabForPrompt = await getActiveWebTab().catch(() => null);
-  if (isPageContextPrompt(resolvedPromptText) && !hasAccessibleWebTab(activeTabForPrompt)) {
-    showToast("Atlas cannot use this page. Switch to a normal website tab.", "error");
-    return;
-  }
+    const pendingAttachments = attachments.slice();
+    let historyMessages = [];
+    const resolvedPromptText = await expandMentionTokens(text);
+    const activeTabForPrompt = await getActiveWebTab().catch(() => null);
+    if (isPageContextPrompt(resolvedPromptText) && !hasAccessibleWebTab(activeTabForPrompt)) {
+      showToast("Atlas cannot use this page. Switch to a normal website tab.", "error");
+      return;
+    }
 
-  // Build full prompt with attachments prefix
-  let fullPrompt = resolvedPromptText;
-  if (pendingAttachments.length > 0) {
+    // Build full prompt with attachments prefix
+    let fullPrompt = resolvedPromptText;
+    if (pendingAttachments.length > 0) {
+      try {
+        const prefix = buildAttachmentPromptPrefix(pendingAttachments);
+        if (prefix) fullPrompt = prefix + "\n\n" + resolvedPromptText;
+      } catch {}
+    }
+
+    const imageDataUrls = pendingAttachments
+      .filter(a => (a.type === "screenshot" || a.type === "image") && a.dataUrl)
+      .map(a => a.dataUrl);
+
+    setThreadVisible(true);
+    appendUserMsg(text);
+    scrollToBottom();
+
+    const input = document.getElementById("prompt-input");
+    if (input) { input.value = ""; input.style.height = ""; }
+
+    // Clear attachments
+    attachments = [];
+    updateAttachmentPreview();
+
+    currentAiEl  = appendAiMsg();
+    streamBuffer = "";
+    actionItems.clear();
+    currentRunState = { steps: [] };
+    currentControlState = "active";
+    renderThinkingState(currentAiEl, currentRunState);
+    scrollToBottom();
+    transitionState("running");
+
+    // Get the active Chrome tab ID for overlay control.
+    // Note: the sidecar RPC uses its own internal string tab IDs ("tab-1", "tab-2"),
+    // which differ from Chrome's integer tab IDs. Pass null as the sidecar tab_id
+    // for AgentRun — the system dispatcher ignores it and the agent resolves the
+    // active tab through its own CDP state.
+    let tabId = null;
     try {
-      const prefix = buildAttachmentPromptPrefix(pendingAttachments);
-      if (prefix) fullPrompt = prefix + "\n\n" + resolvedPromptText;
+      const tab = await getActiveWebTab();
+      overlayTabId = tab?.id ?? null;
+      // tabId stays null — do not pass Chrome's integer tab ID to the sidecar RPC
+      if (overlayTabId) {
+        chrome.runtime.sendMessage({ type: "ATLAS_OVERLAY_START", tabId: overlayTabId }).catch(() => {});
+        overlayActive = true;
+      }
     } catch {}
-  }
 
-  const imageDataUrls = pendingAttachments
-    .filter(a => (a.type === "screenshot" || a.type === "image") && a.dataUrl)
-    .map(a => a.dataUrl);
+    // Session persistence — record user message
+    try {
+      const stored = await new Promise(r => chrome.storage.local.get([CHAT_SESSIONS_STORAGE_KEY], r));
+      sessionStore = normalizeChatSessionsStore(stored[CHAT_SESSIONS_STORAGE_KEY]);
+      if (!activeSessionId) {
+        sessionStore   = ensureActiveSession(sessionStore);
+        activeSessionId = sessionStore.activeSessionId ?? sessionStore.sessions[0]?.id ?? null;
+      }
+      if (activeSessionId) {
+        historyMessages = buildHistoryMessages(sessionStore, activeSessionId);
+        sessionStore = appendSessionMessage(sessionStore, activeSessionId, { role: "user", text, ts: nowIso() });
+        chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore });
+      }
+    } catch {}
 
-  setThreadVisible(true);
-  appendUserMsg(text);
-  scrollToBottom();
-
-  const input = document.getElementById("prompt-input");
-  if (input) { input.value = ""; input.style.height = ""; }
-
-  // Clear attachments
-  attachments = [];
-  updateAttachmentPreview();
-
-  currentAiEl  = appendAiMsg();
-  streamBuffer = "";
-  actionItems.clear();
-  currentRunState = { steps: [] };
-  currentControlState = "active";
-  renderThinkingState(currentAiEl, currentRunState);
-  scrollToBottom();
-  transitionState("running");
-
-  // Get the active Chrome tab ID for overlay control.
-  // Note: the sidecar RPC uses its own internal string tab IDs ("tab-1", "tab-2"),
-  // which differ from Chrome's integer tab IDs. Pass null as the sidecar tab_id
-  // for AgentRun — the system dispatcher ignores it and the agent resolves the
-  // active tab through its own CDP state.
-  let tabId = null;
-  try {
-    const tab = await getActiveWebTab();
-    overlayTabId = tab?.id ?? null;
-    // tabId stays null — do not pass Chrome's integer tab ID to the sidecar RPC
-    if (overlayTabId) {
-      chrome.runtime.sendMessage({ type: "ATLAS_OVERLAY_START", tabId: overlayTabId }).catch(() => {});
-      overlayActive = true;
-    }
-  } catch {}
-
-  // Session persistence — record user message
-  try {
-    const stored = await new Promise(r => chrome.storage.local.get([CHAT_SESSIONS_STORAGE_KEY], r));
-    sessionStore = normalizeChatSessionsStore(stored[CHAT_SESSIONS_STORAGE_KEY]);
-    if (!activeSessionId) {
-      sessionStore   = ensureActiveSession(sessionStore);
-      activeSessionId = sessionStore.activeSessionId ?? sessionStore.sessions[0]?.id ?? null;
-    }
-    if (activeSessionId) {
-      historyMessages = buildHistoryMessages(sessionStore, activeSessionId);
-      sessionStore = appendSessionMessage(sessionStore, activeSessionId, { role: "user", text, ts: nowIso() });
-      chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore });
-    }
-  } catch {}
-
-  const capabilityRequest = buildTaskCapabilityRequest({
-    prompt: text,
-    hasImageInput: imageDataUrls.length > 0
-  });
-  const { provider, model, apiKey, baseUrl, missingProviderSession } = await resolveProvider(capabilityRequest);
-  const panelSettings = await loadPanelSettings();
-  const memoryStore = await loadMemoryStore();
-  const modelConfig = normalizeModelConfig((await chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY]))?.[MODEL_CONFIG_STORAGE_KEY]);
-  const memoryItems = await buildMemoryContextItems(resolvedPromptText, {
-    settings: panelSettings,
-    store: memoryStore,
-    modelConfig
-  });
-
-  if (missingProviderSession) {
-    setAiAvatar(currentAiEl, "");
-    setAiContent(currentAiEl, buildProviderSetupCard(provider));
-    currentAiEl?.querySelector('[data-open-settings-section="general"]')?.addEventListener("click", () => {
-      void openSettingsPage("general");
+    const capabilityRequest = buildTaskCapabilityRequest({
+      prompt: text,
+      hasImageInput: imageDataUrls.length > 0
     });
-    transitionState("idle");
-    return;
-  }
+    const { provider, model, apiKey, baseUrl, missingProviderSession } = await resolveProvider(capabilityRequest);
+    const panelSettings = await loadPanelSettings();
+    const memoryStore = await loadMemoryStore();
+    const modelConfig = normalizeModelConfig((await chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY]))?.[MODEL_CONFIG_STORAGE_KEY]);
+    const memoryItems = await buildMemoryContextItems(resolvedPromptText, {
+      settings: panelSettings,
+      store: memoryStore,
+      modelConfig
+    });
 
-  try {
+    if (missingProviderSession) {
+      setAiAvatar(currentAiEl, "");
+      setAiContent(currentAiEl, buildProviderSetupCard(provider));
+      currentAiEl?.querySelector('[data-open-settings-section="general"]')?.addEventListener("click", () => {
+        void openSettingsPage("general");
+      });
+      transitionState("idle");
+      return;
+    }
+
     const result = await rpc.call("AgentRun", tabId, {
       prompt: fullPrompt,
       provider,
@@ -2339,9 +2339,12 @@ async function sendPrompt(promptText) {
       scheduleRunStatePoll(currentRunId);
     }
   } catch (err) {
-    setAiAvatar(currentAiEl, "gamma-error");
-    setAiContent(currentAiEl, `<span style="color:oklch(62.8% .258 29.23)">${SVG.warning} ${escHtml(err?.message ?? "Failed to reach sidecar.")}</span>`);
-    showToast(err?.message ?? "Connection failed", "error");
+    const message = normalizePanelErrorMessage(err?.message ?? "Failed to start run.");
+    if (currentAiEl) {
+      setAiAvatar(currentAiEl, "gamma-error");
+      setAiContent(currentAiEl, `<span style="color:oklch(62.8% .258 29.23)">${SVG.warning} ${escHtml(message)}</span>`);
+    }
+    showToast(message, "error");
     transitionState("idle");
   }
 }
@@ -2522,8 +2525,8 @@ function autoResize(el) {
     if (e.key === "Enter" && !e.shiftKey) {
       if (overlayKind !== OVERLAY_NONE) return; // let palette handle Enter
       e.preventDefault();
-      if (state === "running" && !input.value.trim()) stopRun();
-      else sendPrompt(input.value);
+      if (state === "running" && !input.value.trim()) void stopRun();
+      else void sendPrompt(input.value);
     }
   });
 
@@ -2545,8 +2548,8 @@ function autoResize(el) {
   });
 
   sendBtn.addEventListener("click", () => {
-    if (state === "running" && !input.value.trim()) stopRun();
-    else sendPrompt(input.value);
+    if (state === "running" && !input.value.trim()) void stopRun();
+    else void sendPrompt(input.value);
   });
 
   newBtn.addEventListener("click", (e) => {
@@ -2560,7 +2563,7 @@ function autoResize(el) {
   emptyReconnectButton?.addEventListener("click", reconnectToSidecar);
   chips.addEventListener("click", (e) => {
     const chip = e.target.closest(".chip");
-    if (chip?.dataset.prompt) sendPrompt(chip.dataset.prompt);
+    if (chip?.dataset.prompt) void sendPrompt(chip.dataset.prompt);
   });
 
   plusBtn.addEventListener("click", (e) => {

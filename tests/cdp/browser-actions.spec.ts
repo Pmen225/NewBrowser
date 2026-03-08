@@ -122,6 +122,9 @@ function createRuntime() {
     },
     getJavaScriptDialog() {
       return currentDialog;
+    },
+    clearJavaScriptDialog() {
+      currentDialog = undefined;
     }
   };
 
@@ -616,6 +619,99 @@ describe("browser CDP action wrappers", () => {
         params: { format: "png" },
         sessionId: "session-main"
       }
+    ]);
+  });
+
+  it("waits for a dialog step when the prompt opens shortly after the step starts", async () => {
+    const { transport, runtime, setDialog } = createRuntime();
+    runtime.send = (async (method, params, sessionId) => {
+      const result = await transport.send(method, params, sessionId);
+      if (method === "Page.handleJavaScriptDialog") {
+        setDialog(undefined);
+      }
+      return result;
+    }) as BrowserActionRuntime["send"];
+
+    transport.queueResponse("Page.handleJavaScriptDialog", {});
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("delayed-dialog-png").toString("base64")
+    });
+
+    const openDialogLater = setTimeout(() => {
+      setDialog({
+        tabId: "tab-delayed-dialog",
+        sessionId: "session-main",
+        type: "prompt",
+        message: "Atlas?",
+        defaultPrompt: "",
+        hasBrowserHandler: false,
+        openedAt: "2026-03-08T00:00:00.000Z"
+      });
+    }, 350);
+
+    try {
+      const result = await executeComputerBatch(
+        runtime,
+        "tab-delayed-dialog",
+        {
+          steps: [{ kind: "dialog", accept: true, prompt_text: "Atlas prompt" }]
+        },
+        new AbortController().signal
+      );
+
+      expect(result).toEqual({
+        steps: [{ index: 0, ok: true }],
+        completed_steps: 1,
+        screenshot_b64: Buffer.from("delayed-dialog-png").toString("base64")
+      });
+      expect(transport.sendCalls.map((call) => call.method)).toEqual([
+        "Page.addScriptToEvaluateOnNewDocument",
+        "Runtime.evaluate",
+        "Page.handleJavaScriptDialog",
+        "Page.captureScreenshot"
+      ]);
+    } finally {
+      clearTimeout(openDialogLater);
+    }
+  });
+
+  it("clears local dialog state after handling when Chromium does not emit a close event", async () => {
+    const { transport, runtime, setDialog, getDialog } = createRuntime();
+    setDialog({
+      tabId: "tab-dialog-sticky",
+      sessionId: "session-main",
+      type: "prompt",
+      message: "Atlas?",
+      defaultPrompt: "",
+      hasBrowserHandler: false,
+      openedAt: "2026-03-08T00:00:00.000Z"
+    });
+
+    transport.queueResponse("Page.handleJavaScriptDialog", {});
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("sticky-dialog-png").toString("base64")
+    });
+
+    const result = await executeComputerBatch(
+      runtime,
+      "tab-dialog-sticky",
+      {
+        steps: [{ kind: "dialog", accept: true, prompt_text: "Atlas prompt" }]
+      },
+      new AbortController().signal
+    );
+
+    expect(result).toEqual({
+      steps: [{ index: 0, ok: true }],
+      completed_steps: 1,
+      screenshot_b64: Buffer.from("sticky-dialog-png").toString("base64")
+    });
+    expect(getDialog()).toBeUndefined();
+    expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
+      "Page.handleJavaScriptDialog",
+      "Page.captureScreenshot"
     ]);
   });
 
