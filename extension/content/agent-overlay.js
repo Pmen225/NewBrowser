@@ -98,9 +98,7 @@
         linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.2) 48%, transparent 100%),
         radial-gradient(circle at center, rgba(255, 255, 255, 0.14), transparent 62%);
       mix-blend-mode: screen;
-      animation:
-        atlas-dots-sweep 4.6s cubic-bezier(0.16, 1, 0.3, 1) infinite,
-        atlas-dots-drift 8.8s linear infinite;
+      animation: atlas-dots-sweep 4.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
     #atlas-dots.atlas-in {
       animation: atlas-dots-breathe 3.1s ease-in-out infinite;
@@ -108,10 +106,6 @@
     @keyframes atlas-dots-breathe {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.78; }
-    }
-    @keyframes atlas-dots-drift {
-      0% { transform: translate3d(-10px, -10px, 0); }
-      100% { transform: translate3d(10px, 10px, 0); }
     }
     @keyframes atlas-dots-sweep {
       0%, 100% { transform: translateX(-6%); opacity: 0.32; }
@@ -497,8 +491,9 @@
   let currentAnchorRect = null;
   let statusSwapTimer = null;
   let labelSwapTimer = null;
-  let idleFrame = null;
-  let cursorHoldUntilMs = 0;
+  let cursorMotionFrame = null;
+  let cursorMotionEndMs = 0;
+  let pendingClickTimer = null;
   let titleObserver = null;
   let syncingTitle = false;
 
@@ -703,33 +698,67 @@
     updateLabelPosition(x, y);
   }
 
-  function stopCursorIdleMotion() {
-    if (idleFrame !== null) {
-      cancelAnimationFrame(idleFrame);
-      idleFrame = null;
+  function cancelCursorMotion() {
+    if (cursorMotionFrame !== null) {
+      cancelAnimationFrame(cursorMotionFrame);
+      cursorMotionFrame = null;
     }
-    applyCursorPosition(currentX, currentY);
   }
 
-  function scheduleCursorIdleMotion() {
-    if (idleFrame !== null) {
+  function clearPendingClick() {
+    if (pendingClickTimer !== null) {
+      clearTimeout(pendingClickTimer);
+      pendingClickTimer = null;
+    }
+  }
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function animateCursorPath(targetX, targetY) {
+    cancelCursorMotion();
+    const startX = currentX;
+    const startY = currentY;
+    const deltaX = targetX - startX;
+    const deltaY = targetY - startY;
+    const distance = Math.hypot(deltaX, deltaY);
+    if (distance < 1) {
+      applyCursorPosition(targetX, targetY);
+      cursorMotionEndMs = Date.now();
       return;
     }
 
-    const tick = (timestamp) => {
-      idleFrame = requestAnimationFrame(tick);
-      if (paused || !cursorVisible) {
+    const duration = Math.max(180, Math.min(520, 130 + distance * 0.45));
+    const unitX = deltaX / distance;
+    const unitY = deltaY / distance;
+    const perpX = -unitY;
+    const perpY = unitX;
+    const arc = Math.min(8, Math.max(0, distance * 0.035));
+    const direction = ((Math.round(startX + startY + targetX + targetY) % 2) === 0 ? 1 : -1);
+    const controlX = startX + deltaX * 0.5 + perpX * arc * direction;
+    const controlY = startY + deltaY * 0.5 + perpY * arc * direction;
+    const startedAt = performance.now();
+    cursorMotionEndMs = Date.now() + duration;
+
+    const step = (timestamp) => {
+      const rawT = Math.min(1, (timestamp - startedAt) / duration);
+      const t = easeOutCubic(rawT);
+      const inverse = 1 - t;
+      const x = inverse * inverse * startX + 2 * inverse * t * controlX + t * t * targetX;
+      const y = inverse * inverse * startY + 2 * inverse * t * controlY + t * t * targetY;
+      applyCursorPosition(x, y);
+      if (rawT >= 1) {
+        currentX = targetX;
+        currentY = targetY;
+        cursorMotionFrame = null;
+        applyCursorPosition(currentX, currentY);
         return;
       }
-
-      const now = Date.now();
-      const radius = now < cursorHoldUntilMs ? 0 : 7;
-      const x = currentX + Math.sin(timestamp / 420) * radius;
-      const y = currentY + Math.cos(timestamp / 560) * radius;
-      applyCursorPosition(x, y);
+      cursorMotionFrame = requestAnimationFrame(step);
     };
 
-    idleFrame = requestAnimationFrame(tick);
+    cursorMotionFrame = requestAnimationFrame(step);
   }
 
   function showCursor() {
@@ -739,23 +768,22 @@
     cursorVisible = true;
     cursor.classList.add("atlas-visible");
     labelEl.classList.add("atlas-visible");
-    scheduleCursorIdleMotion();
+    applyCursorPosition(currentX, currentY);
   }
 
   function hideCursor() {
     cursorVisible = false;
     cursor.classList.remove("atlas-visible");
     labelEl.classList.remove("atlas-visible");
-    stopCursorIdleMotion();
+    cancelCursorMotion();
+    clearPendingClick();
+    applyCursorPosition(currentX, currentY);
   }
 
   function moveCursor(x, y) {
     const point = normalizePoint(x, y);
-    currentX = point.x;
-    currentY = point.y;
-    cursorHoldUntilMs = Date.now() + 900;
-    applyCursorPosition(currentX, currentY);
     showCursor();
+    animateCursorPath(point.x, point.y);
   }
 
   function swapText(element, nextText, timerName) {
@@ -815,17 +843,24 @@
       return;
     }
     const point = normalizePoint(x, y);
-    ["", " atlas-ripple-outer"].forEach((suffix) => {
-      const ripple = document.createElement("div");
-      ripple.className = `atlas-ripple${suffix}`;
-      ripple.style.left = `${point.x}px`;
-      ripple.style.top = `${point.y}px`;
-      root.appendChild(ripple);
-      ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
-    });
-    cursorHoldUntilMs = Date.now() + 460;
-    cursor.classList.add("atlas-click");
-    setTimeout(() => cursor.classList.remove("atlas-click"), 180);
+    clearPendingClick();
+    const delay = Math.max(90, cursorMotionEndMs - Date.now() + 90);
+    pendingClickTimer = setTimeout(() => {
+      pendingClickTimer = null;
+      currentX = point.x;
+      currentY = point.y;
+      applyCursorPosition(currentX, currentY);
+      ["", " atlas-ripple-outer"].forEach((suffix) => {
+        const ripple = document.createElement("div");
+        ripple.className = `atlas-ripple${suffix}`;
+        ripple.style.left = `${point.x}px`;
+        ripple.style.top = `${point.y}px`;
+        root.appendChild(ripple);
+        ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+      });
+      cursor.classList.add("atlas-click");
+      setTimeout(() => cursor.classList.remove("atlas-click"), 180);
+    }, delay);
   }
 
   function setStatusFromMessage(message) {

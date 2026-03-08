@@ -27,8 +27,17 @@ describe("atlas overlay surface", () => {
     expect(overlayJs).toContain("#atlas-label");
     expect(overlayJs).toContain("spawnRipple");
     expect(overlayJs).toContain("showStroke");
-    expect(overlayJs).toContain("scheduleCursorIdleMotion");
+    expect(overlayJs).toContain("animateCursorPath");
+    expect(overlayJs).not.toContain("scheduleCursorIdleMotion");
     expect(overlayJs).toContain("applyCursorPosition");
+  });
+
+  it("drives cursor motion from explicit target coordinates instead of idle drift", () => {
+    expect(overlayJs).toContain("const duration = Math.max(180, Math.min(520, 130 + distance * 0.45));");
+    expect(overlayJs).toContain("const controlX = startX + deltaX * 0.5 + perpX * arc * direction;");
+    expect(overlayJs).toContain("const delay = Math.max(90, cursorMotionEndMs - Date.now() + 90);");
+    expect(overlayJs).not.toContain("const radius = now < cursorHoldUntilMs ? 0 : 7;");
+    expect(overlayJs).not.toContain("atlas-dots-drift 8.8s linear infinite");
   });
 
   it("anchors the floating label away from the highlighted target rect when possible", () => {
