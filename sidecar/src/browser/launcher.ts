@@ -488,7 +488,7 @@ export async function launchBrowser(options: BrowserLaunchOptions = {}): Promise
   const userDataDir =
     options.userDataDir && options.userDataDir.trim().length > 0
       ? options.userDataDir.trim()
-      : await defaultMkdtemp(join(tmpdir(), process.platform === "darwin" ? "nb." : "new-browser-sidecar-"));
+      : join(homedir(), ".local", "share", "new-browser", "chrome-profile");
   await defaultMkdir(userDataDir, { recursive: true });
 
   const launchArgs = createLaunchArgs({

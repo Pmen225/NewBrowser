@@ -26,4 +26,3 @@ export function toggleOverlay(current, next) {
   }
   return currentKind === nextKind ? OVERLAY_NONE : nextKind;
 }
-

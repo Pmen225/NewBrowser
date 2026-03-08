@@ -118,6 +118,48 @@ describe("extension tab grouping bridge", () => {
     });
   });
 
+  it("rejects unverified grouping results instead of echoing the requested label", async () => {
+    const transport = new FakeTransport();
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "panel-target",
+          type: "page",
+          url: "chrome-extension://abc123/panel.html",
+          title: "Assistant"
+        },
+        {
+          targetId: "target-tab-1",
+          type: "page",
+          url: "https://example.com/a",
+          title: "A"
+        }
+      ]
+    });
+    transport.queueResponse("Target.attachToTarget", { sessionId: "extension-session" });
+    transport.queueResponse("Runtime.evaluate", {
+      result: {
+        value: {
+          ok: true,
+          chromeTabIds: [11],
+          groupId: 5
+        }
+      }
+    });
+    transport.queueResponse("Target.detachFromTarget", {});
+
+    await expect(
+      groupTabsViaExtensionContext(
+        transport,
+        [{ tabId: "tab-1", targetId: "target-tab-1" }],
+        { groupName: "Atlas" }
+      )
+    ).rejects.toMatchObject({
+      code: "TAB_GROUPING_VERIFICATION_FAILED",
+      retryable: false
+    });
+  });
+
   it("ungroups tabs through the extension context", async () => {
     const transport = new FakeTransport();
     transport.queueResponse("Target.getTargets", {

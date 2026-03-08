@@ -34,7 +34,7 @@ describe('atlas-overlay-state', () => {
     expect(controlButtonState('paused')).toEqual({
       label: 'Resume',
       primary: false,
-      status: 'Paused, you have control',
+      status: 'Paused — you have control',
     });
     expect(controlButtonState('active')).toEqual({
       label: 'Take control',
@@ -44,7 +44,7 @@ describe('atlas-overlay-state', () => {
     expect(controlButtonState('pausing')).toEqual({
       label: 'Take control',
       primary: false,
-      status: 'Pausing',
+      status: 'Pausing…',
     });
     expect(controlButtonState('stopping')).toEqual({
       label: 'Take control',

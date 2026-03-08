@@ -47,6 +47,8 @@ interface UngroupTabsResult {
   chromeTabIds: number[];
 }
 
+const CONTROLLED_TAB_TITLE_PREFIX = "AI · ";
+
 interface NavigateSensitiveTabResult {
   tabId: string;
   chromeTabId: number;
@@ -105,6 +107,13 @@ function buildRuntimeExpression(
         if (typeof tab.pendingUrl === "string" && tab.pendingUrl.length > 0) return tab.pendingUrl;
         return typeof tab.url === "string" ? tab.url : "";
       };
+      const normalizeTabTitle = (value) => {
+        if (typeof value !== "string") return "";
+        const trimmed = value.trim();
+        return trimmed.startsWith(${JSON.stringify(CONTROLLED_TAB_TITLE_PREFIX)})
+          ? trimmed.slice(${CONTROLLED_TAB_TITLE_PREFIX.length}).trim()
+          : trimmed;
+      };
 
       const matchedIds = [];
       for (const descriptor of payload.descriptors) {
@@ -126,7 +135,7 @@ function buildRuntimeExpression(
           if (typeof descriptor.url !== "string" || descriptor.url.length === 0) return false;
           if (resolveTabUrl(tab) !== descriptor.url) return false;
           if (descriptor.title && typeof tab.title === "string" && tab.title.length > 0) {
-            return tab.title === descriptor.title;
+            return normalizeTabTitle(tab.title) === normalizeTabTitle(descriptor.title);
           }
           return true;
         });
@@ -171,6 +180,14 @@ function buildRuntimeExpression(
         if (groupedIds.length > 0) {
           await chrome.tabs.ungroup(groupedIds);
         }
+        const verifiedTabs = await Promise.all(matchedIds.map((tabId) => chrome.tabs.get(tabId)));
+        if (verifiedTabs.some((tab) => typeof tab.groupId === "number" && tab.groupId >= 0)) {
+          return {
+            ok: false,
+            code: "TAB_UNGROUPING_NOT_APPLIED",
+            error: "Chrome did not remove the tab group from every requested tab"
+          };
+        }
 
         return {
           ok: true,
@@ -179,16 +196,40 @@ function buildRuntimeExpression(
       }
 
       const groupId = await chrome.tabs.group({ tabIds: matchedIds });
+      if (typeof chrome.tabGroups?.update !== "function" || typeof chrome.tabGroups?.get !== "function") {
+        return {
+          ok: false,
+          code: "TAB_GROUPING_UNAVAILABLE",
+          error: "Chrome tab group titles are unavailable in this runtime"
+        };
+      }
       await chrome.tabGroups.update(groupId, {
         title: payload.groupName,
         ...(payload.groupColor ? { color: payload.groupColor } : {})
       });
+      const verifiedTabs = await Promise.all(matchedIds.map((tabId) => chrome.tabs.get(tabId)));
+      if (!verifiedTabs.every((tab) => tab.groupId === groupId)) {
+        return {
+          ok: false,
+          code: "TAB_GROUPING_NOT_APPLIED",
+          error: "Chrome did not keep the requested tabs in a single group"
+        };
+      }
+      const group = await chrome.tabGroups.get(groupId);
+      const verifiedGroupName = typeof group?.title === "string" ? group.title.trim() : "";
+      if (!verifiedGroupName || verifiedGroupName !== payload.groupName) {
+        return {
+          ok: false,
+          code: "TAB_GROUPING_TITLE_MISMATCH",
+          error: "Chrome did not apply the requested tab group title"
+        };
+      }
 
       return {
         ok: true,
         chromeTabIds: matchedIds,
         groupId,
-        groupName: payload.groupName
+        groupName: verifiedGroupName
       };
     }
   )()`;
@@ -247,11 +288,18 @@ export async function groupTabsViaExtensionContext(
   options?: GroupTabsOptions
 ): Promise<GroupTabsResult> {
   const value = await withExtensionContext<RuntimeEvaluateValue>(transport, targets, "group", options);
+  if (!Number.isFinite(value.groupId) || (value.groupId ?? -1) < 0 || typeof value.groupName !== "string" || value.groupName.trim().length === 0) {
+    throw new BrowserActionError(
+      "TAB_GROUPING_VERIFICATION_FAILED",
+      "Chrome did not verify the requested tab group",
+      false
+    );
+  }
   return {
     tabIds: targets.map((target) => target.tabId),
     chromeTabIds: value.chromeTabIds ?? [],
-    groupId: value.groupId ?? -1,
-    groupName: value.groupName ?? options?.groupName ?? "Atlas"
+    groupId: value.groupId,
+    groupName: value.groupName.trim()
   };
 }
 

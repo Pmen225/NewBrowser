@@ -20,12 +20,12 @@ describe("generated extension manifest", () => {
       "ws://localhost:3210/*"
     ]));
     expect(manifest.action).toEqual({ default_title: "Open Assistant" });
-    expect(manifest.options_ui).toEqual({ page: "options.html", open_in_tab: true });
     const contentScripts = manifest.content_scripts.flatMap((entry: { js?: string[] }) => entry.js ?? []);
     expect(contentScripts).toContain("content/page-targets.js");
     expect(contentScripts).not.toContain("content/page-button.js");
     expect(manifest.permissions).not.toContain("browserOS");
     expect(manifest).not.toHaveProperty("chrome_url_overrides");
+    expect(manifest).not.toHaveProperty("options_ui");
     expect(manifest).not.toHaveProperty("update_url");
     expect(manifest).not.toHaveProperty("externally_connectable");
   });

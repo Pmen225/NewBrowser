@@ -140,4 +140,127 @@ describe("deepseek adapter", () => {
       }
     });
   });
+
+  it("preserves assistant tool calls and omits tool message name fields from DeepSeek requests", async () => {
+    const fetchImpl = vi.fn(async () => {
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: "done"
+              }
+            }
+          ]
+        }),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json"
+          }
+        }
+      );
+    });
+
+    const adapter = createDeepSeekAdapter(fetchImpl as unknown as typeof fetch);
+    await adapter.runTurn?.({
+      apiKey: "sk-test",
+      model: "deepseek-chat",
+      messages: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "call-1",
+              name: "read_page",
+              arguments: { mode: "summary" }
+            }
+          ]
+        },
+        {
+          role: "tool",
+          tool_call_id: "call-1",
+          tool_name: "read_page",
+          content: "{\"ok\":true}"
+        }
+      ],
+      tools: [],
+      allowBrowserSearch: false,
+      allowCodeExecution: false,
+      preferVision: false
+    });
+
+    const requestInit = fetchImpl.mock.calls[0]?.[1];
+    expect(requestInit).toBeDefined();
+    const body = JSON.parse(String(requestInit?.body));
+    expect(body.messages).toEqual([
+      {
+        role: "assistant",
+        content: "",
+        tool_calls: [
+          {
+            id: "call-1",
+            type: "function",
+            function: {
+              name: "read_page",
+              arguments: "{\"mode\":\"summary\"}"
+            }
+          }
+        ]
+      },
+      { role: "tool", tool_call_id: "call-1", content: "{\"ok\":true}" }
+    ]);
+  });
+
+  it("flattens structured content parts into DeepSeek string messages", async () => {
+    const fetchImpl = vi.fn(async () => {
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: "done"
+              }
+            }
+          ]
+        }),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json"
+          }
+        }
+      );
+    });
+
+    const adapter = createDeepSeekAdapter(fetchImpl as unknown as typeof fetch);
+    await adapter.runTurn?.({
+      apiKey: "sk-test",
+      model: "deepseek-chat",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "First line." },
+            { type: "image", media_type: "image/png", data: "abcd" },
+            { type: "text", text: "Second line." }
+          ]
+        }
+      ],
+      tools: [],
+      allowBrowserSearch: false,
+      allowCodeExecution: false,
+      preferVision: false
+    });
+
+    const requestInit = fetchImpl.mock.calls[0]?.[1];
+    const body = JSON.parse(String(requestInit?.body));
+    expect(body.messages).toEqual([
+      {
+        role: "user",
+        content: "First line.\n[image omitted: image/png]\nSecond line."
+      }
+    ]);
+  });
 });

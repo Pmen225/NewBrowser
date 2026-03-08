@@ -258,6 +258,7 @@ describe("transport parsers", () => {
         provider: "google",
         model: "models/gemini-2.5-flash",
         allow_browser_admin_pages: true,
+        allow_local_shell: true,
         allow_extension_management: true,
         memory_items: [
           { id: "manual:1", source: "manual", text: "Prince works in Halo Service Desk." }
@@ -296,6 +297,7 @@ describe("transport parsers", () => {
       allow_browser_search: undefined,
       enable_code_execution: undefined,
       allow_browser_admin_pages: true,
+      allow_local_shell: true,
       allow_extension_management: true
     });
 

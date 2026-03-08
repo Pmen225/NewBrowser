@@ -178,6 +178,40 @@ function stripMarkdownPresentation(value: string): string {
   return normalizedLines.filter((line) => line.length > 0).join("; ");
 }
 
+function requestsStructuredAnswer(userPrompt: string | undefined): boolean {
+  const normalized = normalizeWhitespace((userPrompt ?? "").toLowerCase());
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.includes("bullet") ||
+    normalized.includes("bullet point") ||
+    normalized.includes("list ") ||
+    normalized.startsWith("list") ||
+    normalized.includes("step by step") ||
+    normalized.includes("steps") ||
+    normalized.includes("table") ||
+    normalized.includes("compare") ||
+    normalized.includes("comparison") ||
+    normalized.includes("checklist") ||
+    normalized.includes("outline") ||
+    normalized.includes("json") ||
+    normalized.includes("markdown") ||
+    normalized.includes("code block") ||
+    normalized.includes("code snippet")
+  );
+}
+
+function flattenMarkdownAnswerIfUnneeded(text: string, userPrompt: string | undefined): string {
+  if (!containsMarkdownPresentation(text) || requestsStructuredAnswer(userPrompt) || text.includes("```")) {
+    return text;
+  }
+
+  const flattened = stripMarkdownPresentation(text);
+  return flattened || text;
+}
+
 function normalizeObservationLeadIn(value: string, hasImageInput: boolean | undefined): string {
   let normalized = value
     .replace(/^here is a breakdown of what is visible:\s*/i, "")
@@ -479,6 +513,7 @@ function repairFinalAnswerCandidate(
   }
 
   candidate = ensurePlainTextObservationResponse(candidate, userPrompt, hasImageInput);
+  candidate = flattenMarkdownAnswerIfUnneeded(candidate, userPrompt);
   candidate = ensureImageAcknowledgement(candidate, hasImageInput, expectedLanguage);
   candidate = ensureInlineCitation(candidate, availableCitations);
 
@@ -591,10 +626,6 @@ export function validateFinalAnswer(input: ResponseValidationInput): ResponseVal
 
 export function validateFinalAnswerWithAutofix(input: ResponseValidationInput): ResponseValidationResult {
   const initial = validateFinalAnswer(input);
-  if (initial.ok) {
-    return initial;
-  }
-
   const expectedLanguage =
     input.expectedUserLanguage ?? detectLanguageFromText(input.userPrompt ?? "");
   let candidateText = repairFinalAnswerCandidate(
@@ -604,6 +635,18 @@ export function validateFinalAnswerWithAutofix(input: ResponseValidationInput): 
     expectedLanguage,
     input.userPrompt
   );
+  const normalizedCandidate = validateFinalAnswer({
+    ...input,
+    text: sanitizeAnswerBody(candidateText)
+  });
+  if (normalizedCandidate.ok) {
+    return normalizedCandidate;
+  }
+
+  if (initial.ok) {
+    return initial;
+  }
+
   const violationRules = new Set(initial.violations.map((violation) => violation.rule_id));
 
   if (violationRules.has("inline_citations_required")) {

@@ -750,6 +750,7 @@ export async function runLivePanelCheck({
   mkdirSync(outputDir, { recursive: true });
   const selection = resolveLiveModelSelection({
     requestedModelId: modelId,
+    provider,
     requestedMode: modelMode,
     benchmarkMode: process.env.LIVE_BENCHMARK_MODE === "1"
   });
@@ -810,11 +811,15 @@ export async function runLivePanelCheck({
     });
     console.log(`Synced active tab to target ${site.targetId}${typeof chromeTabId === "number" ? ` (chrome tab ${chromeTabId})` : ""}`);
 
-    const registerResult = await callExtensionBenchmarkApi(cdp, panel.sessionId, "register", [
-      benchmarkWorkspace.benchmarkMarker,
-      benchmarkWorkspace.title,
-      [benchmarkWorkspace.siteUrl, benchmarkWorkspace.panelUrl]
-    ]).catch((error) => ({ ok: false, error: error instanceof Error ? error.message : String(error) }));
+    const registerResult = await withRecoveredSession(
+      cdp,
+      panel,
+      (sessionId) => callExtensionBenchmarkApi(cdp, sessionId, "register", [
+        benchmarkWorkspace.benchmarkMarker,
+        benchmarkWorkspace.title,
+        [benchmarkWorkspace.siteUrl, benchmarkWorkspace.panelUrl]
+      ])
+    ).catch((error) => ({ ok: false, error: error instanceof Error ? error.message : String(error) }));
     if (registerResult?.ok === true) {
       console.log(`Registered benchmark tabs for ${benchmarkWorkspace.benchmarkMarker}`);
     } else if (registerResult?.error) {
@@ -822,11 +827,15 @@ export async function runLivePanelCheck({
     }
 
     if (selection.mode === "manual") {
-      const configured = await setSelectedModel(cdp, panel.sessionId, {
-        provider,
-        modelId: selection.modelId,
-        mode: "manual"
-      });
+      const configured = await withRecoveredSession(
+        cdp,
+        panel,
+        (sessionId) => setSelectedModel(cdp, sessionId, {
+          provider,
+          modelId: selection.modelId,
+          mode: "manual"
+        })
+      );
       assertSelectedModelConfig(configured?.config, {
         provider,
         mode: "manual",
@@ -834,7 +843,11 @@ export async function runLivePanelCheck({
       });
       console.log(`Selected model ${configured?.config?.selectedModelId ?? selection.modelId}`);
     } else if (selection.mode === "auto") {
-      const configured = await setSelectedModel(cdp, panel.sessionId, { provider, modelId: "auto", mode: "auto" });
+      const configured = await withRecoveredSession(
+        cdp,
+        panel,
+        (sessionId) => setSelectedModel(cdp, sessionId, { provider, modelId: "auto", mode: "auto" })
+      );
       assertSelectedModelConfig(configured?.config, {
         provider,
         mode: "auto"
@@ -846,10 +859,10 @@ export async function runLivePanelCheck({
     let elapsedMs = 0;
     if (prompt) {
       await stopActiveRun(cdp, panel.sessionId).catch(() => false);
-      await clearPanelThread(cdp, panel.sessionId);
+      await withRecoveredSession(cdp, panel, (sessionId) => clearPanelThread(cdp, sessionId));
       console.log(`Sending prompt: ${prompt}`);
       const startedAt = Date.now();
-      await sendPrompt(cdp, panel.sessionId, prompt);
+      await withRecoveredSession(cdp, panel, (sessionId) => sendPrompt(cdp, sessionId, prompt));
       const steerPromise = steerPrompt
         ? (async () => {
             await sleep(Number.isFinite(steerDelayMs) && steerDelayMs >= 0 ? steerDelayMs : 2_500);
@@ -860,7 +873,7 @@ export async function runLivePanelCheck({
               10_000
             ).catch(() => undefined);
             console.log(`Queueing steer prompt: ${steerPrompt}`);
-            await sendPrompt(cdp, panel.sessionId, steerPrompt);
+            await withRecoveredSession(cdp, panel, (sessionId) => sendPrompt(cdp, sessionId, steerPrompt));
             return true;
           })().catch((error) => {
             console.warn(`Failed to queue steer prompt: ${error instanceof Error ? error.message : String(error)}`);
@@ -868,16 +881,16 @@ export async function runLivePanelCheck({
           })
         : null;
       try {
-        panelState = await waitForAssistantResult(cdp, panel.sessionId, timeoutMs);
+        panelState = await withRecoveredSession(cdp, panel, (sessionId) => waitForAssistantResult(cdp, sessionId, timeoutMs));
         if (steerPromise) {
           await steerPromise;
         }
         elapsedMs = Date.now() - startedAt;
         console.log(`Assistant result: ${panelState.assistantText}`);
       } catch (error) {
-        panelState = error?.lastSnapshot ?? (await getPanelSnapshot(cdp, panel.sessionId).catch(() => null));
+        panelState = error?.lastSnapshot ?? (await withRecoveredSession(cdp, panel, (sessionId) => getPanelSnapshot(cdp, sessionId)).catch(() => null));
         await stopActiveRun(cdp, panel.sessionId).catch(() => false);
-        await clearPanelThread(cdp, panel.sessionId).catch(() => undefined);
+        await withRecoveredSession(cdp, panel, (sessionId) => clearPanelThread(cdp, sessionId)).catch(() => undefined);
         throw error;
       }
     }
@@ -910,7 +923,9 @@ export async function runLivePanelCheck({
       targetUrl,
       prompt,
       provider,
-      modelId: selection.mode === "manual" ? normalizeGoogleModelId(selection.modelId) || selection.modelId : "auto",
+      modelId: selection.mode === "manual"
+        ? (provider === "google" ? normalizeGoogleModelId(selection.modelId) || selection.modelId : selection.modelId)
+        : "auto",
       elapsedMs,
       panel: panelState,
       site: siteState,
@@ -922,10 +937,14 @@ export async function runLivePanelCheck({
     return report;
   } finally {
     if (panel && benchmarkWorkspace) {
-      await callExtensionBenchmarkApi(cdp, panel.sessionId, "finalize", [
-        benchmarkWorkspace.benchmarkMarker,
-        true
-      ]).catch(() => undefined);
+      await withRecoveredSession(
+        cdp,
+        panel,
+        (sessionId) => callExtensionBenchmarkApi(cdp, sessionId, "finalize", [
+          benchmarkWorkspace.benchmarkMarker,
+          true
+        ])
+      ).catch(() => undefined);
     }
     for (const targetId of createdTargets.reverse()) {
       await closeTarget(cdp, targetId);

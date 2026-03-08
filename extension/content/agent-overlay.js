@@ -14,6 +14,13 @@
     typing: "Typing",
     verifying: "Verifying",
   };
+  const CONTROLLED_TAB_TITLE_PREFIX = "AI · ";
+  const CONTROL_STATUS_TEXT = {
+    active: "Browser control active",
+    paused: "Paused — you have control",
+    pausing: "Pausing…",
+    stopping: "Stopping agent",
+  };
 
   const root = document.createElement("div");
   root.id = "atlas-agent-overlay-root";
@@ -165,12 +172,12 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 26px;
-      height: 26px;
+      width: 22px;
+      height: 22px;
       opacity: 0;
       transform: translate3d(0, 0, 0);
       transition:
-        transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
         opacity 180ms ease;
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.62)) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
     }
@@ -190,14 +197,14 @@
       position: absolute;
       top: 0;
       left: 0;
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 999px;
       background: rgba(12, 14, 20, 0.84);
       color: rgba(255, 255, 255, 0.92);
       border: 1px solid rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(16px) saturate(1.55);
       -webkit-backdrop-filter: blur(16px) saturate(1.55);
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 520;
       letter-spacing: -0.01em;
       white-space: nowrap;
@@ -217,10 +224,10 @@
     #atlas-bar {
       position: absolute;
       left: 50%;
-      bottom: 30px;
-      width: min(380px, calc(100vw - 24px));
+      bottom: 22px;
+      width: min(clamp(240px, 22vw, 340px), calc(100vw - 24px));
       transform: translateX(-50%) translateY(18px);
-      border-radius: 16px;
+      border-radius: 14px;
       background: rgba(20, 22, 30, 0.84);
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow:
@@ -252,7 +259,7 @@
     }
     #atlas-bar-row1 {
       gap: 10px;
-      padding: 12px 14px;
+      padding: 10px 12px;
     }
     #atlas-bar-dot {
       width: 8px;
@@ -285,7 +292,7 @@
     }
     #atlas-bar-row2 {
       gap: 10px;
-      padding: 10px 12px 12px 14px;
+      padding: 9px 11px 11px 12px;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
     #atlas-bar-favicon {
@@ -315,15 +322,15 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 88px;
-      height: 30px;
-      padding: 0 14px;
+      min-width: 80px;
+      height: 28px;
+      padding: 0 12px;
       border-radius: 9px;
       border: 1px solid rgba(255, 255, 255, 0.12);
       background: rgba(255, 255, 255, 0.08);
       color: rgba(255, 255, 255, 0.84);
       font: inherit;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 620;
       cursor: pointer;
       transition:
@@ -487,8 +494,13 @@
   let controlState = "active";
   let tearingDown = false;
   let strokeEl = null;
+  let currentAnchorRect = null;
   let statusSwapTimer = null;
   let labelSwapTimer = null;
+  let idleFrame = null;
+  let cursorHoldUntilMs = 0;
+  let titleObserver = null;
+  let syncingTitle = false;
 
   function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
@@ -505,8 +517,98 @@
     };
   }
 
+  function normalizeRect(rect) {
+    if (!rect || typeof rect !== "object") {
+      return null;
+    }
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const nextX = typeof rect.x === "number" && rect.x <= 1 ? rect.x * viewportWidth : rect.x;
+    const nextY = typeof rect.y === "number" && rect.y <= 1 ? rect.y * viewportHeight : rect.y;
+    const nextW = typeof rect.w === "number" && rect.w <= 1 ? rect.w * viewportWidth : rect.w;
+    const nextH = typeof rect.h === "number" && rect.h <= 1 ? rect.h * viewportHeight : rect.h;
+    if (![nextX, nextY, nextW, nextH].every((value) => typeof value === "number" && Number.isFinite(value))) {
+      return null;
+    }
+    return {
+      x: clamp(nextX, 0, viewportWidth),
+      y: clamp(nextY, 0, viewportHeight),
+      w: clamp(nextW, 0, viewportWidth),
+      h: clamp(nextH, 0, viewportHeight)
+    };
+  }
+
   function phaseLabel(phase) {
     return PHASE_LABELS[String(phase || "").toLowerCase()] || "Agent";
+  }
+
+  function stripControlledTitlePrefix(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    const trimmed = value.trim();
+    return trimmed.startsWith(CONTROLLED_TAB_TITLE_PREFIX)
+      ? trimmed.slice(CONTROLLED_TAB_TITLE_PREFIX.length).trim()
+      : trimmed;
+  }
+
+  function controlledTabTitleBase() {
+    const currentTitle = stripControlledTitlePrefix(document.title || "");
+    if (currentTitle) {
+      return currentTitle;
+    }
+    const hostname = hostnameEl.textContent?.trim();
+    return hostname || "Current page";
+  }
+
+  function syncControlledTabTitle() {
+    const nextTitle = `${CONTROLLED_TAB_TITLE_PREFIX}${controlledTabTitleBase()}`;
+    if (document.title === nextTitle) {
+      return;
+    }
+    syncingTitle = true;
+    document.title = nextTitle;
+    syncingTitle = false;
+  }
+
+  function disconnectTitleObserver() {
+    if (!titleObserver) {
+      return;
+    }
+    titleObserver.disconnect();
+    titleObserver = null;
+  }
+
+  function ensureTitleObserver() {
+    if (titleObserver) {
+      return;
+    }
+    titleObserver = new MutationObserver(() => {
+      if (!syncingTitle) {
+        syncControlledTabTitle();
+      }
+    });
+    titleObserver.observe(document.head || document.documentElement, {
+      subtree: true,
+      childList: true,
+      characterData: true
+    });
+  }
+
+  function enableControlledTabTitle() {
+    ensureTitleObserver();
+    syncControlledTabTitle();
+  }
+
+  function disableControlledTabTitle() {
+    disconnectTitleObserver();
+    const restoredTitle = stripControlledTitlePrefix(document.title || "");
+    if (document.title === restoredTitle) {
+      return;
+    }
+    syncingTitle = true;
+    document.title = restoredTitle;
+    syncingTitle = false;
   }
 
   function statusLine(message) {
@@ -548,12 +650,86 @@
     return text.replace(/[.…]+$/g, "").trim() || "Working…";
   }
 
-  function updateLabelPosition() {
-    const labelWidth = labelEl.offsetWidth || 140;
-    const left = clamp(currentX + 28, 8, window.innerWidth - labelWidth - 8);
-    const top = clamp(currentY - 8, 8, window.innerHeight - 48);
+  function updateLabelPosition(x = currentX, y = currentY) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const labelWidth = Math.min(labelEl.offsetWidth || 140, viewportWidth - 16);
+    const labelHeight = labelEl.offsetHeight || 32;
+    const safe = 8;
+    const gap = 12;
+
+    let left = clamp(x + 28, safe, viewportWidth - labelWidth - safe);
+    let top = clamp(y - 8, safe, viewportHeight - labelHeight - safe);
+
+    if (currentAnchorRect) {
+      const rect = currentAnchorRect;
+      const centeredLeft = clamp(
+        rect.x + (rect.w / 2) - (labelWidth / 2),
+        safe,
+        viewportWidth - labelWidth - safe
+      );
+      const middleTop = clamp(
+        rect.y + (rect.h / 2) - (labelHeight / 2),
+        safe,
+        viewportHeight - labelHeight - safe
+      );
+
+      const canPlaceAbove = rect.y - labelHeight - gap >= safe;
+      const canPlaceBelow = rect.y + rect.h + labelHeight + gap <= viewportHeight - safe;
+      const canPlaceRight = rect.x + rect.w + labelWidth + gap <= viewportWidth - safe;
+      const canPlaceLeft = rect.x - labelWidth - gap >= safe;
+
+      if (canPlaceAbove) {
+        left = centeredLeft;
+        top = rect.y - labelHeight - gap;
+      } else if (canPlaceBelow) {
+        left = centeredLeft;
+        top = rect.y + rect.h + gap;
+      } else if (canPlaceRight) {
+        left = rect.x + rect.w + gap;
+        top = middleTop;
+      } else if (canPlaceLeft) {
+        left = rect.x - labelWidth - gap;
+        top = middleTop;
+      }
+    }
+
     labelEl.style.left = `${left}px`;
     labelEl.style.top = `${top}px`;
+  }
+
+  function applyCursorPosition(x, y) {
+    cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    updateLabelPosition(x, y);
+  }
+
+  function stopCursorIdleMotion() {
+    if (idleFrame !== null) {
+      cancelAnimationFrame(idleFrame);
+      idleFrame = null;
+    }
+    applyCursorPosition(currentX, currentY);
+  }
+
+  function scheduleCursorIdleMotion() {
+    if (idleFrame !== null) {
+      return;
+    }
+
+    const tick = (timestamp) => {
+      idleFrame = requestAnimationFrame(tick);
+      if (paused || !cursorVisible) {
+        return;
+      }
+
+      const now = Date.now();
+      const radius = now < cursorHoldUntilMs ? 0 : 7;
+      const x = currentX + Math.sin(timestamp / 420) * radius;
+      const y = currentY + Math.cos(timestamp / 560) * radius;
+      applyCursorPosition(x, y);
+    };
+
+    idleFrame = requestAnimationFrame(tick);
   }
 
   function showCursor() {
@@ -563,20 +739,22 @@
     cursorVisible = true;
     cursor.classList.add("atlas-visible");
     labelEl.classList.add("atlas-visible");
+    scheduleCursorIdleMotion();
   }
 
   function hideCursor() {
     cursorVisible = false;
     cursor.classList.remove("atlas-visible");
     labelEl.classList.remove("atlas-visible");
+    stopCursorIdleMotion();
   }
 
   function moveCursor(x, y) {
     const point = normalizePoint(x, y);
     currentX = point.x;
     currentY = point.y;
-    cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
-    updateLabelPosition();
+    cursorHoldUntilMs = Date.now() + 900;
+    applyCursorPosition(currentX, currentY);
     showCursor();
   }
 
@@ -615,17 +793,21 @@
       setTimeout(() => previousStroke.remove(), 180);
       strokeEl = null;
     }
-    if (!rect || paused) {
+    const normalizedRect = normalizeRect(rect);
+    currentAnchorRect = normalizedRect;
+    if (!normalizedRect || paused) {
+      updateLabelPosition();
       return;
     }
     const nextStroke = document.createElement("div");
     nextStroke.className = "atlas-stroke-rect";
-    nextStroke.style.left = `${rect.x}px`;
-    nextStroke.style.top = `${rect.y}px`;
-    nextStroke.style.width = `${rect.w}px`;
-    nextStroke.style.height = `${rect.h}px`;
+    nextStroke.style.left = `${normalizedRect.x}px`;
+    nextStroke.style.top = `${normalizedRect.y}px`;
+    nextStroke.style.width = `${normalizedRect.w}px`;
+    nextStroke.style.height = `${normalizedRect.h}px`;
     strokeHost.appendChild(nextStroke);
     strokeEl = nextStroke;
+    updateLabelPosition();
   }
 
   function spawnRipple(x, y) {
@@ -641,6 +823,7 @@
       root.appendChild(ripple);
       ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
     });
+    cursorHoldUntilMs = Date.now() + 460;
     cursor.classList.add("atlas-click");
     setTimeout(() => cursor.classList.remove("atlas-click"), 180);
   }
@@ -676,13 +859,13 @@
     statusDot.classList.toggle("paused", !isActive);
 
     if (isPaused) {
-      statusText.textContent = "Paused, you have control";
+      statusText.textContent = CONTROL_STATUS_TEXT.paused;
     } else if (isPausing) {
-      statusText.textContent = "Pausing";
+      statusText.textContent = CONTROL_STATUS_TEXT.pausing;
     } else if (isStopping) {
-      statusText.textContent = "Stopping agent";
+      statusText.textContent = CONTROL_STATUS_TEXT.stopping;
     } else {
-      statusText.textContent = "Browser control active";
+      statusText.textContent = CONTROL_STATUS_TEXT.active;
     }
 
     dim.classList.toggle("atlas-paused", paused);
@@ -695,6 +878,7 @@
 
     dots.classList.add("atlas-in");
     showCursor();
+    enableControlledTabTitle();
   }
 
   function updateSiteInfo(message) {
@@ -722,6 +906,7 @@
       return;
     }
     tearingDown = true;
+    disableControlledTabTitle();
     hideCursor();
     showStroke(null);
     [desat, dim, glow, dots].forEach((element) => {

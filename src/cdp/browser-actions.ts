@@ -13,6 +13,7 @@ import type {
   FormInputResult,
   NavigateParams,
   NavigateResult,
+  OverlayTelemetry,
   TabOperationParams,
   TabOperationResult
 } from "../../shared/src/transport";
@@ -26,9 +27,117 @@ const _stealthInjectedSessions = new Set<string>();
 
 // Stealth script injected via Page.addScriptToEvaluateOnNewDocument:
 // 1. Hides navigator.webdriver (automation detection)
-// 2. Auto-declines cookie consent banners (privacy policy: decline by default)
+// 2. Handles cookie consent banners with a privacy-preserving reject-first policy,
+//    but falls back to accept when a blocking gate offers no non-accept path.
 const STEALTH_SCRIPT = `
 (function() {
+  const root = globalThis;
+
+  function installConsentHelpers() {
+    if (root.__atlasConsentSweep) {
+      return;
+    }
+
+    const CONSENT_TERMS = /(cookie|privacy|consent|gdpr|tracking|your choice|your choices|consent choices|data processing|privacy settings|partner purposes)/i;
+    const NON_ACCEPT_PATTERNS = /(reject|decline|refuse|deny|no thanks|opt out|without accepting|necessary only|essential only|only necessary|only essential|reject optional|do not accept|i do not accept|dismiss|close)/i;
+    const ACCEPT_PATTERNS = /(accept|agree|allow all|allow cookies|yes[, ]?i agree|got it)/i;
+    const DISALLOWED_PATTERNS = /(pay|subscribe|sign in|log in|login|register|join now|start trial|privacy policy|learn more|show purposes|partners|vendor|continue reading|already a paying subscriber)/i;
+    const INTERACTABLE_SELECTORS = [
+      'button',
+      '[role="button"]',
+      'a',
+      'input[type="button"]',
+      'input[type="submit"]',
+      'summary'
+    ].join(',');
+
+    function textFor(el) {
+      return (el.textContent || el.getAttribute('aria-label') || el.getAttribute('value') || '').replace(/\\s+/g, ' ').trim();
+    }
+
+    function isVisible(el) {
+      if (!(el instanceof Element)) return false;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 8 || rect.height < 8) return false;
+      const style = getComputedStyle(el);
+      if (style.visibility === 'hidden' || style.display === 'none' || Number(style.opacity) === 0) return false;
+      return rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth;
+    }
+
+    function looksLikeConsentContainer(el) {
+      if (!(el instanceof Element)) return false;
+      const text = [textFor(el), el.id || '', el.className || '', el.getAttribute('aria-label') || ''].join(' ');
+      if (!CONSENT_TERMS.test(text)) return false;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 180 || rect.height < 70) return false;
+      const style = getComputedStyle(el);
+      return (
+        el.getAttribute('aria-modal') === 'true' ||
+        el.getAttribute('role') === 'dialog' ||
+        style.position === 'fixed' ||
+        style.position === 'sticky' ||
+        rect.width >= window.innerWidth * 0.4 ||
+        rect.height >= window.innerHeight * 0.16
+      );
+    }
+
+    function findConsentContainer(el) {
+      let node = el instanceof Element ? el : null;
+      while (node) {
+        if (looksLikeConsentContainer(node)) {
+          return node;
+        }
+        node = node.parentElement;
+      }
+      return null;
+    }
+
+    function collectCandidates() {
+      const nodes = Array.from(document.querySelectorAll(INTERACTABLE_SELECTORS));
+      return nodes
+        .filter((el) => isVisible(el))
+        .map((el) => {
+          const label = textFor(el);
+          const container = findConsentContainer(el);
+          return { el, label, container };
+        })
+        .filter((entry) => entry.label && entry.container);
+    }
+
+    root.__atlasConsentSweep = function() {
+      const candidates = collectCandidates();
+      if (candidates.length === 0) {
+        return { action: null };
+      }
+
+      const preferred = candidates.find(({ label }) => NON_ACCEPT_PATTERNS.test(label) && !DISALLOWED_PATTERNS.test(label));
+      if (preferred) {
+        preferred.el.click();
+        return { action: 'dismiss', label: preferred.label };
+      }
+
+      const blockingGate = candidates.some(({ container }) => Boolean(container));
+      if (!blockingGate) {
+        return { action: null };
+      }
+
+      const acceptFallback = candidates.find(({ label }) => ACCEPT_PATTERNS.test(label) && !DISALLOWED_PATTERNS.test(label));
+      if (acceptFallback) {
+        acceptFallback.el.click();
+        return { action: 'accept', label: acceptFallback.label };
+      }
+
+      return { action: null };
+    };
+
+    const observer = new MutationObserver(() => {
+      try {
+        root.__atlasConsentSweep();
+      } catch {}
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
+
   // Hide webdriver indicator (Cloudflare, Reddit, etc. check this)
   try {
     Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
@@ -43,53 +152,22 @@ const STEALTH_SCRIPT = `
     }
   } catch {}
 
-  // Auto-decline cookie consent banners (privacy-preserving default)
-  const DECLINE_SELECTORS = [
-    // Text-based patterns for reject/decline buttons
-    'button', '[role="button"]', 'a'
-  ];
-  const DECLINE_PATTERNS = /^(reject all|decline all|refuse all|decline|reject|refuse|no thanks|deny|do not accept|opt out|continue without accepting|save preferences|i do not accept)/i;
-  const ACCEPT_PATTERNS  = /^(accept all|accept cookies|agree|i agree|allow all|ok|got it)/i;
+  installConsentHelpers();
+  root.__atlasConsentSweep();
 
-  function tryDeclineBanner() {
-    const interactables = document.querySelectorAll(DECLINE_SELECTORS.join(','));
-    // First pass: find an explicit decline/reject button
-    for (const el of interactables) {
-      const text = (el.textContent || el.getAttribute('aria-label') || '').trim();
-      if (DECLINE_PATTERNS.test(text) && !ACCEPT_PATTERNS.test(text)) {
-        const rect = el.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          el.click();
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  // MutationObserver fires when the consent overlay is injected into the DOM
-  const observer = new MutationObserver(() => {
-    tryDeclineBanner();
-  });
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-
-  // Run immediately (for addScriptToEvaluateOnNewDocument, DOMContentLoaded may not have fired)
-  tryDeclineBanner();
-
-  // Run via DOMContentLoaded if not yet fired
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      tryDeclineBanner();
-      setTimeout(tryDeclineBanner, 600);
-      setTimeout(tryDeclineBanner, 1500);
-      setTimeout(tryDeclineBanner, 3000);
+      root.__atlasConsentSweep();
+      setTimeout(() => root.__atlasConsentSweep(), 250);
+      setTimeout(() => root.__atlasConsentSweep(), 800);
+      setTimeout(() => root.__atlasConsentSweep(), 1600);
+      setTimeout(() => root.__atlasConsentSweep(), 3200);
     });
   } else {
-    // Already past DOMContentLoaded (Runtime.evaluate case) — schedule retries
-    setTimeout(tryDeclineBanner, 300);
-    setTimeout(tryDeclineBanner, 800);
-    setTimeout(tryDeclineBanner, 1500);
-    setTimeout(tryDeclineBanner, 3000);
+    setTimeout(() => root.__atlasConsentSweep(), 120);
+    setTimeout(() => root.__atlasConsentSweep(), 500);
+    setTimeout(() => root.__atlasConsentSweep(), 1100);
+    setTimeout(() => root.__atlasConsentSweep(), 2500);
   }
 })();
 `;
@@ -183,6 +261,7 @@ interface SensitiveInputInspection {
 
 interface ComputerStepOutcome {
   javascriptDialog?: NonNullable<ComputerBatchResult["javascript_dialog"]>;
+  overlay?: OverlayTelemetry;
 }
 
 type ClickResolution =
@@ -426,6 +505,13 @@ async function getClickPoint(runtime: BrowserActionRuntime, node: ResolvedNode):
       backend_node_id: node.backendNodeId
     });
   }
+}
+
+function createPointOverlay(x: number, y: number, click = false): OverlayTelemetry {
+  return {
+    cursor: { x, y },
+    ...(click ? { click: { x, y } } : {})
+  };
 }
 
 async function dispatchClick(runtime: BrowserActionRuntime, sessionId: string, point: Point, button: string, clickCount: number): Promise<void> {
@@ -770,7 +856,7 @@ async function runComputerStep(
         if ("kind" in point && point.kind === "legacy_synthetic_click") {
           return undefined;
         }
-        return await dispatchClickWithDialogObservation(
+        const outcome = await dispatchClickWithDialogObservation(
           runtime,
           tabId,
           node.route.sessionId,
@@ -780,6 +866,10 @@ async function runComputerStep(
           dialogTimeoutMs,
           nextStep
         );
+        return {
+          ...(outcome ?? {}),
+          overlay: createPointOverlay(point.x, point.y, true)
+        };
       } catch (error) {
         throw toBrowserActionError(error, "ACTION_TARGET_INVALID", true, {
           ref_id: step.ref
@@ -788,7 +878,7 @@ async function runComputerStep(
     }
 
     try {
-      return await dispatchClickWithDialogObservation(
+      const outcome = await dispatchClickWithDialogObservation(
         runtime,
         tabId,
         defaultRoute.sessionId,
@@ -798,6 +888,10 @@ async function runComputerStep(
         dialogTimeoutMs,
         nextStep
       );
+      return {
+        ...(outcome ?? {}),
+        overlay: createPointOverlay(step.x as number, step.y as number, true)
+      };
     } catch (error) {
       throw toBrowserActionError(error, "ACTION_TARGET_INVALID", true);
     }
@@ -1113,6 +1207,39 @@ async function validateFileUploadPath(filePath: string, refId: string): Promise<
   }
 }
 
+async function installStealthAndConsentScript(runtime: BrowserActionRuntime, sessionId: string): Promise<void> {
+  if (_stealthInjectedSessions.has(sessionId)) {
+    return;
+  }
+  _stealthInjectedSessions.add(sessionId);
+  try {
+    await runtime.send("Page.addScriptToEvaluateOnNewDocument", { source: STEALTH_SCRIPT }, sessionId);
+  } catch {
+    // Non-fatal — page still loads without stealth overrides
+  }
+}
+
+async function runConsentPreflight(runtime: BrowserActionRuntime, sessionId: string): Promise<void> {
+  try {
+    await runtime.send(
+      "Runtime.evaluate",
+      {
+        expression: STEALTH_SCRIPT,
+        returnByValue: false,
+        awaitPromise: false
+      },
+      sessionId
+    );
+  } catch {
+    // Non-fatal
+  }
+}
+
+async function ensureStealthAndConsentReady(runtime: BrowserActionRuntime, sessionId: string): Promise<void> {
+  await installStealthAndConsentScript(runtime, sessionId);
+  await runConsentPreflight(runtime, sessionId);
+}
+
 function toTabOperationList(tab: TabRecord): { tab_id: string; target_id: string; status: string } {
   return {
     tab_id: tab.tabId,
@@ -1129,9 +1256,11 @@ export async function executeComputerBatch(
 ): Promise<ComputerBatchResult> {
   throwIfAborted(signal);
   const route = getSessionRoute(runtime, tabId);
+  await ensureStealthAndConsentReady(runtime, route.sessionId);
   const results: ComputerBatchResult["steps"] = [];
   let completedSteps = 0;
   let observedJavaScriptDialog: ComputerBatchResult["javascript_dialog"] | undefined;
+  let overlayTelemetry: OverlayTelemetry | undefined;
 
   for (let index = 0; index < params.steps.length; index += 1) {
     const step = params.steps[index];
@@ -1141,6 +1270,9 @@ export async function executeComputerBatch(
       const outcome = await runComputerStep(runtime, tabId, route, step, params.steps[index + 1]);
       results.push({ index, ok: true });
       completedSteps += 1;
+      if (outcome?.overlay) {
+        overlayTelemetry = outcome.overlay;
+      }
       if (outcome?.javascriptDialog && params.steps[index + 1]?.kind !== "dialog") {
         observedJavaScriptDialog = outcome.javascriptDialog;
         break;
@@ -1196,6 +1328,7 @@ export async function executeComputerBatch(
     steps: results,
     completed_steps: completedSteps,
     ...(screenshotB64 ? { screenshot_b64: screenshotB64 } : {}),
+    ...(overlayTelemetry ? { overlay: overlayTelemetry } : {}),
     ...(observedJavaScriptDialog ? { javascript_dialog: observedJavaScriptDialog } : {})
   };
 }
@@ -1277,16 +1410,7 @@ export async function executeNavigate(
 ): Promise<NavigateResult> {
   const route = getSessionRoute(runtime, tabId);
   const timeoutMs = params.timeout_ms ?? DEFAULT_NAVIGATION_TIMEOUT_MS;
-
-  // Inject stealth + consent-dismissal script once per session
-  if (!_stealthInjectedSessions.has(route.sessionId)) {
-    _stealthInjectedSessions.add(route.sessionId);
-    try {
-      await runtime.send("Page.addScriptToEvaluateOnNewDocument", { source: STEALTH_SCRIPT }, route.sessionId);
-    } catch {
-      // Non-fatal — page still loads without stealth overrides
-    }
-  }
+  await installStealthAndConsentScript(runtime, route.sessionId);
 
   if (params.mode === "to") {
     const resolvedUrl = resolveNavigationUrl(params.url ?? "");
@@ -1353,18 +1477,7 @@ export async function executeNavigate(
       await waitForNavigationOrObservedUrl(runtime, route.sessionId, timeoutMs, signal, resolvedUrl);
       throwIfAborted(signal);
 
-      // Also run consent-dismissal on the now-loaded document via Runtime.evaluate.
-      // addScriptToEvaluateOnNewDocument only fires on future page loads; this covers
-      // the page that just finished loading (e.g. Google's consent.google.com redirect).
-      try {
-        await runtime.send("Runtime.evaluate", {
-          expression: STEALTH_SCRIPT,
-          returnByValue: false,
-          awaitPromise: false
-        }, route.sessionId);
-      } catch {
-        // Non-fatal
-      }
+      await runConsentPreflight(runtime, route.sessionId);
 
       return {
         url: resolvedUrl,
@@ -1419,6 +1532,7 @@ export async function executeNavigate(
     throwIfAborted(signal);
     await waitForNavigationOrObservedUrl(runtime, route.sessionId, timeoutMs, signal, nextEntry.url);
     throwIfAborted(signal);
+    await runConsentPreflight(runtime, route.sessionId);
   } catch (error) {
     if (error instanceof BrowserActionError) {
       throw error;
@@ -1445,6 +1559,8 @@ export async function executeFormInput(
   signal: AbortSignal
 ): Promise<FormInputResult> {
   throwIfAborted(signal);
+  const route = getSessionRoute(runtime, tabId);
+  await ensureStealthAndConsentReady(runtime, route.sessionId);
   let updated = 0;
   const applied: NonNullable<FormInputResult["applied"]> = [];
 

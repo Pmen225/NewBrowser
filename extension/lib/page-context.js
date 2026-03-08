@@ -2,6 +2,8 @@ function normalizeText(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
 }
 
+const WEB_TAB_QUERY = ["http://*/*", "https://*/*"];
+
 export function isPageContextPrompt(prompt) {
   const lower = normalizeText(prompt).toLowerCase();
   if (!lower) {
@@ -25,6 +27,33 @@ export function isPageContextPrompt(prompt) {
 
 export function hasAccessibleWebTab(tab) {
   return typeof tab?.id === "number" && /^https?:\/\//i.test(String(tab?.url ?? ""));
+}
+
+export async function getCapturableActiveTab(queryTabs) {
+  if (typeof queryTabs !== "function") {
+    return null;
+  }
+
+  const queryOrder = [
+    { active: true, lastFocusedWindow: true, url: WEB_TAB_QUERY },
+    { active: true, currentWindow: true, url: WEB_TAB_QUERY },
+    { currentWindow: true, url: WEB_TAB_QUERY },
+    { lastFocusedWindow: true, url: WEB_TAB_QUERY }
+  ];
+
+  for (const queryInfo of queryOrder) {
+    try {
+      const tabs = await queryTabs(queryInfo);
+      const tab = Array.isArray(tabs) ? tabs.find(hasAccessibleWebTab) : null;
+      if (tab) {
+        return tab;
+      }
+    } catch {
+      // Try the next query shape.
+    }
+  }
+
+  return null;
 }
 
 export function normalizePanelErrorMessage(message) {

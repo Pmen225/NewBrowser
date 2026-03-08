@@ -11,6 +11,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { hardenAssistantProfile } from "./lib/assistant-profile-lock.js";
+import { defaultChromeProfileRoot, resolveRunningChromeCdpWsUrl } from "./lib/cdp-discovery.js";
 
 const DEFAULT_PORT_CANDIDATES = [9555, 9444, 9333, 9222];
 const DEFAULT_STARTUP_TIMEOUT_MS = 20_000;
@@ -104,7 +105,7 @@ async function pollForCdpReady(port, timeoutMs) {
 async function main() {
   const binaryPath = await resolveBinaryPath();
   const extensionPath = await resolveExtensionPath();
-  const userDataDir = process.env.CHROME_USER_DATA_DIR?.trim() || join(homedir(), ".local", "share", "new-browser", "chrome-profile");
+  const userDataDir = defaultChromeProfileRoot();
   await mkdir(userDataDir, { recursive: true }).catch(() => {});
   await hardenAssistantProfile({
     profileRoot: userDataDir,
@@ -112,6 +113,14 @@ async function main() {
   }).catch(() => {});
 
   const port = process.env.CHROME_CDP_PORT ? parseInt(process.env.CHROME_CDP_PORT, 10) : DEFAULT_PORT_CANDIDATES[0];
+  const existingWsUrl = await resolveRunningChromeCdpWsUrl({
+    profileRoot: userDataDir
+  });
+  if (existingWsUrl) {
+    console.log("Browser already running for this profile.");
+    console.log("CDP websocket:", existingWsUrl);
+    return;
+  }
   const args = createBrowserArgs({ debuggingPort: port, userDataDir, extensionPath });
 
   const env = { ...process.env };

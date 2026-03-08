@@ -4,476 +4,764 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Settings</title>
+  <link rel="icon" href="data:," />
   <link rel="stylesheet" href="options.css" />
 </head>
 <body>
   <main class="settings-shell">
     <aside class="settings-sidebar">
-      <div class="settings-brand">
-        <svg class="settings-brand-icon" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-          <rect width="22" height="22" rx="7" fill="url(#bgi)"/>
-          <circle cx="8"  cy="11" r="1.6" fill="white" fill-opacity=".92"/>
-          <circle cx="14" cy="11" r="1.6" fill="white" fill-opacity=".92"/>
-          <defs>
-            <linearGradient id="bgi" x1="0" y1="0" x2="22" y2="22">
-              <stop stop-color="#4ea9d4"/>
-              <stop offset="1" stop-color="#2870a0"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        Assistant
+      <div class="settings-sidebar-window" aria-hidden="true">
+        <span class="settings-window-dot settings-window-dot--close"></span>
+        <span class="settings-window-dot settings-window-dot--min"></span>
+        <span class="settings-window-dot settings-window-dot--max"></span>
       </div>
 
-      <nav class="settings-nav" aria-label="Settings sections">
-        <a href="#agent"    class="settings-nav-item" data-section="agent">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="2" y="5" width="12" height="9" rx="2"/>
-            <circle cx="6"  cy="9.5" r="1.1" fill="currentColor" stroke="none"/>
-            <circle cx="10" cy="9.5" r="1.1" fill="currentColor" stroke="none"/>
-            <path d="M8 5V3"/><circle cx="8" cy="2.5" r=".6" fill="currentColor" stroke="none"/>
-          </svg>
-          Agent
+      <nav class="settings-nav" aria-label="Settings pages">
+        <a href="#general" class="settings-nav-item" data-page="general">
+          <span class="nav-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="8" cy="8" r="2.3"/>
+              <path d="M8 1.8v1.6M8 12.6v1.6M3.62 3.62l1.12 1.12M11.26 11.26l1.12 1.12M1.8 8h1.6M12.6 8h1.6M3.62 12.38l1.12-1.12M11.26 4.74l1.12-1.12"/>
+            </svg>
+          </span>
+          <span>General</span>
         </a>
-        <a href="#provider" class="settings-nav-item" data-section="provider">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="5.5" cy="8" r="3"/>
-            <path d="M8.5 8H15M13 8v2M11 8v1.5"/>
-          </svg>
-          Provider
+        <a href="#web-browsing" class="settings-nav-item" data-page="web-browsing">
+          <span class="nav-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="8" cy="8" r="5.5"/>
+              <path d="M2.9 5.9h10.2M2.9 10.1h10.2M8 2.5c1.6 1.6 2.4 3.4 2.4 5.5S9.6 11.9 8 13.5C6.4 11.9 5.6 10.1 5.6 8S6.4 4.1 8 2.5Z"/>
+            </svg>
+          </span>
+          <span>Web Browsing</span>
         </a>
-        <a href="#models"   class="settings-nav-item" data-section="models">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M8 2v2.5M8 11.5V14M2 8h2.5M11.5 8H14M3.8 3.8l1.8 1.8M10.4 10.4l1.8 1.8M12.2 3.8l-1.8 1.8M5.6 10.4l-1.8 1.8"/>
-            <circle cx="8" cy="8" r="1.8"/>
-          </svg>
-          Models
+        <a href="#personalization" class="settings-nav-item" data-page="personalization">
+          <span class="nav-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 13.2s-4.8-2.7-4.8-6.5a2.7 2.7 0 0 1 4.8-1.7 2.7 2.7 0 0 1 4.8 1.7c0 3.8-4.8 6.5-4.8 6.5Z"/>
+            </svg>
+          </span>
+          <span>Personalization</span>
         </a>
-        <a href="#data"     class="settings-nav-item" data-section="data">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <ellipse cx="8" cy="4.5" rx="5" ry="1.8"/>
-            <path d="M3 4.5v7c0 1 2.24 1.8 5 1.8s5-.8 5-1.8v-7"/>
-            <path d="M3 8c0 1 2.24 1.8 5 1.8S13 9 13 8"/>
-          </svg>
-          Data
+        <a href="#data-controls" class="settings-nav-item" data-page="data-controls">
+          <span class="nav-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <ellipse cx="8" cy="3.8" rx="4.6" ry="1.7"/>
+              <path d="M3.4 3.8v8.2c0 .9 2.06 1.7 4.6 1.7s4.6-.8 4.6-1.7V3.8"/>
+              <path d="M3.4 7.1c0 .9 2.06 1.7 4.6 1.7s4.6-.8 4.6-1.7"/>
+            </svg>
+          </span>
+          <span>Data Controls</span>
         </a>
-        <a href="#commands" class="settings-nav-item" data-section="commands">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M10 2L6 14"/>
-            <path d="M3 5h3M10 11h3"/>
-          </svg>
-          Commands
+        <a href="#agent-mode" class="settings-nav-item" data-page="agent-mode">
+          <span class="nav-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2.3" y="5" width="11.4" height="8.2" rx="2"/>
+              <circle cx="6.1" cy="9.2" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="9.9" cy="9.2" r="1" fill="currentColor" stroke="none"/>
+              <path d="M8 5V2.6"/>
+            </svg>
+          </span>
+          <span>Agent Mode</span>
         </a>
       </nav>
-
-      <div class="settings-sidebar-footer">
-        <span class="settings-version">v0.2.0</span>
-      </div>
     </aside>
 
     <section class="settings-main">
-
-      <!-- ── Agent ──────────────────────────────────────────────────── -->
-      <section id="agent" class="settings-section" aria-label="Agent">
-        <div class="settings-section-header">
-          <div>
-            <h2 class="settings-section-title">Agent</h2>
-            <p class="settings-section-desc">Browser control and automation.</p>
+      <section id="general" class="settings-page" data-title="General" data-root="general" aria-label="General settings">
+        <header class="settings-page-header">
+          <div class="settings-page-breadcrumb settings-page-breadcrumb--root" aria-hidden="true"></div>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">General</h1>
+            <p class="settings-page-copy">Appearance and core AI setup.</p>
           </div>
-          <span class="save-dot" id="agent-save-dot" hidden>✓ Saved</span>
-        </div>
+        </header>
 
-        <div class="settings-rows">
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Vision</span>
-              <span class="settings-row-desc">Use screenshot analysis (more tokens, better accuracy).</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="agent-vision-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Appearance</h2>
+              <p class="settings-card-copy">Keep the shell compact and readable in both themes.</p>
+            </div>
+          </div>
+          <div class="settings-list">
+            <label class="settings-item settings-item--inline">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Theme</span>
+                <span class="settings-item-desc">Choose how the settings surface should render.</span>
+              </span>
+              <select id="appearance-theme-select" class="settings-select settings-select--inline">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Keep Assistant pinned</span>
+                <span class="settings-item-desc">Show the pin helper and first-run nudge when the toolbar button is not pinned.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="toolbar-pin-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+          </div>
+        </section>
 
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Highlights</span>
-              <span class="settings-row-desc">Show visual highlights on interactive elements.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="agent-highlights-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">AI configuration</h2>
+              <p class="settings-card-copy">Use drill-in pages for provider keys and model defaults.</p>
+            </div>
+          </div>
 
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">History replay <span class="settings-badge settings-badge--experimental">beta</span></span>
-              <span class="settings-row-desc">Store and replay agent step history.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="agent-replay-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-        </div>
+          <div class="settings-list">
+            <button class="settings-drill-row" type="button" data-settings-target="general-providers">
+              <span class="settings-drill-copy">
+                <span class="settings-item-title">Providers</span>
+                <span id="provider-summary-meta" class="settings-item-desc">No provider keys saved yet.</span>
+              </span>
+              <span class="settings-drill-end">
+                <span id="provider-summary-badge" class="settings-summary-value">Empty</span>
+                <span class="settings-drill-chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+            <button class="settings-drill-row" type="button" data-settings-target="general-models">
+              <span class="settings-drill-copy">
+                <span class="settings-item-title">Model defaults</span>
+                <span id="model-summary-meta" class="settings-item-desc">Choose automatic or manual model selection.</span>
+              </span>
+              <span class="settings-drill-end">
+                <span id="model-summary-badge" class="settings-summary-value">Auto</span>
+                <span class="settings-drill-chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+          </div>
+        </section>
+      </section>
 
-        <details class="settings-advanced">
-          <summary>Advanced</summary>
-          <div class="settings-rows">
-            <label class="settings-row">
-              <span class="settings-row-copy"><span class="settings-row-title">Max steps per task</span></span>
+      <section id="general-providers" class="settings-page settings-page--detail" data-title="Providers" data-root="general" data-parent="general" aria-label="Provider settings" hidden>
+        <header class="settings-page-header">
+          <button class="settings-page-back" type="button" data-settings-back="general" aria-label="Back to General">‹</button>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Providers</h1>
+            <p class="settings-page-copy">Save provider credentials once. Speech-to-text and chat reuse the same provider config.</p>
+          </div>
+        </header>
+
+        <section id="general-provider-card" class="settings-card">
+          <div class="settings-card-header settings-card-header--compact-action">
+            <div>
+              <h2 class="settings-card-title">Provider access</h2>
+              <p class="settings-card-copy">Add or update one provider at a time.</p>
+            </div>
+            <button id="provider-save-btn" class="settings-button settings-button--primary" type="submit" form="provider-form">Save key</button>
+          </div>
+
+          <form id="provider-form" class="settings-form-stack" novalidate>
+            <div class="settings-form-grid settings-form-grid--provider">
+              <label class="settings-field">
+                <span class="settings-item-title">Provider</span>
+                <span class="settings-item-desc">google, openai, anthropic, deepseek, and others</span>
+                <input id="provider-id-input" class="settings-input" type="text" placeholder="google" autocomplete="off" />
+              </label>
+              <label class="settings-field">
+                <span class="settings-item-title">API key</span>
+                <input id="provider-key-input" class="settings-input" type="password" placeholder="AIza…" autocomplete="new-password" />
+              </label>
+              <label class="settings-field">
+                <span class="settings-item-title">Preferred model</span>
+                <input id="provider-model-input" class="settings-input" type="text" placeholder="models/gemini-2.5-flash" autocomplete="off" />
+              </label>
+              <label class="settings-field">
+                <span class="settings-item-title">Base URL <span class="settings-item-optional">optional</span></span>
+                <input id="provider-base-url-input" class="settings-input" type="url" placeholder="https://api.example.com" autocomplete="off" />
+              </label>
+            </div>
+          </form>
+
+          <div id="provider-save-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+          <div id="provider-list" class="settings-item-list" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section id="general-models" class="settings-page settings-page--detail" data-title="Model defaults" data-root="general" data-parent="general" aria-label="Model settings" hidden>
+        <header class="settings-page-header">
+          <button class="settings-page-back" type="button" data-settings-back="general" aria-label="Back to General">‹</button>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Model defaults</h1>
+            <p class="settings-page-copy">Choose how the assistant picks models, then manage the available catalog.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Default behavior</h2>
+              <p class="settings-card-copy">Keep the top-level page clean. Manage model choices here.</p>
+            </div>
+            <span class="save-dot" id="model-save-dot" hidden>✓ Saved</span>
+          </div>
+
+          <div class="settings-list">
+            <label class="settings-item settings-item--inline">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Selection</span>
+                <span class="settings-item-desc">Auto picks the best model. Manual locks to one.</span>
+              </span>
+              <select id="model-mode-select" class="settings-select settings-select--inline">
+                <option value="auto">Auto</option>
+                <option value="manual">Manual</option>
+              </select>
+            </label>
+            <label class="settings-item settings-item--inline">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Thinking depth</span>
+                <span class="settings-item-desc">Higher means deeper reasoning but slower output.</span>
+              </span>
+              <select id="thinking-level-select" class="settings-select settings-select--inline">
+                <option value="minimal">Minimal</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Model catalog</h2>
+              <p class="settings-card-copy">Sync provider models or add manual entries.</p>
+            </div>
+            <div class="settings-button-group">
+              <button id="models-sync-btn" class="settings-button" type="button">Sync</button>
+              <button id="models-add-btn" class="settings-button settings-button--primary" type="button">Add model</button>
+            </div>
+          </div>
+
+          <div id="models-add-form" class="settings-form-grid" hidden>
+            <label class="settings-field">
+              <span class="settings-item-title">Provider</span>
+              <input id="manual-model-provider" class="settings-input" type="text" placeholder="google" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span class="settings-item-title">Model ID</span>
+              <input id="manual-model-id" class="settings-input" type="text" placeholder="models/gemini-2.5-pro" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span class="settings-item-title">Display name <span class="settings-item-optional">optional</span></span>
+              <input id="manual-model-name" class="settings-input" type="text" placeholder="Gemini 2.5 Pro" autocomplete="off" />
+            </label>
+            <div class="settings-form-actions">
+              <button id="manual-model-cancel" class="settings-button" type="button">Cancel</button>
+              <button id="manual-model-save" class="settings-button settings-button--primary" type="button">Add</button>
+            </div>
+          </div>
+
+          <div id="models-sync-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+          <div id="models-list" class="settings-item-list" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section id="web-browsing" class="settings-page" data-title="Web Browsing" data-root="web-browsing" aria-label="Web Browsing settings" hidden>
+        <header class="settings-page-header">
+          <div class="settings-page-breadcrumb settings-page-breadcrumb--root" aria-hidden="true"></div>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Web Browsing</h1>
+            <p class="settings-page-copy">Search, browser access, and website behavior.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Search and tools</h2>
+              <p class="settings-card-copy">Controls for live browsing behavior.</p>
+            </div>
+          </div>
+          <div class="settings-list">
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Web search</span>
+                <span class="settings-item-desc">Search the web when answering questions.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="browser-search-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Browser admin pages</span>
+                <span class="settings-item-desc">Allow explicit access to settings, flags, bookmarks, and history pages.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="browser-admin-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Extension management</span>
+                <span class="settings-item-desc">Allow explicit enable, disable, and uninstall actions for other extensions.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="extension-management-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+          </div>
+        </section>
+      </section>
+
+      <section id="personalization" class="settings-page" data-title="Personalization" data-root="personalization" aria-label="Personalization settings" hidden>
+        <header class="settings-page-header">
+          <div class="settings-page-breadcrumb settings-page-breadcrumb--root" aria-hidden="true"></div>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Personalization</h1>
+            <p class="settings-page-copy">Keep personal context and voice preferences organized, not crammed into one view.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Personalization overview</h2>
+              <p class="settings-card-copy">Drill in to manage voice settings and saved context.</p>
+            </div>
+          </div>
+
+          <div class="settings-list">
+            <button class="settings-drill-row" type="button" data-settings-target="personalization-voice">
+              <span class="settings-drill-copy">
+                <span class="settings-item-title">Voice and dictation</span>
+                <span id="voice-summary-meta" class="settings-item-desc">Choose narration, dictation, and speech-to-text settings.</span>
+              </span>
+              <span class="settings-drill-end">
+                <span id="voice-summary-badge" class="settings-summary-value">Off</span>
+                <span class="settings-drill-chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+            <button class="settings-drill-row" type="button" data-settings-target="personalization-memory">
+              <span class="settings-drill-copy">
+                <span class="settings-item-title">Memory</span>
+                <span id="memory-summary-meta" class="settings-item-desc">Manage saved notes and derived memory sources.</span>
+              </span>
+              <span class="settings-drill-end">
+                <span id="memory-summary-badge" class="settings-summary-value">Off</span>
+                <span class="settings-drill-chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <section id="personalization-voice" class="settings-page settings-page--detail" data-title="Voice and dictation" data-root="personalization" data-parent="personalization" aria-label="Voice and dictation settings" hidden>
+        <header class="settings-page-header">
+          <button class="settings-page-back" type="button" data-settings-back="personalization" aria-label="Back to Personalization">‹</button>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Voice and dictation</h1>
+            <p class="settings-page-copy">Speech settings stay here so the main page stays compact.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-list">
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Narration</span>
+                <span class="settings-item-desc">Read assistant replies aloud.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="narration-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Dictation</span>
+                <span class="settings-item-desc">Enable microphone input in the composer.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="transcription-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <div class="settings-item settings-item--static">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Current transcription provider</span>
+                <span id="transcription-provider-status" class="settings-item-desc">Voice transcription follows the active chat provider unless you override it here.</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="settings-form-grid">
+            <label class="settings-field">
+              <span class="settings-item-title">Speech-to-text provider</span>
+              <span class="settings-item-desc">Reuse one of your saved provider keys, or follow the active chat provider.</span>
+              <select id="transcription-provider-input" class="settings-select" aria-label="Speech-to-text provider">
+                <option value="auto">Auto (follow chat provider)</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span class="settings-item-title">Speech-to-text model</span>
+              <span class="settings-item-desc">Custom models from the same provider catalog appear here too.</span>
+              <select id="transcription-model-input" class="settings-select" aria-label="Speech-to-text model">
+                <option value="auto">Auto (recommended)</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span class="settings-item-title">Transcription language <span class="settings-item-optional">optional</span></span>
+              <input id="transcription-language-input" class="settings-input" type="text" placeholder="en-GB" autocomplete="off" />
+            </label>
+          </div>
+
+          <div id="transcription-model-status" class="settings-status" role="status" aria-live="polite"></div>
+          <div id="audio-support" class="settings-status" role="status" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section id="personalization-memory" class="settings-page settings-page--detail" data-title="Memory" data-root="personalization" data-parent="personalization" aria-label="Memory settings" hidden>
+        <header class="settings-page-header">
+          <button class="settings-page-back" type="button" data-settings-back="personalization" aria-label="Back to Personalization">‹</button>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Memory</h1>
+            <p class="settings-page-copy">Saved context and editable memories belong in one focused place.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-list">
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Manual memories</span>
+                <span class="settings-item-desc">Use notes you add yourself as reusable context.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="memory-manual-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Bookmarks</span>
+                <span class="settings-item-desc">Let the assistant draw memory from your recent bookmarks.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="memory-bookmarks-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">History</span>
+                <span class="settings-item-desc">Use recent browsing history as optional memory context.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="memory-history-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Settings</span>
+                <span class="settings-item-desc">Let the assistant remember its own configured browser and model settings.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="memory-settings-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Manual memory</h2>
+              <p class="settings-card-copy">Keep pinned facts and instructions concise.</p>
+            </div>
+          </div>
+
+          <div class="settings-form-grid">
+            <input id="memory-entry-id" type="hidden" />
+            <label class="settings-field">
+              <span class="settings-item-title">Manual memory</span>
+              <span class="settings-item-desc">Pinned facts or instructions the assistant should remember.</span>
+              <textarea id="memory-entry-text" class="settings-input settings-input--multiline" rows="3" placeholder="Prince works IT support in Halo, Exchange Hybrid, and Intune."></textarea>
+            </label>
+            <div class="settings-form-actions">
+              <button id="memory-cancel-btn" class="settings-button" type="button">Cancel</button>
+              <button id="memory-save-btn" class="settings-button settings-button--primary" type="button">Save</button>
+            </div>
+          </div>
+
+          <div id="memory-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+          <div class="settings-card-subsection">
+            <span class="settings-card-subsection-title">Manual memories</span>
+            <div id="memory-manual-list" class="settings-item-list" aria-live="polite"></div>
+          </div>
+          <div class="settings-card-subsection">
+            <span class="settings-card-subsection-title">Derived memories</span>
+            <div id="memory-derived-list" class="settings-item-list" aria-live="polite"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="data-controls" class="settings-page" data-title="Data Controls" data-root="data-controls" aria-label="Data Controls settings" hidden>
+        <header class="settings-page-header">
+          <div class="settings-page-breadcrumb settings-page-breadcrumb--root" aria-hidden="true"></div>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Data Controls</h1>
+            <p class="settings-page-copy">Conversation history and local data management live here.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Stored data</h2>
+              <p class="settings-card-copy">Use a focused view to review or clear recent chats.</p>
+            </div>
+          </div>
+          <div class="settings-list">
+            <button class="settings-drill-row" type="button" data-settings-target="data-controls-chats">
+              <span class="settings-drill-copy">
+                <span class="settings-item-title">Recent chats</span>
+                <span id="chat-summary-meta" class="settings-item-desc">Manage the local chat list without mixing it into other pages.</span>
+              </span>
+              <span class="settings-drill-end">
+                <span id="chat-summary-badge" class="settings-summary-value">Empty</span>
+                <span class="settings-drill-chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <section id="data-controls-chats" class="settings-page settings-page--detail" data-title="Recent chats" data-root="data-controls" data-parent="data-controls" aria-label="Recent chat settings" hidden>
+        <header class="settings-page-header">
+          <button class="settings-page-back" type="button" data-settings-back="data-controls" aria-label="Back to Data Controls">‹</button>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Recent chats</h1>
+            <p class="settings-page-copy">Review or clear the local chat list.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Recent chats</h2>
+              <p class="settings-card-copy">Local only. This page should stay clean even with many entries.</p>
+            </div>
+            <button id="clear-chats-btn" class="settings-button settings-button--danger" type="button">Clear all</button>
+          </div>
+          <div id="chat-list" class="settings-item-list" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section id="agent-mode" class="settings-page" data-title="Agent Mode" data-root="agent-mode" aria-label="Agent Mode settings" hidden>
+        <header class="settings-page-header">
+          <div class="settings-page-breadcrumb settings-page-breadcrumb--root" aria-hidden="true"></div>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Agent Mode</h1>
+            <p class="settings-page-copy">Only agent behavior and permissions belong here.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Agent controls</h2>
+              <p class="settings-card-copy">Keep the main page as an overview, then drill in for dense settings.</p>
+            </div>
+          </div>
+
+          <div class="settings-list">
+            <button class="settings-drill-row" type="button" data-settings-target="agent-mode-runtime">
+              <span class="settings-drill-copy">
+                <span class="settings-item-title">Agent behavior and permissions</span>
+                <span id="agent-runtime-summary-meta" class="settings-item-desc">Vision, highlights, replay, permissions, and limits.</span>
+              </span>
+              <span class="settings-drill-end">
+                <span id="agent-runtime-summary-badge" class="settings-summary-value">Review</span>
+                <span class="settings-drill-chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+            <button class="settings-drill-row" type="button" data-settings-target="agent-mode-commands">
+              <span class="settings-drill-copy">
+                <span class="settings-item-title">Commands</span>
+                <span id="commands-summary-meta" class="settings-item-desc">Slash commands are part of the agent surface.</span>
+              </span>
+              <span class="settings-drill-end">
+                <span id="commands-summary-badge" class="settings-summary-value">Empty</span>
+                <span class="settings-drill-chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <section id="agent-mode-runtime" class="settings-page settings-page--detail" data-title="Agent behavior" data-root="agent-mode" data-parent="agent-mode" aria-label="Agent behavior settings" hidden>
+        <header class="settings-page-header">
+          <button class="settings-page-back" type="button" data-settings-back="agent-mode" aria-label="Back to Agent Mode">‹</button>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Agent behavior</h1>
+            <p class="settings-page-copy">Visibility, replay, permissions, and execution limits.</p>
+          </div>
+        </header>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Runtime</h2>
+              <p class="settings-card-copy">Adjust only what materially changes agent behavior.</p>
+            </div>
+            <span class="save-dot" id="agent-save-dot" hidden>✓ Saved</span>
+          </div>
+
+          <div class="settings-list">
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Vision</span>
+                <span class="settings-item-desc">Use screenshot analysis when the page is hard to parse.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="agent-vision-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Highlights</span>
+                <span class="settings-item-desc">Show where the agent is looking and acting.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="agent-highlights-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">History replay <span class="settings-badge settings-badge--experimental">beta</span></span>
+                <span class="settings-item-desc">Keep a replayable step history for review.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="agent-replay-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Tool calls</span>
+                <span class="settings-item-desc">Browser automation and function calling.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="function-calling-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Code-heavy tasks</span>
+                <span class="settings-item-desc">Prefer models suited to code reasoning and tool-heavy tasks.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="code-execution-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+            <label class="settings-item">
+              <span class="settings-item-copy">
+                <span class="settings-item-title">Local workspace access</span>
+                <span class="settings-item-desc">Allow explicit workspace file tools and terminal commands.</span>
+              </span>
+              <span class="settings-toggle-wrap">
+                <input id="local-shell-toggle" class="settings-toggle" type="checkbox" role="switch" />
+                <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Limits</h2>
+              <p class="settings-card-copy">These stay out of the overview page because they are rarely changed.</p>
+            </div>
+          </div>
+          <div class="settings-form-grid settings-form-grid--compact">
+            <label class="settings-field settings-field--inline">
+              <span class="settings-item-title">Max steps per task</span>
               <input id="agent-max-steps" class="settings-number" type="number" min="1" max="250" value="50" />
             </label>
-            <label class="settings-row">
-              <span class="settings-row-copy"><span class="settings-row-title">Max actions per step</span></span>
+            <label class="settings-field settings-field--inline">
+              <span class="settings-item-title">Max actions per step</span>
               <input id="agent-max-actions" class="settings-number" type="number" min="1" max="50" value="10" />
             </label>
-            <label class="settings-row">
-              <span class="settings-row-copy"><span class="settings-row-title">Failure tolerance</span></span>
+            <label class="settings-field settings-field--inline">
+              <span class="settings-item-title">Failure tolerance</span>
               <input id="agent-failure-tolerance" class="settings-number" type="number" min="0" max="50" value="3" />
             </label>
-            <label class="settings-row">
-              <span class="settings-row-copy"><span class="settings-row-title">Replanning frequency</span></span>
+            <label class="settings-field settings-field--inline">
+              <span class="settings-item-title">Replanning frequency</span>
               <input id="agent-replan-freq" class="settings-number" type="number" min="0" max="50" value="0" />
             </label>
-            <label class="settings-row">
-              <span class="settings-row-copy"><span class="settings-row-title">Page load wait (ms)</span></span>
+            <label class="settings-field settings-field--inline">
+              <span class="settings-item-title">Page load wait (ms)</span>
               <input id="agent-page-load-wait" class="settings-number" type="number" min="250" max="5000" step="50" value="250" />
             </label>
           </div>
-        </details>
+        </section>
       </section>
 
-      <!-- ── Provider ────────────────────────────────────────────────── -->
-      <section id="provider" class="settings-section" aria-label="Provider">
-        <div class="settings-section-header">
-          <div>
-            <h2 class="settings-section-title">Provider</h2>
-            <p class="settings-section-desc">API keys stored locally, never leave your device.</p>
+      <section id="agent-mode-commands" class="settings-page settings-page--detail" data-title="Commands" data-root="agent-mode" data-parent="agent-mode" aria-label="Agent command settings" hidden>
+        <header class="settings-page-header">
+          <button class="settings-page-back" type="button" data-settings-back="agent-mode" aria-label="Back to Agent Mode">‹</button>
+          <div class="settings-page-heading">
+            <h1 class="settings-page-title">Commands</h1>
+            <p class="settings-page-copy">Slash commands are part of the agent surface, not a separate product area.</p>
           </div>
-          <button id="provider-save-btn" class="settings-button settings-button--primary" type="button">Save key</button>
-        </div>
+        </header>
 
-        <div class="settings-form-grid">
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Provider</span>
-              <span class="settings-row-desc">google · openai · anthropic · deepseek · xai · perplexity</span>
-            </span>
-            <input id="provider-id-input" class="settings-input" type="text" placeholder="google" autocomplete="off" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy"><span class="settings-row-title">API Key</span></span>
-            <input id="provider-key-input" class="settings-input" type="password" placeholder="AIza…" autocomplete="new-password" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy"><span class="settings-row-title">Preferred model</span></span>
-            <input id="provider-model-input" class="settings-input" type="text" placeholder="models/gemini-2.5-flash" autocomplete="off" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Base URL <span class="settings-row-optional">optional</span></span>
-            </span>
-            <input id="provider-base-url-input" class="settings-input" type="url" placeholder="https://api.example.com" autocomplete="off" />
-          </label>
-        </div>
+        <section class="settings-card">
+          <div class="settings-card-header">
+            <div>
+              <h2 class="settings-card-title">Saved commands</h2>
+              <p class="settings-card-copy">Keep the list and editor together here.</p>
+            </div>
+            <button id="shortcuts-add-btn" class="settings-button settings-button--primary" type="button">Add command</button>
+          </div>
 
-        <div id="provider-save-status" class="settings-status" role="status" aria-live="polite" hidden></div>
-        <div id="provider-list" class="settings-item-list" aria-live="polite"></div>
+          <div id="shortcuts-form" class="settings-form-grid" hidden>
+            <input id="shortcut-id" type="hidden" />
+            <label class="settings-field">
+              <span class="settings-item-title">Trigger</span>
+              <input id="shortcut-trigger" class="settings-input" type="text" placeholder="/investigate" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span class="settings-item-title">Label</span>
+              <input id="shortcut-label" class="settings-input" type="text" placeholder="Investigate" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span class="settings-item-title">Instructions</span>
+              <textarea id="shortcut-instructions" class="settings-input settings-input--multiline" rows="4" placeholder="Investigate the current issue step by step."></textarea>
+            </label>
+            <div class="settings-form-actions">
+              <button id="shortcuts-cancel-btn" class="settings-button" type="button">Cancel</button>
+              <button id="shortcuts-save-btn" class="settings-button settings-button--primary" type="button">Save</button>
+            </div>
+          </div>
+
+          <div id="shortcuts-status" class="settings-status" role="status" aria-live="polite" hidden></div>
+          <div id="shortcuts-list" class="settings-item-list" aria-live="polite"></div>
+        </section>
       </section>
-
-      <!-- ── Models + Model Config ───────────────────────────────────── -->
-      <section id="models" class="settings-section" aria-label="Models">
-        <div class="settings-section-header">
-          <div>
-            <h2 class="settings-section-title">Models</h2>
-            <p class="settings-section-desc">Selection strategy, capabilities, and catalog.</p>
-          </div>
-          <span class="save-dot" id="model-save-dot" hidden>✓ Saved</span>
-        </div>
-
-        <div class="settings-rows">
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Selection</span>
-              <span class="settings-row-desc">Auto picks the best model. Manual locks to one.</span>
-            </span>
-            <select id="model-mode-select" class="settings-select settings-select--inline">
-              <option value="auto">Auto ✶</option>
-              <option value="manual">Manual</option>
-            </select>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Thinking depth</span>
-              <span class="settings-row-desc">Higher = deeper reasoning, slower response.</span>
-            </span>
-            <select id="thinking-level-select" class="settings-select settings-select--inline">
-              <option value="minimal">Minimal</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Tool calls</span>
-              <span class="settings-row-desc">Browser automation and function calling.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="function-calling-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Web search</span>
-              <span class="settings-row-desc">Search the web when answering questions.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="browser-search-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Code execution</span>
-              <span class="settings-row-desc">Run Python snippets when supported.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="code-execution-toggle" class="settings-toggle" type="checkbox" role="switch" checked />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-        </div>
-
-        <div class="settings-divider"></div>
-
-        <div class="settings-subsection-header">
-          <span class="settings-subsection-label">Catalog</span>
-          <div class="settings-button-group">
-            <button id="models-sync-btn" class="settings-button" type="button">Sync</button>
-            <button id="models-add-btn"  class="settings-button settings-button--primary" type="button">Add model</button>
-          </div>
-        </div>
-
-        <div id="models-add-form" class="settings-form-grid" hidden>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy"><span class="settings-row-title">Provider</span></span>
-            <input id="manual-model-provider" class="settings-input" type="text" placeholder="google" autocomplete="off" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy"><span class="settings-row-title">Model ID</span></span>
-            <input id="manual-model-id" class="settings-input" type="text" placeholder="models/gemini-2.5-pro" autocomplete="off" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Display name <span class="settings-row-optional">optional</span></span>
-            </span>
-            <input id="manual-model-name" class="settings-input" type="text" placeholder="Gemini 2.5 Pro" autocomplete="off" />
-          </label>
-          <div class="settings-form-actions">
-            <button id="manual-model-cancel" class="settings-button" type="button">Cancel</button>
-            <button id="manual-model-save"   class="settings-button settings-button--primary" type="button">Add</button>
-          </div>
-        </div>
-
-        <div id="models-sync-status" class="settings-status" role="status" aria-live="polite" hidden></div>
-        <div id="models-list" class="settings-item-list" aria-live="polite"></div>
-      </section>
-
-      <!-- ── Data (Audio + Chats) ────────────────────────────────────── -->
-      <section id="data" class="settings-section" aria-label="Data">
-        <div class="settings-section-header">
-          <div>
-            <h2 class="settings-section-title">Data</h2>
-            <p class="settings-section-desc">Audio preferences and conversation history.</p>
-          </div>
-        </div>
-
-        <div class="settings-rows">
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Narration</span>
-              <span class="settings-row-desc">Read assistant replies aloud.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="narration-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Dictation</span>
-              <span class="settings-row-desc">Enable microphone input in the composer.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="transcription-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-        </div>
-        <div class="settings-form-grid">
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Transcription model</span>
-              <span class="settings-row-desc">Uses the same provider session as browser control.</span>
-            </span>
-            <input id="transcription-model-input" class="settings-input" type="text" placeholder="models/gemini-2.5-flash" autocomplete="off" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Transcription language <span class="settings-row-optional">optional</span></span>
-            </span>
-            <input id="transcription-language-input" class="settings-input" type="text" placeholder="en-GB" autocomplete="off" />
-          </label>
-        </div>
-        <div id="audio-support" class="settings-status" role="status" aria-live="polite"></div>
-
-        <div class="settings-divider"></div>
-
-        <div class="settings-subsection-header">
-          <span class="settings-subsection-label">Memory</span>
-        </div>
-        <div class="settings-rows">
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Manual memories</span>
-              <span class="settings-row-desc">Use notes you add yourself as reusable context.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="memory-manual-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Bookmarks</span>
-              <span class="settings-row-desc">Let Atlas draw memory from your recent bookmarks.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="memory-bookmarks-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">History</span>
-              <span class="settings-row-desc">Use recent browsing history as optional memory context.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="memory-history-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Settings</span>
-              <span class="settings-row-desc">Let Atlas remember its own configured browser and model settings.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="memory-settings-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-        </div>
-        <div class="settings-form-grid">
-          <input id="memory-entry-id" type="hidden" />
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Manual memory</span>
-              <span class="settings-row-desc">Pinned facts or instructions Atlas should remember.</span>
-            </span>
-            <textarea id="memory-entry-text" class="settings-input settings-input--multiline" rows="3" placeholder="Prince works IT support in Halo, Exchange Hybrid, and Intune."></textarea>
-          </label>
-          <div class="settings-form-actions">
-            <button id="memory-cancel-btn" class="settings-button" type="button">Cancel</button>
-            <button id="memory-save-btn" class="settings-button settings-button--primary" type="button">Save</button>
-          </div>
-        </div>
-        <div id="memory-status" class="settings-status" role="status" aria-live="polite" hidden></div>
-
-        <div class="settings-subsection-header">
-          <span class="settings-subsection-label">Manual memories</span>
-        </div>
-        <div id="memory-manual-list" class="settings-item-list" aria-live="polite"></div>
-
-        <div class="settings-subsection-header">
-          <span class="settings-subsection-label">Derived memories</span>
-        </div>
-        <div id="memory-derived-list" class="settings-item-list" aria-live="polite"></div>
-
-        <div class="settings-divider"></div>
-
-        <div class="settings-subsection-header">
-          <span class="settings-subsection-label">Browser access</span>
-        </div>
-        <div class="settings-rows">
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Browser admin pages</span>
-              <span class="settings-row-desc">Allow explicit access to browser settings, flags, bookmarks, and history pages.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="browser-admin-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-          <label class="settings-row">
-            <span class="settings-row-copy">
-              <span class="settings-row-title">Extension management</span>
-              <span class="settings-row-desc">Allow explicit list, enable, disable, and uninstall actions for other extensions.</span>
-            </span>
-            <span class="settings-toggle-wrap">
-              <input id="extension-management-toggle" class="settings-toggle" type="checkbox" role="switch" />
-              <span class="settings-toggle-track" aria-hidden="true"><span class="settings-toggle-thumb"></span></span>
-            </span>
-          </label>
-        </div>
-
-        <div class="settings-divider"></div>
-
-        <div class="settings-subsection-header">
-          <span class="settings-subsection-label">Recent chats</span>
-          <button id="clear-chats-btn" class="settings-button settings-button--danger" type="button">Clear all</button>
-        </div>
-        <div id="chat-list" class="settings-item-list"></div>
-      </section>
-
-      <!-- ── Commands ──────────────────────────────────────────────── -->
-      <section id="commands" class="settings-section" aria-label="Commands">
-        <div class="settings-section-header">
-          <div>
-            <h2 class="settings-section-title">Commands</h2>
-            <p class="settings-section-desc">Edit custom slash commands used in the composer.</p>
-          </div>
-          <button id="shortcuts-add-btn" class="settings-button settings-button--primary" type="button">Add command</button>
-        </div>
-
-        <div id="shortcuts-form" class="settings-form-grid" hidden>
-          <input id="shortcut-id" type="hidden" />
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy"><span class="settings-row-title">Trigger</span></span>
-            <input id="shortcut-trigger" class="settings-input" type="text" placeholder="/investigate" autocomplete="off" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy"><span class="settings-row-title">Label</span></span>
-            <input id="shortcut-label" class="settings-input" type="text" placeholder="Investigate" autocomplete="off" />
-          </label>
-          <label class="settings-row settings-row--stacked">
-            <span class="settings-row-copy"><span class="settings-row-title">Instructions</span></span>
-            <textarea id="shortcut-instructions" class="settings-input settings-input--multiline" rows="4" placeholder="Investigate the current issue step by step."></textarea>
-          </label>
-          <div class="settings-form-actions">
-            <button id="shortcuts-cancel-btn" class="settings-button" type="button">Cancel</button>
-            <button id="shortcuts-save-btn" class="settings-button settings-button--primary" type="button">Save</button>
-          </div>
-        </div>
-
-        <div id="shortcuts-status" class="settings-status" role="status" aria-live="polite" hidden></div>
-        <div id="shortcuts-list" class="settings-item-list" aria-live="polite"></div>
-      </section>
-
     </section>
   </main>
 

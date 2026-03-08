@@ -63,6 +63,51 @@ export function findAssistantServiceWorkerTarget(targetInfos) {
   });
 }
 
+function findAssistantPanelTarget(targetInfos) {
+  if (!Array.isArray(targetInfos)) {
+    return undefined;
+  }
+
+  return targetInfos.find((target) => {
+    if (!target || typeof target !== "object") {
+      return false;
+    }
+    return target.type === "page" &&
+      typeof target.url === "string" &&
+      target.url.startsWith("chrome-extension://") &&
+      target.url.endsWith("/panel.html");
+  });
+}
+
+function resolvePanelUrl(extensionTargetUrl, targetInfos) {
+  if (typeof extensionTargetUrl === "string" && extensionTargetUrl.startsWith("chrome-extension://")) {
+    if (extensionTargetUrl.endsWith("/background.js")) {
+      return extensionTargetUrl.replace(/\/background\.js$/, "/panel.html");
+    }
+    if (extensionTargetUrl.endsWith("/panel.html")) {
+      return extensionTargetUrl;
+    }
+  }
+
+  const existingPanelTarget = findAssistantPanelTarget(targetInfos);
+  if (existingPanelTarget?.url) {
+    return existingPanelTarget.url;
+  }
+
+  const anyExtensionTarget = Array.isArray(targetInfos)
+    ? targetInfos.find((target) => typeof target?.url === "string" && target.url.startsWith("chrome-extension://"))
+    : undefined;
+  if (!anyExtensionTarget?.url) {
+    return undefined;
+  }
+
+  const match = anyExtensionTarget.url.match(/^chrome-extension:\/\/([^/]+)/);
+  if (!match) {
+    return undefined;
+  }
+  return `chrome-extension://${match[1]}/panel.html`;
+}
+
 function getRuntimeEvaluationPayload(evaluation) {
   const value = evaluation?.result?.value;
   const exceptionText =
@@ -128,6 +173,17 @@ export async function openAssistantSidePanel({
         : undefined);
 
     if (!extensionTarget?.targetId) {
+      const existingPanelTarget = findAssistantPanelTarget(targets?.targetInfos);
+      if (existingPanelTarget?.targetId) {
+        return { ok: true, mode: "panel_tab_existing", targetId: existingPanelTarget.targetId, url: existingPanelTarget.url };
+      }
+
+      const panelUrl = resolvePanelUrl(extensionTargetUrl, targets?.targetInfos);
+      if (panelUrl) {
+        const opened = await send("Target.createTarget", { url: panelUrl });
+        return { ok: true, mode: "panel_tab", targetId: opened?.targetId, url: panelUrl };
+      }
+
       throw new Error("Assistant extension service worker target was not found.");
     }
 

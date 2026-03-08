@@ -12,6 +12,8 @@ describe("agent thinking state", () => {
 
     expect(css).toContain(".thinking-row");
     expect(css).toContain(".action-log");
+    expect(css).toContain(".thinking-task-card");
+    expect(css).toContain(".thinking-task-chip");
     expect(css).toContain(".gamma-thinking");
     expect(css).toContain(".gamma-scanning");
     expect(css).toContain(".gamma-streaming");
@@ -20,6 +22,8 @@ describe("agent thinking state", () => {
 
     expect(script).toContain("function setAiAvatar");
     expect(script).toContain("function appendActionItem");
+    expect(script).toContain("function syncOverlayTaskStatus");
+    expect(script).toContain("function deriveTaskStatusMeta");
     expect(script).toContain('setAiAvatar(currentAiEl, "gamma-thinking")');
     expect(script).toContain('setAiAvatar(currentAiEl, "gamma-scanning")');
     expect(script).toContain('setAiAvatar(currentAiEl, "gamma-streaming")');

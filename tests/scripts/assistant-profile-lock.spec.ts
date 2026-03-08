@@ -1,4 +1,5 @@
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -7,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyAssistantPreferenceLock,
   applyAssistantSecurePreferenceLock,
+  ensureProfileSearchEngine,
   hardenAssistantProfile,
   resolveAssistantExtensionId
 } from "../../scripts/lib/assistant-profile-lock.js";
@@ -163,5 +165,42 @@ describe("assistant profile lock", () => {
         }
       }
     });
+  });
+
+  it("replaces Chromium's no-search placeholder with a real default search engine", async () => {
+    const profileRoot = mkdtempSync(path.join(tmpdir(), "assistant-profile-search-"));
+    const defaultDir = path.join(profileRoot, "Default");
+    mkdirSync(defaultDir, { recursive: true });
+    const webDataPath = path.join(defaultDir, "Web Data");
+
+    execFileSync("python3", ["-c", `
+import sqlite3, sys
+conn = sqlite3.connect(sys.argv[1])
+cur = conn.cursor()
+cur.execute("CREATE TABLE keywords (id INTEGER PRIMARY KEY, short_name VARCHAR NOT NULL, keyword VARCHAR NOT NULL, favicon_url VARCHAR NOT NULL, url VARCHAR NOT NULL, safe_for_autoreplace INTEGER, originating_url VARCHAR, date_created INTEGER DEFAULT 0, usage_count INTEGER DEFAULT 0, input_encodings VARCHAR, suggest_url VARCHAR, prepopulate_id INTEGER DEFAULT 0, created_by_policy INTEGER DEFAULT 0, last_modified INTEGER DEFAULT 0, sync_guid VARCHAR, alternate_urls VARCHAR, image_url VARCHAR, search_url_post_params VARCHAR, suggest_url_post_params VARCHAR, image_url_post_params VARCHAR, new_tab_url VARCHAR, last_visited INTEGER DEFAULT 0, created_from_play_api INTEGER DEFAULT 0, is_active INTEGER DEFAULT 0, starter_pack_id INTEGER DEFAULT 0, enforced_by_policy INTEGER DEFAULT 0, featured_by_policy INTEGER DEFAULT 0, url_hash BLOB)")
+cur.execute("INSERT INTO keywords (id, short_name, keyword, favicon_url, url, safe_for_autoreplace, prepopulate_id) VALUES (2, 'No Search', 'nosearch', '', 'http://{searchTerms}', 1, 1)")
+conn.commit()
+conn.close()
+`, webDataPath]);
+
+    const changed = await ensureProfileSearchEngine(profileRoot);
+
+    expect(changed).toBe(true);
+
+    const row = execFileSync("python3", ["-c", `
+import sqlite3, sys, json
+conn = sqlite3.connect(sys.argv[1])
+cur = conn.cursor()
+row = cur.execute("SELECT short_name, keyword, url, suggest_url FROM keywords WHERE id = 2").fetchone()
+conn.close()
+print(json.dumps(row))
+`, webDataPath], { encoding: "utf8" }).trim();
+
+    expect(JSON.parse(row)).toEqual([
+      "Google",
+      "google.com",
+      "https://www.google.com/search?q={searchTerms}",
+      "https://www.google.com/complete/search?client=chrome&q={searchTerms}"
+    ]);
   });
 });

@@ -18,6 +18,28 @@ const DEEPSEEK_DEFAULT_BASE_URL = "https://api.deepseek.com";
 const DEEPSEEK_DEFAULT_TIMEOUT_MS = 10_000;
 const DEEPSEEK_RUN_TURN_TIMEOUT_MS = 120_000;
 
+function extractDeepSeekErrorDetails(data: unknown): { message?: string; code?: string } {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return {};
+  }
+
+  const error = (data as { error?: unknown }).error;
+  if (!error || typeof error !== "object" || Array.isArray(error)) {
+    return {};
+  }
+
+  return {
+    message:
+      typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message.trim()
+        : undefined,
+    code:
+      typeof (error as { code?: unknown }).code === "string"
+        ? (error as { code: string }).code.trim()
+        : undefined
+  };
+}
+
 function resolveDeepSeekReasoning(level: string | undefined): "low" | "medium" | "high" {
   if (level === "minimal" || level === "low") {
     return "low";
@@ -45,20 +67,51 @@ function extractDeepSeekModels(payload: unknown): string[] {
   );
 }
 
-function toProviderError(status: number, provider: string): Error {
+function toDeepSeekContent(content: Parameters<NonNullable<ProviderAdapter["runTurn"]>>[0]["messages"][number]["content"]): string {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (!Array.isArray(content)) {
+    return "";
+  }
+
+  return content
+    .map((part) => {
+      if (!part || typeof part !== "object") {
+        return "";
+      }
+
+      if (part.type === "text" && typeof part.text === "string") {
+        return part.text;
+      }
+
+      if (part.type === "image" && typeof part.media_type === "string") {
+        return `[image omitted: ${part.media_type}]`;
+      }
+
+      return "";
+    })
+    .filter((part) => part.length > 0)
+    .join("\n");
+}
+
+function toProviderError(status: number, provider: string, data?: unknown): Error {
+  const details = extractDeepSeekErrorDetails(data);
+  const detailSuffix = details.message ? `: ${details.message}` : "";
   if (status === 401 || status === 403) {
-    return createProviderAdapterError("PROVIDER_AUTH_FAILED", `${provider} API key rejected`, false);
+    return createProviderAdapterError("PROVIDER_AUTH_FAILED", `${provider} API key rejected${detailSuffix}`, false, details.code ? { code: details.code } : undefined);
   }
 
   if (status === 429) {
-    return createProviderAdapterError("PROVIDER_RATE_LIMITED", `${provider} rate limit reached`, true);
+    return createProviderAdapterError("PROVIDER_RATE_LIMITED", `${provider} rate limit reached${detailSuffix}`, true, details.code ? { code: details.code } : undefined);
   }
 
   if (status >= 500) {
-    return createProviderAdapterError("PROVIDER_UNAVAILABLE", `${provider} service unavailable`, true);
+    return createProviderAdapterError("PROVIDER_UNAVAILABLE", `${provider} service unavailable${detailSuffix}`, true, details.code ? { code: details.code } : undefined);
   }
 
-  return createProviderAdapterError("PROVIDER_HTTP_ERROR", `${provider} request failed with HTTP ${status}`, status >= 500);
+  return createProviderAdapterError("PROVIDER_HTTP_ERROR", `${provider} request failed with HTTP ${status}${detailSuffix}`, status >= 500, details.code ? { code: details.code } : undefined);
 }
 
 async function listDeepSeekModels(
@@ -82,7 +135,7 @@ async function listDeepSeekModels(
   );
 
   if (!response.ok) {
-    throw toProviderError(response.status, "DeepSeek");
+    throw toProviderError(response.status, "DeepSeek", response.data);
   }
 
   const models = extractDeepSeekModels(response.data);
@@ -115,9 +168,20 @@ async function runDeepSeekTurn(
         model: input.model,
         messages: input.messages.map((message) => ({
           role: message.role,
-          content: message.content,
-          ...(message.tool_call_id ? { tool_call_id: message.tool_call_id } : {}),
-          ...(message.tool_name ? { name: message.tool_name } : {})
+          content: toDeepSeekContent(message.content),
+          ...(Array.isArray(message.tool_calls) && message.tool_calls.length > 0
+            ? {
+                tool_calls: message.tool_calls.map((toolCall) => ({
+                  id: toolCall.id,
+                  type: "function",
+                  function: {
+                    name: toolCall.name,
+                    arguments: JSON.stringify(toolCall.arguments ?? {})
+                  }
+                }))
+              }
+            : {}),
+          ...(message.tool_call_id ? { tool_call_id: message.tool_call_id } : {})
         })),
         tools: input.tools.map((tool) => ({
           type: "function",
@@ -134,7 +198,7 @@ async function runDeepSeekTurn(
   );
 
   if (!response.ok) {
-    throw toProviderError(response.status, "DeepSeek");
+    throw toProviderError(response.status, "DeepSeek", response.data);
   }
 
   const raw = toJsonObject(response.data) ?? {};

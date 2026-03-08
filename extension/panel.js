@@ -11,13 +11,15 @@ import { readImportedAttachments, buildAttachmentPromptPrefix } from "./lib/file
 import { createAudioRecorderController, isAudioRecordingSupported } from "./lib/speech.js";
 import { overlayPhaseForTool } from "./lib/atlas-overlay-state.js";
 import { buildMemoryContextItems, loadMemoryStore } from "./lib/memory.js";
-import { hasAccessibleWebTab, isPageContextPrompt, normalizePanelErrorMessage } from "./lib/page-context.js";
+import { getCapturableActiveTab, hasAccessibleWebTab, isPageContextPrompt, normalizePanelErrorMessage } from "./lib/page-context.js";
+import { buildMissingProviderSessionMessage, resolveProviderSelection } from "./lib/provider-resolution.js";
 import {
   normalizeChatSessionsStore, ensureActiveSession,
   appendSessionMessage, pruneChatSessions, CHAT_SESSIONS_STORAGE_KEY
 } from "./lib/recent-chats.js";
 import { readUnlockedProviders } from "./lib/provider-session.js";
 import { loadPanelSettings, PANEL_SETTINGS_STORAGE_KEY } from "./lib/panel-settings.js";
+import { resolveTranscriptionConfig } from "./lib/transcription-config.js";
 
 const SIDECAR_WS   = "ws://127.0.0.1:3210";
 const EVENTS_URL   = "http://127.0.0.1:3210/events";
@@ -29,13 +31,7 @@ const RECONNECT_BUSY_LABEL = "Reconnecting...";
 
 // Returns the active web tab (http/https), skipping the side panel itself.
 async function getActiveWebTab() {
-  const WEB = ["http://*/*", "https://*/*"];
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true, url: WEB });
-  if (!tab) {
-    const all = await chrome.tabs.query({ currentWindow: true, url: WEB });
-    tab = all[0] || null;
-  }
-  return tab;
+  return getCapturableActiveTab((queryInfo) => chrome.tabs.query(queryInfo));
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -174,6 +170,7 @@ function svgGamma(cls = "") {
 
 const SVG = {
   newChat:     `<svg viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  chevronLeft: `<svg viewBox="0 0 16 16" fill="none"><path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   send:        `<svg viewBox="0 0 16 16" fill="none"><path d="M13.5 8L3 3l2.5 5L3 13l10.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
   stop:        `<svg viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="8" height="8" rx="1.5" fill="currentColor"/></svg>`,
   chevronDown: `<svg viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -215,7 +212,7 @@ const TOOL_ICONS = {
 // Built-in slash shortcuts
 // ═══════════════════════════════════════════════════════════════════
 const BUILTIN_SHORTCUTS = [
-  { id: "bi:summarize",  trigger: "/summarize",  label: "Summarize",   instructions: "Summarize this page for me",                          isBuiltIn: true },
+  { id: "bi:summarize",  trigger: "/summarize",  label: "Summarise",   instructions: "Summarise this page for me",                         isBuiltIn: true },
   { id: "bi:explain",    trigger: "/explain",    label: "Explain",     instructions: "Explain what this page is about",                     isBuiltIn: true },
   { id: "bi:search",     trigger: "/search",     label: "Web search",  instructions: "Search the web for: ",                               isBuiltIn: true },
   { id: "bi:screenshot", trigger: "/screenshot", label: "Screenshot",  instructions: "Take a screenshot and describe what you see",         isBuiltIn: true },
@@ -231,61 +228,65 @@ export function buildPanelShellMarkup() {
 <div class="assistant-shell">
   <header class="panel-header">
     <div class="panel-header-brand">
-      <div class="brand-icon">${svgGamma("")}</div>
-      <span>Assistant</span>
+      <button class="icon-btn panel-back-btn" id="btn-settings-back" title="Back" aria-label="Back" hidden>${SVG.chevronLeft}</button>
+      <div class="brand-icon" id="panel-brand-icon">${svgGamma("")}</div>
+      <span id="panel-header-title">Assistant</span>
     </div>
-    <div class="panel-header-actions">
-      <button class="icon-btn" id="settings-btn" title="Settings" aria-label="Settings">${SVG.gear}</button>
-      <button class="icon-btn" id="btn-new-chat" title="New chat" aria-label="New chat">${SVG.newChat}</button>
+    <div class="panel-header-actions" id="panel-header-actions-main">
       <div class="kebab-wrap">
-        <button class="icon-btn" id="btn-kebab" title="More options" aria-label="More options">${SVG.dotsThree}</button>
+        <button class="icon-btn" id="btn-new-chat" title="Open menu" aria-label="Open menu">${SVG.newChat}</button>
         <div id="kebab-menu" class="overlay-panel kebab-menu" hidden></div>
       </div>
     </div>
   </header>
 
-  <div id="conn-bar" class="conn-bar" hidden>
-    <span class="conn-dot" id="conn-dot"></span>
-    <span id="conn-label">Connecting…</span>
+  <div class="assistant-main-view" id="assistant-main-view">
+    <div id="conn-bar" class="conn-bar" hidden>
+      <span class="conn-dot" id="conn-dot"></span>
+      <span id="conn-label">Connecting…</span>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="stage" id="stage">
+        <div class="empty-state" id="empty-state">
+          <p class="empty-title">${EMPTY_DEFAULT_COPY}</p>
+          <div class="suggested-chips" id="chips">
+            <button class="chip" data-prompt="Summarise this page for me">✦ Summarise</button>
+            <button class="chip" data-prompt="What can I do on this page?">What can I do here?</button>
+            <button class="chip" data-prompt="Tell me more about this page">Learn more</button>
+            <button class="chip" data-prompt="Find the main call to action on this page">Find CTA</button>
+          </div>
+          <button class="empty-reconnect-btn" id="empty-reconnect-btn" type="button" hidden>Reconnect to sidecar</button>
+        </div>
+        <div class="thread" id="thread" hidden></div>
+      </div>
+      <button class="scroll-fab" id="scroll-fab" hidden title="Scroll to bottom" aria-label="Scroll to bottom">${SVG.chevronDown}</button>
+    </div>
+
+    <div class="composer-wrap">
+      <div class="composer-blur"></div>
+      <div id="overlay-panel" class="overlay-panel composer-overlay" hidden></div>
+      <div class="composer" id="composer">
+        <div id="attachment-preview" class="attachment-preview" hidden></div>
+        <textarea id="prompt-input" rows="1" placeholder="${FULL_PROMPT_PLACEHOLDER}" autocomplete="off" spellcheck="true" aria-label="${PROMPT_ARIA_LABEL}"></textarea>
+        <div class="composer-dock">
+          <button id="btn-plus" class="dock-btn dock-btn--icon" title="Add content" aria-label="Add content">${SVG.plus}</button>
+          <div class="dock-right">
+            <button id="btn-model" class="dock-btn dock-btn--pill" title="Select model" aria-label="Select model">
+              <span id="model-label">Auto</span>
+              ${SVG.chevronDown}
+            </button>
+            <button id="btn-mic" class="dock-btn dock-btn--icon" title="Voice input" aria-label="Voice input" hidden>${SVG.mic}</button>
+            <button id="btn-send" title="Send" aria-label="Send">${SVG.send}</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="stage-wrap">
-    <div class="stage" id="stage">
-      <div class="empty-state" id="empty-state">
-        <div class="hero-gamma">${svgGamma("gamma-thinking")}</div>
-        <p class="empty-title">${EMPTY_DEFAULT_COPY}</p>
-        <div class="suggested-chips" id="chips">
-          <button class="chip" data-prompt="Summarize this page for me">✦ Summarize</button>
-          <button class="chip" data-prompt="What can I do on this page?">What can I do here?</button>
-          <button class="chip" data-prompt="Tell me more about this page">Learn more</button>
-          <button class="chip" data-prompt="Find the main call to action on this page">Find CTA</button>
-        </div>
-        <button class="empty-reconnect-btn" id="empty-reconnect-btn" type="button" hidden>Reconnect to sidecar</button>
-      </div>
-      <div class="thread" id="thread" hidden></div>
-    </div>
-    <button class="scroll-fab" id="scroll-fab" hidden title="Scroll to bottom" aria-label="Scroll to bottom">${SVG.chevronDown}</button>
-  </div>
-
-  <div class="composer-wrap">
-    <div class="composer-blur"></div>
-    <div id="overlay-panel" class="overlay-panel composer-overlay" hidden></div>
-    <div class="composer" id="composer">
-      <div id="attachment-preview" class="attachment-preview" hidden></div>
-      <textarea id="prompt-input" rows="1" placeholder="${FULL_PROMPT_PLACEHOLDER}" autocomplete="off" spellcheck="true" aria-label="${PROMPT_ARIA_LABEL}"></textarea>
-      <div class="composer-dock">
-        <button id="btn-plus" class="dock-btn dock-btn--icon" title="Add content" aria-label="Add content">${SVG.plus}</button>
-        <div class="dock-right">
-          <button id="btn-model" class="dock-btn dock-btn--pill" title="Select model" aria-label="Select model">
-            <span id="model-label">Auto</span>
-            ${SVG.chevronDown}
-          </button>
-          <button id="btn-mic" class="dock-btn dock-btn--icon" title="Voice input" aria-label="Voice input" hidden>${SVG.mic}</button>
-          <button id="btn-send" title="Send" aria-label="Send">${SVG.send}</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <section class="settings-view" id="settings-view" hidden>
+    <iframe id="settings-frame" class="settings-frame" title="Settings"></iframe>
+  </section>
 
   <div class="toast-container" id="toast-container"></div>
 </div>`;
@@ -541,6 +542,7 @@ let recorder        = null;
 let overlayTabId  = null;
 let overlayActive = false;
 let currentControlState = "active";
+let panelMode = "assistant";
 let isReconnecting = false;
 let sseReconnectTimer = null;
 let currentRunPollTimer = null;
@@ -582,6 +584,7 @@ function transitionState(newState) {
     streamBuffer = "";
     currentRunState = null;
   }
+  refreshOverlayForLiveState();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -591,76 +594,60 @@ async function resolveProvider(taskRequest = {}) {
   const stored = await new Promise(r =>
     chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY, MODEL_CATALOG_STORAGE_KEY, MODEL_BENCHMARK_STORAGE_KEY], r)
   );
-  const config   = normalizeModelConfig(stored[MODEL_CONFIG_STORAGE_KEY]);
-  const catalog  = normalizeModelCatalog(stored[MODEL_CATALOG_STORAGE_KEY] ?? []);
-  const benchmarkManifest = normalizeModelBenchmarkManifest(stored[MODEL_BENCHMARK_STORAGE_KEY]);
-
-  // Read saved provider sessions (set via options page)
   const sessions = await readUnlockedProviders();
-  const preferred = config.selectedProvider ?? "google";
-  const session = sessions.find(s => s.provider === preferred) ?? sessions[0] ?? null;
-
-  let provider = session?.provider ?? preferred;
-  let model    = config.selectedModelId ?? "auto";
-  let apiKey   = session?.apiKey ?? "";
-  let baseUrl  = session?.baseUrl ?? undefined;
-
-  if (config.defaultModelMode === "auto" && catalog.length > 0) {
-    const chosen = chooseAutoModel(catalog, taskRequest, config, benchmarkManifest);
-    if (chosen) { provider = chosen.chosenProvider; model = chosen.chosenModelId; }
-  }
-
-  // Guard: provider must be one of the sidecar's accepted values
-  const VALID_PROVIDERS = ["openai", "anthropic", "google", "deepseek"];
-  if (!VALID_PROVIDERS.includes(provider)) provider = "google";
-
-  return { provider, model, apiKey, baseUrl };
+  return resolveProviderSelection({
+    config: stored[MODEL_CONFIG_STORAGE_KEY],
+    catalog: stored[MODEL_CATALOG_STORAGE_KEY] ?? [],
+    benchmarkManifest: stored[MODEL_BENCHMARK_STORAGE_KEY],
+    sessions,
+    taskRequest
+  });
 }
 
 async function resolveTranscriptionProvider() {
   const settings = await loadPanelSettings();
   const stored = await new Promise(r =>
-    chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY], r)
+    chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY, MODEL_CATALOG_STORAGE_KEY], r)
   );
   const config = normalizeModelConfig(stored[MODEL_CONFIG_STORAGE_KEY]);
+  const catalog = normalizeModelCatalog(stored[MODEL_CATALOG_STORAGE_KEY] ?? []);
   const sessions = await readUnlockedProviders();
-  const preferred = config.selectedProvider ?? "google";
-  const session = sessions.find(s => s.provider === preferred) ?? sessions[0] ?? null;
-  let provider = session?.provider ?? preferred;
-  let model = settings.transcriptionModelId || session?.preferredModel || config.selectedModelId || "";
-  const apiKey = session?.apiKey ?? "";
-  const baseUrl = session?.baseUrl ?? undefined;
+  const resolved = resolveTranscriptionConfig({
+    panelSettings: settings,
+    modelConfig: config,
+    catalog,
+    sessions
+  });
 
-  if (model === "auto" || !model) {
-    if (provider === "openai") {
-      model = "gpt-4o-mini-transcribe";
-    } else if (provider === "google") {
-      model = "models/gemini-2.5-flash";
-    }
+  if (!resolved.supported) {
+    throw new Error(resolved.message);
   }
-
-  if (!apiKey) {
-    throw new Error("Provider API key required for transcription.");
+  if (resolved.missingProviderSession || !resolved.apiKey) {
+    throw new Error(buildMissingProviderSessionMessage(resolved.provider));
   }
-  if (!model) {
-    throw new Error("No transcription model configured.");
+  if (!resolved.resolvedModelId) {
+    throw new Error("No speech-to-text model is configured.");
   }
 
   return {
-    provider,
-    model,
-    apiKey,
-    baseUrl,
-    language: settings.transcriptionLanguage || undefined
+    provider: resolved.provider,
+    model: resolved.resolvedModelId,
+    apiKey: resolved.apiKey,
+    baseUrl: resolved.baseUrl,
+    language: resolved.language || undefined
   };
 }
 
 function setMicButtonState(micBtn, nextState) {
   if (!micBtn) return;
   micBtn.classList.toggle("active", nextState === "recording");
+  micBtn.classList.toggle("is-requesting", nextState === "requesting");
   micBtn.classList.toggle("is-transcribing", nextState === "transcribing");
   micBtn.dataset.state = nextState;
-  if (nextState === "recording") {
+  if (nextState === "requesting") {
+    micBtn.title = "Waiting for microphone access";
+    micBtn.setAttribute("aria-label", "Waiting for microphone access");
+  } else if (nextState === "recording") {
     micBtn.title = "Stop recording";
     micBtn.setAttribute("aria-label", "Stop recording");
   } else if (nextState === "transcribing") {
@@ -886,6 +873,16 @@ function broadcastOverlayControlState() {
   }).catch(() => {});
 }
 
+function refreshOverlayForLiveState() {
+  if (!overlayActive || !overlayTabId) {
+    return;
+  }
+  if (state !== "running") {
+    return;
+  }
+  broadcastOverlayControlState();
+}
+
 function setOverlayControlState(nextState) {
   currentControlState = nextState;
   broadcastOverlayControlState();
@@ -1020,6 +1017,23 @@ function showToast(msg, type = "default", durationMs = 3200) {
     t.classList.add("hiding");
     t.addEventListener("animationend", () => t.remove(), { once: true });
   }, durationMs);
+}
+
+function buildProviderSetupCard(provider) {
+  const providerLabel = provider === "openai"
+    ? "OpenAI"
+    : provider === "deepseek"
+      ? "DeepSeek"
+      : provider.charAt(0).toUpperCase() + provider.slice(1);
+  return `
+    <div class="inline-state-card">
+      <div class="inline-state-icon">${SVG.gear}</div>
+      <div class="inline-state-copy">
+        <div class="inline-state-title">${escHtml(`${providerLabel} needs setup`)}</div>
+        <div class="inline-state-body">${escHtml(buildMissingProviderSessionMessage(provider))}</div>
+      </div>
+      <button class="inline-state-action" type="button" data-open-settings-section="general">Open General</button>
+    </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1188,11 +1202,20 @@ async function renderSlashPalette(panel, token = "") {
         <span class="pi-icon">${SVG.slash}</span>
         <span class="pi-label">${escHtml(s.label)}</span>
         <span class="pi-desc">${escHtml((s.instructions ?? "").slice(0, 40))}</span>
-      </button>`).join("")}`;
+      </button>`).join("")}
+    <div class="palette-divider"></div>
+    <button class="palette-item" data-shortcut-settings="true">
+      <span class="pi-icon">${SVG.gear}</span>
+      <span class="pi-label">Edit commands</span>
+    </button>`;
 
   setupPaletteNav(panel);
   panel.querySelectorAll(".palette-item").forEach(btn => {
     btn.addEventListener("click", () => {
+      if (btn.dataset.shortcutSettings === "true") {
+        void openCommandsSettingsPage();
+        return;
+      }
       const s = matches.find(m => m.id === btn.dataset.shortcutId);
       if (!s) return;
       const input = document.getElementById("prompt-input");
@@ -1398,7 +1421,7 @@ async function renderModelPicker(panel) {
       for (const m of models) {
         const isSelected = !isAuto && m.id === selId;
         html += `
-          <button class="palette-item${isSelected ? " palette-item--active" : ""}" data-model-id="${escHtml(m.id)}">
+          <button class="palette-item${isSelected ? " palette-item--active" : ""}" data-model-id="${escHtml(m.id)}" data-provider="${escHtml(provider)}">
             <span class="pi-label">${escHtml(m.displayName ?? m.id)}</span>
             <span class="pi-desc">${escHtml(m.costTier ?? "")}</span>
             ${isSelected ? `<span class="pi-check">${SVG.check}</span>` : ""}
@@ -1424,10 +1447,14 @@ async function renderModelPicker(panel) {
   panel.querySelectorAll("[data-model-id]").forEach(btn => {
     btn.addEventListener("click", async () => {
       const modelId = btn.dataset.modelId;
+      const providerId = btn.dataset.provider;
       const s = await new Promise(r => chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY], r));
       const c = normalizeModelConfig(s[MODEL_CONFIG_STORAGE_KEY]);
       c.defaultModelMode = "manual";
       c.selectedModelId  = modelId;
+      if (providerId) {
+        c.selectedProvider = providerId;
+      }
       chrome.storage.local.set({ [MODEL_CONFIG_STORAGE_KEY]: c });
       const shortName = modelId.includes("/") ? modelId.split("/").pop() : modelId;
       updateModelLabel(shortName.slice(0, 18));
@@ -1462,9 +1489,15 @@ async function renderRecentsPalette(panel) {
     <div class="palette-header">Recent chats</div>
     ${sessions.slice(0, 10).map(s => `
       <button class="palette-item" data-session-id="${escHtml(s.id)}">
+        <span class="pi-icon">${SVG.clock}</span>
         <span class="pi-label" style="font-size:12.5px">${escHtml(s.title ?? "Chat")}</span>
         <span class="pi-desc">${relTime(s.updatedAt ?? s.createdAt)}</span>
-      </button>`).join("")}`;
+      </button>`).join("")}
+    <div class="palette-divider"></div>
+    <button class="palette-item" data-recents-manage="true">
+      <span class="pi-icon">${SVG.gear}</span>
+      <span class="pi-label">Manage chats</span>
+    </button>`;
 
   setupPaletteNav(panel);
   panel.querySelectorAll("[data-session-id]").forEach(btn => {
@@ -1473,6 +1506,9 @@ async function renderRecentsPalette(panel) {
       if (session) restoreSession(session);
       setOverlay(OVERLAY_NONE);
     });
+  });
+  panel.querySelector('[data-recents-manage="true"]')?.addEventListener("click", () => {
+    void openSettingsPage("data-controls");
   });
 }
 
@@ -1510,11 +1546,7 @@ function restoreSession(session) {
 // ═══════════════════════════════════════════════════════════════════
 let _kebabOpen = false;
 
-function openKebab() {
-  const menu = document.getElementById("kebab-menu");
-  if (!menu) return;
-  _kebabOpen = true;
-  menu.hidden = false;
+function renderKebabRootMenu(menu) {
   menu.innerHTML = `
     <button class="palette-item" id="kebab-new-chat">
       <span class="pi-icon">${SVG.newChat}</span>
@@ -1527,14 +1559,15 @@ function openKebab() {
     <div class="palette-divider"></div>
     <button class="palette-item" id="kebab-settings">
       <span class="pi-icon">${SVG.gear}</span>
-      <span class="pi-label">Settings ↗</span>
+      <span class="pi-label">Settings</span>
     </button>`;
 
+  setupPaletteNav(menu);
   document.getElementById("kebab-new-chat")?.addEventListener("click", () => {
     closeKebab(); newChat();
   });
   document.getElementById("kebab-recents")?.addEventListener("click", () => {
-    closeKebab(); setOverlay("recents");
+    void renderRecentsPalette(menu);
   });
   document.getElementById("kebab-settings")?.addEventListener("click", () => {
     closeKebab();
@@ -1542,10 +1575,21 @@ function openKebab() {
   });
 }
 
+function openKebab() {
+  const menu = document.getElementById("kebab-menu");
+  if (!menu) return;
+  _kebabOpen = true;
+  menu.hidden = false;
+  renderKebabRootMenu(menu);
+}
+
 function closeKebab() {
   _kebabOpen = false;
   const menu = document.getElementById("kebab-menu");
-  if (menu) { menu.hidden = true; menu.innerHTML = ""; }
+  if (menu) {
+    menu.hidden = true;
+    menu.innerHTML = "";
+  }
 }
 
 function toggleKebab() {
@@ -1607,15 +1651,17 @@ function updateModelLabel(text) {
   if (el) el.textContent = text;
 }
 
-async function loadInitialModelLabel() {
+async function syncModelLabelFromStorage() {
   try {
-    const stored = await new Promise(r => chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY], r));
+    const stored = await new Promise(r => chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY, MODEL_CATALOG_STORAGE_KEY], r));
     const config = normalizeModelConfig(stored[MODEL_CONFIG_STORAGE_KEY]);
+    const catalog = normalizeModelCatalog(stored[MODEL_CATALOG_STORAGE_KEY] ?? []);
     if (config.defaultModelMode === "auto" || config.selectedModelId === "auto") {
       updateModelLabel("Auto");
     } else if (config.selectedModelId) {
-      const id       = config.selectedModelId;
-      const shortName = id.includes("/") ? id.split("/").pop() : id;
+      const selected = catalog.find((entry) => entry.provider === config.selectedProvider && entry.id === config.selectedModelId);
+      const label = selected?.displayName ?? config.selectedModelId;
+      const shortName = label.includes("/") ? label.split("/").pop() : label;
       updateModelLabel(shortName.slice(0, 18));
     }
   } catch {}
@@ -1627,12 +1673,71 @@ async function loadInitialModelLabel() {
 let sseSource   = null;
 let actionItems = new Map();
 
-async function openSettingsPage() {
-  try {
-    if (typeof chrome !== "undefined" && typeof chrome.runtime?.openOptionsPage === "function") {
-      await chrome.runtime.openOptionsPage();
+function normaliseSettingsSection(value) {
+  const id = typeof value === "string" ? value.trim().toLowerCase() : "";
+  const aliases = {
+    provider: "general",
+    models: "general",
+    data: "data-controls",
+    commands: "agent-mode",
+    agent: "agent-mode"
+  };
+  return aliases[id] || id || "general";
+}
+
+function buildSettingsFrameUrl(section = "general") {
+  const targetSection = normaliseSettingsSection(section);
+  const path = `options.html?embedded=panel&section=${targetSection}`;
+  if (typeof chrome !== "undefined" && typeof chrome.runtime?.getURL === "function") {
+    return chrome.runtime.getURL(path);
+  }
+  return path;
+}
+
+function setPanelMode(mode, section = "general") {
+  panelMode = mode === "settings" ? "settings" : "assistant";
+  const header = document.querySelector(".panel-header");
+  const shell = document.querySelector(".assistant-shell");
+  const mainView = document.getElementById("assistant-main-view");
+  const settingsView = document.getElementById("settings-view");
+  const settingsFrame = document.getElementById("settings-frame");
+  const backButton = document.getElementById("btn-settings-back");
+  const headerActions = document.getElementById("panel-header-actions-main");
+  const headerTitle = document.getElementById("panel-header-title");
+  const brandIcon = document.getElementById("panel-brand-icon");
+
+  const isSettings = panelMode === "settings";
+  if (header) header.hidden = false;
+  shell?.classList.toggle("is-settings-mode", isSettings);
+  if (mainView) mainView.hidden = isSettings;
+  if (settingsView) settingsView.hidden = !isSettings;
+  if (backButton) backButton.hidden = !isSettings;
+  if (headerActions) headerActions.hidden = isSettings;
+  if (headerTitle) headerTitle.textContent = isSettings ? "Settings" : "Assistant";
+  if (brandIcon) brandIcon.hidden = isSettings;
+
+  if (isSettings && settingsFrame) {
+    const nextUrl = buildSettingsFrameUrl(section);
+    if (settingsFrame.getAttribute("src") !== nextUrl) {
+      settingsFrame.setAttribute("src", nextUrl);
     }
-  } catch {}
+  }
+}
+
+async function openSettingsPage(section = "general") {
+  closeKebab();
+  setOverlay(OVERLAY_NONE);
+  setPanelMode("settings", section);
+}
+
+function closeSettingsPage() {
+  setPanelMode("assistant");
+  const input = document.getElementById("prompt-input");
+  input?.focus();
+}
+
+async function openCommandsSettingsPage() {
+  await openSettingsPage("agent-mode");
 }
 
 function clearSseReconnectTimer() {
@@ -2194,7 +2299,7 @@ async function sendPrompt(promptText) {
     prompt: text,
     hasImageInput: imageDataUrls.length > 0
   });
-  const { provider, model, apiKey, baseUrl } = await resolveProvider(capabilityRequest);
+  const { provider, model, apiKey, baseUrl, missingProviderSession } = await resolveProvider(capabilityRequest);
   const panelSettings = await loadPanelSettings();
   const memoryStore = await loadMemoryStore();
   const modelConfig = normalizeModelConfig((await chrome.storage.local.get([MODEL_CONFIG_STORAGE_KEY]))?.[MODEL_CONFIG_STORAGE_KEY]);
@@ -2203,6 +2308,16 @@ async function sendPrompt(promptText) {
     store: memoryStore,
     modelConfig
   });
+
+  if (missingProviderSession) {
+    setAiAvatar(currentAiEl, "");
+    setAiContent(currentAiEl, buildProviderSetupCard(provider));
+    currentAiEl?.querySelector('[data-open-settings-section="general"]')?.addEventListener("click", () => {
+      void openSettingsPage("general");
+    });
+    transitionState("idle");
+    return;
+  }
 
   try {
     const result = await rpc.call("AgentRun", tabId, {
@@ -2215,6 +2330,7 @@ async function sendPrompt(promptText) {
       ...(memoryItems.length ? { memory_items: memoryItems } : {}),
       ...(imageDataUrls.length ? { images: imageDataUrls, has_image_input: true } : {}),
       allow_browser_admin_pages: panelSettings.browserAdminEnabled === true,
+      allow_local_shell: panelSettings.localShellEnabled === true,
       allow_extension_management: panelSettings.extensionManagementEnabled === true,
     });
     currentRunId = result?.run_id ?? result?.id ?? null;
@@ -2299,6 +2415,9 @@ async function resumeRun() {
 // ═══════════════════════════════════════════════════════════════════
 function newChat() {
   if (state === "running") stopRun();
+  if (panelMode === "settings") {
+    setPanelMode("assistant");
+  }
   const thread = document.getElementById("thread");
   const empty  = document.getElementById("empty-state");
 
@@ -2350,15 +2469,15 @@ function autoResize(el) {
   if (!root) return;
 
   buildUI(root);
+  setPanelMode("assistant");
 
   const input   = document.getElementById("prompt-input");
   const sendBtn = document.getElementById("btn-send");
   const newBtn  = document.getElementById("btn-new-chat");
+  const settingsBackBtn = document.getElementById("btn-settings-back");
   const chips   = document.getElementById("chips");
   const plusBtn = document.getElementById("btn-plus");
   const modelBtn = document.getElementById("btn-model");
-  const kebabBtn = document.getElementById("btn-kebab");
-  const settingsButton = document.getElementById("settings-btn");
   const emptyReconnectButton = document.getElementById("empty-reconnect-btn");
 
   syncReconnectCallToAction();
@@ -2430,9 +2549,13 @@ function autoResize(el) {
     else sendPrompt(input.value);
   });
 
-  newBtn.addEventListener("click", newChat);
-  settingsButton?.addEventListener("click", () => {
-    void openSettingsPage();
+  newBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOverlay(OVERLAY_NONE);
+    toggleKebab();
+  });
+  settingsBackBtn?.addEventListener("click", () => {
+    closeSettingsPage();
   });
   emptyReconnectButton?.addEventListener("click", reconnectToSidecar);
   chips.addEventListener("click", (e) => {
@@ -2448,12 +2571,6 @@ function autoResize(el) {
   modelBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     setOverlay(toggleOverlay(overlayKind, "model"));
-  });
-
-  kebabBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    setOverlay(OVERLAY_NONE);
-    toggleKebab();
   });
 
   // Click outside → close all overlays
@@ -2510,10 +2627,14 @@ function autoResize(el) {
         return;
       }
 
+      setMicButtonState(micBtn, "requesting");
+      showToast("Allow microphone access to start dictation.", "default", 1400);
       await recorder.start();
       if (recorder.state === "recording") {
         setMicButtonState(micBtn, "recording");
         showToast("Recording…", "default", 900);
+      } else {
+        setMicButtonState(micBtn, "idle");
       }
     });
   }
@@ -2535,10 +2656,12 @@ function autoResize(el) {
   });
 
   chrome.storage.onChanged.addListener((changes) => {
-    if (!changes[PANEL_SETTINGS_STORAGE_KEY] || !micBtn) {
-      return;
+    if (changes[MODEL_CONFIG_STORAGE_KEY] || changes[MODEL_CATALOG_STORAGE_KEY]) {
+      void syncModelLabelFromStorage();
     }
-    void applyMicVisibility();
+    if (changes[PANEL_SETTINGS_STORAGE_KEY] && micBtn) {
+      void applyMicVisibility();
+    }
   });
 
   chrome.runtime.onMessage.addListener((msg) => {
@@ -2552,15 +2675,21 @@ function autoResize(el) {
   });
 
   setupScrollFab();
-  loadInitialModelLabel();
+  syncModelLabelFromStorage();
   connectSSE();
   rpc.connect();
 
-  // First-run: nudge user to pin the extension
-  chrome.storage.local.get(["_pinHintShown"], ({ _pinHintShown }) => {
-    if (!_pinHintShown) {
+  // Pinning is optional by default. Only show the nudge if the user explicitly enabled it.
+  void loadPanelSettings().then((settings) => {
+    if (settings.requireToolbarPin !== true) {
+      return;
+    }
+    chrome.storage.local.get(["_pinHintShown"], ({ _pinHintShown }) => {
+      if (_pinHintShown) {
+        return;
+      }
       chrome.storage.local.set({ _pinHintShown: true });
       setTimeout(() => showToast("Pin this extension to your toolbar for quick access", "default", 5000), 1200);
-    }
-  });
+    });
+  }).catch(() => {});
 })();

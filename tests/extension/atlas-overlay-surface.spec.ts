@@ -27,10 +27,21 @@ describe("atlas overlay surface", () => {
     expect(overlayJs).toContain("#atlas-label");
     expect(overlayJs).toContain("spawnRipple");
     expect(overlayJs).toContain("showStroke");
+    expect(overlayJs).toContain("scheduleCursorIdleMotion");
+    expect(overlayJs).toContain("applyCursorPosition");
+  });
+
+  it("anchors the floating label away from the highlighted target rect when possible", () => {
+    expect(overlayJs).toContain("let currentAnchorRect = null;");
+    expect(overlayJs).toContain("currentAnchorRect = normalizedRect;");
+    expect(overlayJs).toContain("const canPlaceAbove = rect.y - labelHeight - gap >= safe;");
+    expect(overlayJs).toContain("const canPlaceBelow = rect.y + rect.h + labelHeight + gap <= viewportHeight - safe;");
   });
 
   it("keeps the takeover bar and control actions on the browsing surface", () => {
     expect(overlayJs).not.toContain("atlas-bar-progress");
+    expect(overlayJs).not.toContain("Agent is using your accounts");
+    expect(overlayJs).not.toContain("Logged in");
     expect(overlayJs).toContain("Take control");
     expect(overlayJs).toContain("Stop");
     expect(overlayJs).toContain("ATLAS_CONTROL");
@@ -39,11 +50,12 @@ describe("atlas overlay surface", () => {
   });
 
   it("marks browser-controlled tabs through the background workspace", () => {
-    expect(bgJs).toContain("Atlas active");
+    expect(bgJs).toContain("activeControlTabs");
     expect(bgJs).toContain("registerActiveControlTab");
     expect(bgJs).toContain("unregisterActiveControlTab");
-    expect(bgJs).toContain("chrome.tabs.group");
-    expect(bgJs).toContain("chrome.tabs.ungroup");
+    expect(overlayJs).toContain('const CONTROLLED_TAB_TITLE_PREFIX = "AI · "');
+    expect(overlayJs).toContain("syncControlledTabTitle()");
+    expect(overlayJs).toContain("disableControlledTabTitle()");
   });
 
   it("emits distinct reading and extracting phases from the sidecar", () => {

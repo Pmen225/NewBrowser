@@ -1,3 +1,5 @@
+import { defaultChromeProfileRoot, resolveRunningChromeCdpWsUrl } from "./cdp-discovery.js";
+
 export function normalizeGoogleModelId(modelId) {
   const trimmed = typeof modelId === "string" ? modelId.trim() : "";
   if (!trimmed) {
@@ -12,10 +14,14 @@ export function normalizeGoogleModelId(modelId) {
 
 export function resolveLiveModelSelection({
   requestedModelId = "",
+  provider = "google",
   requestedMode = "",
   benchmarkMode = false
 } = {}) {
-  const normalizedModelId = normalizeGoogleModelId(requestedModelId);
+  const trimmedProvider = typeof provider === "string" ? provider.trim().toLowerCase() : "google";
+  const normalizedModelId = trimmedProvider === "google"
+    ? normalizeGoogleModelId(requestedModelId)
+    : (typeof requestedModelId === "string" ? requestedModelId.trim() : "");
   const normalizedMode = typeof requestedMode === "string" ? requestedMode.trim().toLowerCase() : "";
 
   if (normalizedModelId) {
@@ -33,7 +39,7 @@ export function resolveLiveModelSelection({
   }
 
   return {
-    modelId: "models/gemini-2.5-flash",
+    modelId: trimmedProvider === "google" ? "models/gemini-2.5-flash" : "",
     mode: "manual"
   };
 }
@@ -64,21 +70,38 @@ export async function resolveLiveCdpWsUrl({
   explicitWsUrl = process.env.LIVE_CDP_WS_URL?.trim() || process.env.LIVE_CDP_URL?.trim() || process.env.CHROME_CDP_WS_URL?.trim() || "",
   host = process.env.CHROME_CDP_HOST?.trim() || "127.0.0.1",
   port = Number.parseInt(process.env.CHROME_CDP_PORT ?? "9555", 10) || 9555,
+  profileRoot = defaultChromeProfileRoot(),
   fetchImpl = globalThis.fetch
 } = {}) {
   if (explicitWsUrl) {
     return explicitWsUrl;
   }
 
-  const response = await fetchImpl(`http://${host}:${port}/json/version`);
-  if (!response.ok) {
-    throw new Error(`Unable to resolve live CDP websocket URL from http://${host}:${port}/json/version (HTTP ${response.status})`);
+  const direct = await fetchCdpWsUrlFromPort({ host, port, fetchImpl });
+  if (direct) {
+    return direct;
+  }
+
+  const discovered = await resolveRunningChromeCdpWsUrl({
+    profileRoot,
+    host,
+    fetchImpl
+  });
+  if (discovered) {
+    return discovered;
+  }
+
+  throw new Error(`Unable to resolve live CDP websocket URL from http://${host}:${port}/json/version or a running Chromium profile at ${profileRoot}`);
+}
+
+async function fetchCdpWsUrlFromPort({ host, port, fetchImpl }) {
+  const response = await fetchImpl(`http://${host}:${port}/json/version`).catch(() => null);
+  if (!response?.ok) {
+    return undefined;
   }
 
   const payload = await response.json();
-  if (!payload || typeof payload.webSocketDebuggerUrl !== "string" || payload.webSocketDebuggerUrl.length === 0) {
-    throw new Error(`json/version did not include a Chrome websocket debugger URL for ${host}:${port}`);
-  }
-
-  return payload.webSocketDebuggerUrl;
+  return typeof payload?.webSocketDebuggerUrl === "string" && payload.webSocketDebuggerUrl.length > 0
+    ? payload.webSocketDebuggerUrl
+    : undefined;
 }

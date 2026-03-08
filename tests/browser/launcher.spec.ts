@@ -323,7 +323,7 @@ describe("browser launcher", () => {
     } satisfies Partial<BrowserLaunchError>);
   });
 
-  it("uses a mac-safe temp profile prefix when no user data dir is provided", async () => {
+  it("uses the persistent assistant profile when no user data dir is provided", async () => {
     setPlatform("darwin");
 
     const fakeProcess = createFakeChildProcess();
@@ -350,7 +350,11 @@ describe("browser launcher", () => {
       browserPolicy: "any_chromium"
     });
 
-    expect(mockMkdtemp).toHaveBeenCalledWith("/tmp/nb.");
+    expect(mockMkdir).toHaveBeenCalledWith("/Users/tester/.local/share/new-browser/chrome-profile", { recursive: true });
+    const call = mockSpawn.mock.calls.at(-1);
+    expect(call?.[1]).toEqual(
+      expect.arrayContaining(["--user-data-dir=/Users/tester/.local/share/new-browser/chrome-profile"])
+    );
   });
 
   it("uses direct spawn with redirected logs on macOS launch", async () => {

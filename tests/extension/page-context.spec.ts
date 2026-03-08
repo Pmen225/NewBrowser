@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getCapturableActiveTab,
   hasAccessibleWebTab,
   isPageContextPrompt,
   normalizePanelErrorMessage
@@ -21,6 +22,42 @@ describe("page context guardrails", () => {
     expect(hasAccessibleWebTab({ id: 3, url: "chrome://settings" })).toBe(false);
     expect(hasAccessibleWebTab({ id: 4, url: "" })).toBe(false);
     expect(hasAccessibleWebTab(null)).toBe(false);
+  });
+
+  it("finds a capturable active web tab from the focused browser window first", async () => {
+    const queries = [];
+    const tab = await getCapturableActiveTab(async (queryInfo) => {
+      queries.push(queryInfo);
+      if (queryInfo.active && queryInfo.lastFocusedWindow) {
+        return [{ id: 7, windowId: 12, url: "https://example.com/dashboard" }];
+      }
+      return [];
+    });
+
+    expect(tab).toEqual({ id: 7, windowId: 12, url: "https://example.com/dashboard" });
+    expect(queries[0]).toMatchObject({
+      active: true,
+      lastFocusedWindow: true
+    });
+  });
+
+  it("falls back to the current window when the focused-window query has no capturable web tab", async () => {
+    const tab = await getCapturableActiveTab(async (queryInfo) => {
+      if (queryInfo.active && queryInfo.lastFocusedWindow) {
+        return [{ id: 1, windowId: 3, url: "chrome://settings" }];
+      }
+      if (queryInfo.active && queryInfo.currentWindow) {
+        return [{ id: 9, windowId: 4, url: "https://example.com" }];
+      }
+      return [];
+    });
+
+    expect(tab).toEqual({ id: 9, windowId: 4, url: "https://example.com" });
+  });
+
+  it("returns null when no capturable website tab exists", async () => {
+    const tab = await getCapturableActiveTab(async () => [{ id: 2, windowId: 5, url: "chrome://extensions" }]);
+    expect(tab).toBeNull();
   });
 
   it("normalizes raw Chrome host-permission errors for panel toasts", () => {

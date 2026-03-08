@@ -14,6 +14,12 @@ describe("tool schema audit", () => {
     expect(audit.available).toContain("read_page");
   });
 
+  it("includes the local workspace tool schemas", () => {
+    const audit = validateRequiredToolSchemas(["workspace_list", "workspace_read", "workspace_write"]);
+    expect(audit.missing).toEqual([]);
+    expect(audit.available).toEqual(["workspace_list", "workspace_read", "workspace_write"]);
+  });
+
   it("returns cloned parameter objects", () => {
     const [schema] = buildToolSchemaCatalog(["read_page"]);
     const originalProperties = schema.parameters.properties as Record<string, unknown>;

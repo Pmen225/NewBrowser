@@ -132,8 +132,24 @@ function isMemoryRecallPrompt(prompt) {
     normalized.includes("what do you remember") ||
     normalized.includes("what do you know about me") ||
     normalized.includes("remember about how") ||
-    normalized.includes("remember about me")
+    normalized.includes("remember about me") ||
+    normalized.includes("my usual style") ||
+    normalized.includes("my preferences") ||
+    normalized.includes("my workflow") ||
+    normalized.includes("what should you know about me")
   );
+}
+
+function isPersonalMemoryEntry(entry) {
+  return entry?.source === "manual" || entry?.source === "settings";
+}
+
+function sortByRecency(left, right) {
+  return String(right.updatedAt ?? "").localeCompare(String(left.updatedAt ?? ""));
+}
+
+function listRecentPersonalEntries(entries) {
+  return entries.filter((entry) => isPersonalMemoryEntry(entry)).sort(sortByRecency);
 }
 
 export function selectRelevantMemoryEntries(prompt, entries, limit = 4) {
@@ -145,10 +161,7 @@ export function selectRelevantMemoryEntries(prompt, entries, limit = 4) {
   }
 
   if (isMemoryRecallPrompt(prompt)) {
-    const prioritySources = new Set(["manual", "settings"]);
-    const prioritized = normalizedEntries
-      .filter((entry) => prioritySources.has(entry.source))
-      .sort((left, right) => String(right.updatedAt ?? "").localeCompare(String(left.updatedAt ?? "")));
+    const prioritized = listRecentPersonalEntries(normalizedEntries);
     if (prioritized.length > 0) {
       return prioritized.slice(0, Math.max(1, limit));
     }
@@ -166,7 +179,10 @@ export function selectRelevantMemoryEntries(prompt, entries, limit = 4) {
         }
       }
       if (entry.source === "manual") {
-        score += 0.25;
+        score += 0.35;
+      }
+      if (entry.source === "settings") {
+        score += 0.15;
       }
       return {
         entry,
@@ -177,13 +193,28 @@ export function selectRelevantMemoryEntries(prompt, entries, limit = 4) {
     .sort((left, right) => right.score - left.score || String(right.entry.updatedAt ?? "").localeCompare(String(left.entry.updatedAt ?? "")));
 
   if (scored.length > 0) {
-    return scored.slice(0, Math.max(1, limit)).map((candidate) => candidate.entry);
+    const cappedLimit = Math.max(1, limit);
+    const selected = scored.slice(0, cappedLimit).map((candidate) => candidate.entry);
+    if (!selected.some((entry) => isPersonalMemoryEntry(entry))) {
+      const personalFallback = listRecentPersonalEntries(normalizedEntries)
+        .find((entry) => !selected.some((selectedEntry) => selectedEntry.key === entry.key));
+      if (personalFallback) {
+        if (selected.length >= cappedLimit) {
+          selected[selected.length - 1] = personalFallback;
+        } else {
+          selected.push(personalFallback);
+        }
+      }
+    }
+    return selected;
   }
 
-  return normalizedEntries
-    .filter((entry) => entry.source === "manual")
-    .sort((left, right) => String(right.updatedAt ?? "").localeCompare(String(left.updatedAt ?? "")))
-    .slice(0, 1);
+  const personalFallback = listRecentPersonalEntries(normalizedEntries);
+  if (personalFallback.length > 0) {
+    return personalFallback.slice(0, Math.max(1, Math.min(limit, 3)));
+  }
+
+  return normalizedEntries.slice(0, Math.max(1, limit));
 }
 
 function buildSettingsSummary(settingsSnapshot = {}) {

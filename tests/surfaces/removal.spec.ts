@@ -4,12 +4,11 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("surface removal", () => {
-  it("keeps the extension settings page entrypoint", async () => {
+  it("removes the standalone extension settings tab entrypoint", async () => {
     const rootDir = process.cwd();
     const manifest = await readFile(resolve(rootDir, "extension/manifest.json"), "utf8");
 
-    expect(manifest).toContain('"options_ui"');
-    expect(manifest).toContain('"page": "options.html"');
+    expect(manifest).not.toContain('"options_ui"');
   });
 
   it("removes the standalone sidecar browser UI entrypoint", async () => {
@@ -21,7 +20,7 @@ describe("surface removal", () => {
     expect(server).not.toContain("createSidecarUiHtml(");
   });
 
-  it("keeps live settings entrypoints in the pinned panel", async () => {
+  it("keeps embedded settings inside the panel shell", async () => {
     const rootDir = process.cwd();
     const [{ buildPanelShellMarkup }, script] = await Promise.all([
       import("../../extension/panel.js"),
@@ -29,9 +28,9 @@ describe("surface removal", () => {
     ]);
     const shell = buildPanelShellMarkup();
 
-    expect(shell).toContain('id="settings-btn"');
-    expect(shell).toContain('aria-label="Settings"');
-    expect(script).toContain("openOptionsPage");
-    expect(script).toContain('settingsButton?.addEventListener("click"');
+    expect(shell).toContain('id="settings-view"');
+    expect(shell).toContain('id="settings-frame"');
+    expect(script).toContain("buildSettingsFrameUrl");
+    expect(script).toContain("openSettingsPage");
   });
 });

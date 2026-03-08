@@ -893,6 +893,7 @@ async function start(): Promise<void> {
             tool_name: event.tool_name,
             tool_call_id: event.tool_call_id,
             tool_input: event.tool_input as JsonObject | undefined,
+            overlay: event.overlay as JsonObject | undefined,
             ok: event.ok
           }
         }

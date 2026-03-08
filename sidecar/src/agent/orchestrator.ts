@@ -1,4 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
+import { appendFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 import type {
   AgentGetStateParams,
@@ -54,6 +57,7 @@ export interface AgentToolEvent {
   tool_call_id: string;
   tool_input?: Record<string, unknown>;
   ok?: boolean;
+  overlay?: JsonObject;
   // Comet RUM: operation_key and failure_reason for diagnostics
   operation_key?: string;
   failure_reason?: string;
@@ -86,12 +90,27 @@ const KNOWN_TOOL_NAMES = [
   "get_page_text",
   "search_web",
   "tabs_create",
+  "terminal_exec",
+  "workspace_list",
+  "workspace_read",
+  "workspace_write",
+  "create_subagent",
   "extensions_manage",
   "draft_email",
   "todo_write"
 ] as const;
 const EMPTY_PROVIDER_TURN_MAX_RETRIES = 1;
 const EMPTY_PROVIDER_TURN_RETRY_DELAY_MS = 250;
+const LOCAL_SHELL_ROOT = resolve(process.cwd());
+const LOCAL_SHELL_DEFAULT_TIMEOUT_MS = 20_000;
+const LOCAL_SHELL_MAX_TIMEOUT_MS = 120_000;
+const LOCAL_SHELL_OUTPUT_LIMIT = 12_000;
+const WORKSPACE_LIST_DEFAULT_DEPTH = 2;
+const WORKSPACE_LIST_MAX_DEPTH = 6;
+const WORKSPACE_LIST_DEFAULT_MAX_ENTRIES = 200;
+const WORKSPACE_LIST_MAX_ENTRIES = 500;
+const WORKSPACE_READ_DEFAULT_MAX_CHARS = 12_000;
+const WORKSPACE_READ_MAX_CHARS = 40_000;
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -114,6 +133,50 @@ function cloneState(state: AgentRunState): AgentRunState {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function deriveToolOverlay(action: string, result: JsonObject): JsonObject | undefined {
+  if (action === "computer" && isRecord(result.overlay)) {
+    return result.overlay as JsonObject;
+  }
+
+  if (action === "find" && Array.isArray(result.matches)) {
+    const firstMatch = result.matches.find((value) => isRecord(value) && isRecord(value.coordinates));
+    const coordinates = isRecord(firstMatch) && isRecord(firstMatch.coordinates)
+      ? firstMatch.coordinates
+      : null;
+    if (
+      coordinates &&
+      typeof coordinates.x === "number" &&
+      Number.isFinite(coordinates.x) &&
+      typeof coordinates.y === "number" &&
+      Number.isFinite(coordinates.y)
+    ) {
+      return {
+        cursor: {
+          x: coordinates.x,
+          y: coordinates.y
+        }
+      };
+    }
+  }
+
+  if (action === "form_input") {
+    return {
+      cursor: {
+        x: 0.48,
+        y: 0.4
+      },
+      highlight: {
+        x: 0.18,
+        y: 0.28,
+        w: 0.64,
+        h: 0.36
+      }
+    };
+  }
+
+  return undefined;
 }
 
 function buildConversationHistoryMessages(params: AgentRunParams): ProviderRuntimeMessage[] {
@@ -183,62 +246,31 @@ function buildObservationResponseInstruction(prompt: string, hasImageInput: bool
   ];
 }
 
-function shouldExposeTabManagementTool(prompt: string): boolean {
+function buildDefaultResponseStyleMessages(prompt: string): ProviderRuntimeMessage[] {
   const lower = normalizeText(prompt).toLowerCase();
-  return includesAny(lower, [
-    "new tab",
-    "open tab",
-    "another tab",
-    "switch tab",
-    "change tab",
-    "close tab",
-    "list tabs",
-    "group tabs",
-    "ungroup tabs",
-    "tab group",
-    "move tab"
-  ]);
+  if (includesAny(lower, ["bullet", "bullet point", "table", "compare", "comparison", "json", "markdown", "step by step", "checklist", "outline"])) {
+    return [];
+  }
+
+  return [
+    {
+      role: "system",
+      content:
+        "Default to plain language with short paragraphs. Avoid markdown headings, tables, and long bullet lists unless the user explicitly asks for structured formatting."
+    }
+  ];
 }
 
 function shouldAllowBrowserAdminPages(params: AgentRunParams): boolean {
-  if (params.allow_browser_admin_pages !== true) {
-    return false;
-  }
-
-  const lower = normalizeText(params.prompt).toLowerCase();
-  return includesAny(lower, [
-    "browser settings",
-    "chrome settings",
-    "browser flags",
-    "chrome flags",
-    "chrome://settings",
-    "chrome://flags",
-    "chrome://extensions",
-    "browser history",
-    "browser bookmarks"
-  ]);
+  return params.allow_browser_admin_pages === true;
 }
 
 function shouldExposeExtensionManagementTool(params: AgentRunParams): boolean {
-  if (params.allow_extension_management !== true) {
-    return false;
-  }
+  return params.allow_extension_management === true;
+}
 
-  const lower = normalizeText(params.prompt).toLowerCase();
-  return includesAny(lower, [
-    "manage extensions",
-    "list extensions",
-    "list my extensions",
-    "installed extensions",
-    "installed browser extensions",
-    "browser extensions",
-    "extensions installed",
-    "my extensions",
-    "enable extension",
-    "disable extension",
-    "uninstall extension",
-    "remove extension"
-  ]);
+function shouldExposeLocalShellTool(params: AgentRunParams): boolean {
+  return params.allow_local_shell === true;
 }
 
 function buildMemoryContextMessages(params: AgentRunParams): ProviderRuntimeMessage[] {
@@ -278,7 +310,324 @@ function buildCapabilityContextMessages(params: AgentRunParams): ProviderRuntime
       content: "The user explicitly allowed extension management for this run. You may use extensions_manage to list, enable, disable, or uninstall extensions. Never disable or uninstall the Assistant extension itself because it is protected."
     });
   }
+  if (shouldExposeLocalShellTool(params)) {
+    messages.push({
+      role: "system",
+      content: `The user explicitly allowed local shell access for this run. You may use terminal_exec plus workspace_list, workspace_read, and workspace_write for local repo inspection, file editing, builds, and tests when browser tools are not enough. Stay inside the workspace root at ${LOCAL_SHELL_ROOT}. Prefer direct workspace tools for file listing, reading, and writing, and use terminal_exec for commands that truly need a shell.`
+    });
+  }
   return messages;
+}
+
+function createLocalShellError(code: string, message: string, retryable = false): Error & { code: string; retryable: boolean } {
+  return Object.assign(new Error(message), { code, retryable });
+}
+
+function createWorkspaceToolError(code: string, message: string, retryable = false): Error & { code: string; retryable: boolean } {
+  return Object.assign(new Error(message), { code, retryable });
+}
+
+function truncateLocalShellOutput(text: string): string {
+  return text.length <= LOCAL_SHELL_OUTPUT_LIMIT ? text : `${text.slice(0, LOCAL_SHELL_OUTPUT_LIMIT)}\n...[truncated]`;
+}
+
+function resolveLocalShellCwd(value: unknown): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return LOCAL_SHELL_ROOT;
+  }
+
+  const raw = value.trim();
+  const candidate = isAbsolute(raw) ? resolve(raw) : resolve(LOCAL_SHELL_ROOT, raw);
+  const rel = relative(LOCAL_SHELL_ROOT, candidate);
+  if (rel.startsWith("..") || isAbsolute(rel)) {
+    throw createLocalShellError(
+      "LOCAL_SHELL_FORBIDDEN_PATH",
+      `terminal_exec cwd must stay inside ${LOCAL_SHELL_ROOT}.`
+    );
+  }
+  return candidate;
+}
+
+function resolveWorkspacePath(value: unknown, { allowRoot = false }: { allowRoot?: boolean } = {}): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    if (allowRoot) {
+      return LOCAL_SHELL_ROOT;
+    }
+    throw createWorkspaceToolError("INVALID_REQUEST", "Workspace path must be a non-empty string.");
+  }
+
+  const raw = value.trim();
+  const candidate = isAbsolute(raw) ? resolve(raw) : resolve(LOCAL_SHELL_ROOT, raw);
+  const rel = relative(LOCAL_SHELL_ROOT, candidate);
+  if (rel.startsWith("..") || isAbsolute(rel)) {
+    throw createWorkspaceToolError(
+      "WORKSPACE_FORBIDDEN_PATH",
+      `Workspace paths must stay inside ${LOCAL_SHELL_ROOT}.`
+    );
+  }
+  return candidate;
+}
+
+function toWorkspaceRelativePath(candidate: string): string {
+  const rel = relative(LOCAL_SHELL_ROOT, candidate);
+  if (!rel) {
+    return ".";
+  }
+  return rel.split("\\").join("/");
+}
+
+function normalizeWorkspaceInteger(value: unknown, fallback: number, minValue: number, maxValue: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
+  }
+  return Math.min(Math.max(Math.floor(value), minValue), maxValue);
+}
+
+function normalizeLocalShellTimeout(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return LOCAL_SHELL_DEFAULT_TIMEOUT_MS;
+  }
+  if (value <= 0) {
+    return LOCAL_SHELL_DEFAULT_TIMEOUT_MS;
+  }
+  return Math.min(Math.floor(value), LOCAL_SHELL_MAX_TIMEOUT_MS);
+}
+
+async function executeLocalShellCommand(params: Record<string, unknown>, signal: AbortSignal): Promise<JsonObject> {
+  const command = typeof params.command === "string" ? params.command.trim() : "";
+  if (command.length === 0) {
+    throw createLocalShellError("INVALID_REQUEST", "terminal_exec requires a non-empty command.");
+  }
+
+  const cwd = resolveLocalShellCwd(params.cwd);
+  const timeoutMs = normalizeLocalShellTimeout(params.timeout_ms);
+  const shell = process.platform === "win32" ? (process.env.ComSpec?.trim() || "cmd.exe") : (process.env.SHELL?.trim() || "/bin/zsh");
+  const shellArgs = process.platform === "win32" ? ["/d", "/s", "/c", command] : ["-lc", command];
+
+  return await new Promise<JsonObject>((resolvePromise, rejectPromise) => {
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    let timedOut = false;
+    let timeoutId: NodeJS.Timeout | undefined;
+
+    const finish = (result: JsonObject | null, error?: Error) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      signal.removeEventListener("abort", onAbort);
+      if (error) {
+        rejectPromise(error);
+        return;
+      }
+      resolvePromise(result ?? {});
+    };
+
+    const child = spawn(shell, shellArgs, {
+      cwd,
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+
+    const onAbort = () => {
+      child.kill("SIGTERM");
+      finish(null, createLocalShellError("ABORTED", "terminal_exec aborted.", true));
+    };
+
+    signal.addEventListener("abort", onAbort, { once: true });
+    timeoutId = setTimeout(() => {
+      timedOut = true;
+      child.kill("SIGTERM");
+    }, timeoutMs);
+
+    child.stdout?.setEncoding("utf8");
+    child.stdout?.on("data", (chunk: string) => {
+      stdout = truncateLocalShellOutput(stdout + chunk);
+    });
+
+    child.stderr?.setEncoding("utf8");
+    child.stderr?.on("data", (chunk: string) => {
+      stderr = truncateLocalShellOutput(stderr + chunk);
+    });
+
+    child.on("error", (error) => {
+      finish(null, createLocalShellError("LOCAL_SHELL_FAILED", error.message, true));
+    });
+
+    child.on("close", (code, childSignal) => {
+      if (timedOut) {
+        finish({
+          ok: false,
+          exit_code: code ?? null,
+          signal: childSignal ?? "SIGTERM",
+          timed_out: true,
+          stdout,
+          stderr,
+          cwd,
+          command
+        });
+        return;
+      }
+
+      finish({
+        ok: code === 0,
+        exit_code: code ?? null,
+        signal: childSignal ?? null,
+        timed_out: false,
+        stdout,
+        stderr,
+        cwd,
+        command
+      });
+    });
+  });
+}
+
+async function executeWorkspaceList(params: Record<string, unknown>): Promise<JsonObject> {
+  const rootPath = params.path === undefined
+    ? LOCAL_SHELL_ROOT
+    : resolveWorkspacePath(params.path, { allowRoot: true });
+  const maxDepth = normalizeWorkspaceInteger(params.depth, WORKSPACE_LIST_DEFAULT_DEPTH, 0, WORKSPACE_LIST_MAX_DEPTH);
+  const maxEntries = normalizeWorkspaceInteger(params.max_entries, WORKSPACE_LIST_DEFAULT_MAX_ENTRIES, 1, WORKSPACE_LIST_MAX_ENTRIES);
+  const includeHidden = params.include_hidden === true;
+  const entries: Array<Record<string, unknown>> = [];
+  let truncated = false;
+
+  const walk = async (currentPath: string, remainingDepth: number): Promise<void> => {
+    if (entries.length >= maxEntries) {
+      truncated = true;
+      return;
+    }
+
+    let dirEntries;
+    try {
+      dirEntries = await readdir(currentPath, { withFileTypes: true });
+    } catch (error) {
+      throw createWorkspaceToolError("WORKSPACE_LIST_FAILED", error instanceof Error ? error.message : "Failed to list workspace path.", true);
+    }
+
+    dirEntries.sort((left, right) => left.name.localeCompare(right.name));
+
+    for (const entry of dirEntries) {
+      if (!includeHidden && entry.name.startsWith(".")) {
+        continue;
+      }
+
+      const absolutePath = join(currentPath, entry.name);
+      const relativePath = toWorkspaceRelativePath(absolutePath);
+
+      if (entry.isDirectory()) {
+        entries.push({ path: relativePath, kind: "directory" });
+        if (entries.length >= maxEntries) {
+          truncated = true;
+          return;
+        }
+        if (remainingDepth > 0) {
+          await walk(absolutePath, remainingDepth - 1);
+          if (entries.length >= maxEntries) {
+            truncated = true;
+            return;
+          }
+        }
+        continue;
+      }
+
+      if (entry.isFile()) {
+        let size: number | null = null;
+        try {
+          size = (await stat(absolutePath)).size;
+        } catch {}
+
+        entries.push({
+          path: relativePath,
+          kind: "file",
+          ...(typeof size === "number" ? { size } : {})
+        });
+        if (entries.length >= maxEntries) {
+          truncated = true;
+          return;
+        }
+      }
+    }
+  };
+
+  await walk(rootPath, maxDepth);
+
+  return {
+    path: toWorkspaceRelativePath(rootPath),
+    entries,
+    truncated,
+    max_entries: maxEntries
+  };
+}
+
+async function executeWorkspaceRead(params: Record<string, unknown>): Promise<JsonObject> {
+  const filePath = resolveWorkspacePath(params.path);
+  const maxChars = normalizeWorkspaceInteger(params.max_chars, WORKSPACE_READ_DEFAULT_MAX_CHARS, 200, WORKSPACE_READ_MAX_CHARS);
+  const startLine = params.start_line === undefined ? undefined : normalizeWorkspaceInteger(params.start_line, 1, 1, Number.MAX_SAFE_INTEGER);
+  const endLine = params.end_line === undefined ? undefined : normalizeWorkspaceInteger(params.end_line, startLine ?? 1, startLine ?? 1, Number.MAX_SAFE_INTEGER);
+
+  let content: string;
+  try {
+    content = await readFile(filePath, "utf8");
+  } catch (error) {
+    throw createWorkspaceToolError("WORKSPACE_READ_FAILED", error instanceof Error ? error.message : "Failed to read workspace file.", true);
+  }
+
+  const lines = content.split(/\r?\n/);
+  let selected = content;
+  let actualStartLine: number | undefined;
+  let actualEndLine: number | undefined;
+  if (startLine !== undefined) {
+    actualStartLine = startLine;
+    actualEndLine = Math.min(endLine ?? lines.length, lines.length);
+    selected = lines.slice(startLine - 1, actualEndLine).join("\n");
+  }
+
+  const truncated = selected.length > maxChars;
+  if (truncated) {
+    selected = selected.slice(0, maxChars);
+  }
+
+  return {
+    path: toWorkspaceRelativePath(filePath),
+    content: selected,
+    truncated,
+    total_lines: lines.length,
+    ...(actualStartLine !== undefined ? { start_line: actualStartLine } : {}),
+    ...(actualEndLine !== undefined ? { end_line: actualEndLine } : {})
+  };
+}
+
+async function executeWorkspaceWrite(params: Record<string, unknown>): Promise<JsonObject> {
+  const filePath = resolveWorkspacePath(params.path);
+  if (typeof params.content !== "string") {
+    throw createWorkspaceToolError("INVALID_REQUEST", "workspace_write requires string content.");
+  }
+
+  const mode = params.mode === "append" ? "append" : "overwrite";
+
+  try {
+    await mkdir(dirname(filePath), { recursive: true });
+    if (mode === "append") {
+      await appendFile(filePath, params.content, "utf8");
+    } else {
+      await writeFile(filePath, params.content, "utf8");
+    }
+  } catch (error) {
+    throw createWorkspaceToolError("WORKSPACE_WRITE_FAILED", error instanceof Error ? error.message : "Failed to write workspace file.", true);
+  }
+
+  return {
+    ok: true,
+    path: toWorkspaceRelativePath(filePath),
+    mode,
+    bytes_written: Buffer.byteLength(params.content, "utf8")
+  };
 }
 
 function buildCurrentPageTaskGuidanceMessages(prompt: string): ProviderRuntimeMessage[] {
@@ -2008,6 +2357,47 @@ function emitToolEvent(
   onToolEvent?.(event);
 }
 
+async function waitForChildTaskResult(
+  taskManager: ReturnType<typeof createTaskManager>,
+  parentTaskId: string,
+  childTaskId: string,
+  signal: AbortSignal,
+  timeoutMs = 120_000
+): Promise<{ summary?: string; error?: AgentTaskError }> {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    if (signal.aborted) {
+      throw Object.assign(new Error("Subagent wait aborted."), {
+        code: "SUBAGENT_WAIT_ABORTED",
+        retryable: false
+      });
+    }
+
+    const parent = taskManager.getByTaskId(parentTaskId);
+    if (!parent) {
+      throw Object.assign(new Error("Parent task missing while waiting for subagent."), {
+        code: "SUBAGENT_PARENT_MISSING",
+        retryable: false
+      });
+    }
+
+    if (parent.activeChildTaskId !== childTaskId) {
+      return {
+        summary: parent.childSummary,
+        error: parent.childError
+      };
+    }
+
+    await delay(150);
+  }
+
+  throw Object.assign(new Error("Subagent timed out before returning a summary."), {
+    code: "SUBAGENT_TIMEOUT",
+    retryable: true
+  });
+}
+
 export async function createOrchestrator(options: OrchestratorOptions): Promise<AgentOrchestrator> {
   const memoryStore = options.memoryStore ?? createMemoryStore();
   const promptSpecs = options.promptSpecs ?? (await loadPromptSpecs(options.promptLoader));
@@ -2073,6 +2463,58 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
     }
   };
 
+  const spawnSubagent = (parent: AgentRunState, params: Omit<CreateSubagentParams, "parent_task_id">): CreateSubagentResult => {
+    if (parent.role !== "primary") {
+      const rejectedTaskId = randomUUID();
+      return {
+        task_id: rejectedTaskId,
+        status: "rejected",
+        visibility: "hidden",
+        summary: params.goal_summary,
+        error: {
+          code: "SUBAGENT_PARENT_INVALID",
+          message: "Subagents can only be created from a primary task."
+        }
+      };
+    }
+
+    const childPrompt = params.start_url
+      ? `${params.prompt}\n\nStart URL: ${params.start_url}`
+      : params.prompt;
+    const childState = createRunState(
+      {
+        ...parent.params,
+        prompt: childPrompt
+      },
+      {
+        role: "subagent",
+        visibility: "hidden",
+        parentTaskId: parent.taskId
+      }
+    );
+
+    const result = taskManager.linkChild(parent.taskId, childState);
+    if (result.status === "rejected") {
+      return {
+        ...result,
+        summary: params.goal_summary
+      };
+    }
+
+    memoryStore.upsert(childState.runId, {
+      status: childState.status,
+      params: redactSensitiveJson(childState.params as unknown as JsonObject) ?? {},
+      task: buildTaskState(childState) as unknown as JsonObject
+    });
+    writeParentTaskPatch(parent);
+    void executeRun(childState);
+
+    return {
+      ...result,
+      summary: params.goal_summary
+    };
+  };
+
   const executeRun = async (state: AgentRunState): Promise<void> => {
     const policy = promptSpecs.policy;
     const maxSteps =
@@ -2132,7 +2574,13 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
 
       const browserAdminAllowedForRun = shouldAllowBrowserAdminPages(state.params);
       const extensionManagementAllowedForRun = shouldExposeExtensionManagementTool(state.params);
-      const extraToolNames = extensionManagementAllowedForRun ? ["extensions_manage"] : [];
+      const localShellAllowedForRun = shouldExposeLocalShellTool(state.params);
+      const extraToolNames = [
+        ...(localShellAllowedForRun ? ["terminal_exec"] : []),
+        ...(localShellAllowedForRun ? ["workspace_list", "workspace_read", "workspace_write"] : []),
+        ...(extensionManagementAllowedForRun ? ["extensions_manage"] : []),
+        ...(state.role === "primary" ? ["create_subagent"] : [])
+      ];
       const fullToolCatalog = buildToolSchemaCatalog([...promptSpecs.toolNames, ...extraToolNames]);
       const toolingMismatches = findToolCatalogMismatches(promptSpecs.declaredTools, fullToolCatalog);
       if (toolingMismatches.length > 0) {
@@ -2143,11 +2591,11 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       }
 
       let toolCatalog = fullToolCatalog.filter((tool) => tool.name !== "todo_write");
-      if (!shouldExposeTabManagementTool(state.params.prompt)) {
-        toolCatalog = toolCatalog.filter((tool) => tool.name !== "tabs_create");
-      }
       if (!extensionManagementAllowedForRun) {
         toolCatalog = toolCatalog.filter((tool) => tool.name !== "extensions_manage");
+      }
+      if (!localShellAllowedForRun) {
+        toolCatalog = toolCatalog.filter((tool) => !["terminal_exec", "workspace_list", "workspace_read", "workspace_write"].includes(tool.name));
       }
       if (!funcCallingEnabled) {
         toolCatalog = [];
@@ -2220,6 +2668,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       const messages: ProviderRuntimeMessage[] = [
         { role: "system", content: promptSpecs.systemPrompt },
         ...buildObservationResponseInstruction(state.params.prompt, state.hasImageInput),
+        ...buildDefaultResponseStyleMessages(state.params.prompt),
         ...buildCurrentPageTaskGuidanceMessages(state.params.prompt),
         ...buildCapabilityContextMessages(state.params),
         ...buildUploadTaskGuidanceMessages(state.params.prompt),
@@ -2755,12 +3204,42 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                 action === "navigate" && browserAdminAllowedForRun
                   ? { ...toolCall.arguments, allow_sensitive_browser_pages: true }
                   : toolCall.arguments;
-              const result =
-                action === "draft_email"
-                  ? (normaliseEmailDraftArtifact(payload) as unknown as JsonObject)
-                  : (redactSensitiveJson(
-                      toJsonObject(await options.performAction(action, requestTabId, actionArgs, state.abortController.signal))
-                    ) ?? {});
+              const result = await (
+                action === "create_subagent"
+                  ? (async () => {
+                      const created = spawnSubagent(state, {
+                        prompt: typeof actionArgs.prompt === "string" ? actionArgs.prompt : "",
+                        ...(typeof actionArgs.goal_summary === "string" ? { goal_summary: actionArgs.goal_summary } : {}),
+                        ...(typeof actionArgs.start_url === "string" ? { start_url: actionArgs.start_url } : {})
+                      });
+                      if (created.status !== "started") {
+                        return created as unknown as JsonObject;
+                      }
+                      const childResult = await waitForChildTaskResult(taskManager, state.taskId, created.task_id, state.abortController.signal);
+                      const payload = {
+                        task_id: created.task_id,
+                        status: childResult.error ? "failed" : "completed",
+                        visibility: created.visibility,
+                        ...(childResult.summary ? { summary: childResult.summary } : {}),
+                        ...(childResult.error ? { error: childResult.error } : {})
+                      };
+                      writeParentTaskPatch(state);
+                      return payload as unknown as JsonObject;
+                    })()
+                  : action === "terminal_exec"
+                    ? await executeLocalShellCommand(actionArgs, state.abortController.signal)
+                  : action === "workspace_list"
+                    ? await executeWorkspaceList(actionArgs)
+                  : action === "workspace_read"
+                    ? await executeWorkspaceRead(actionArgs)
+                  : action === "workspace_write"
+                    ? await executeWorkspaceWrite(actionArgs)
+                  : action === "draft_email"
+                    ? (normaliseEmailDraftArtifact(payload) as unknown as JsonObject)
+                    : (redactSensitiveJson(
+                        toJsonObject(await options.performAction(action, requestTabId, actionArgs, state.abortController.signal))
+                      ) ?? {})
+              );
               lastResult = summarizeResult(result);
               if (typeof result.url === "string" && /^https?:\/\//i.test(result.url)) {
                 observedPageUrl = result.url;
@@ -2853,7 +3332,9 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                 type: "tool_done",
                 run_id: state.runId,
                 tool_call_id: toolCall.id,
-                ok: true
+                ok: true,
+                tool_name: action,
+                overlay: deriveToolOverlay(action, result)
               });
               consecutiveFailures = 0;
 
@@ -2950,6 +3431,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                 type: "tool_done",
                 run_id: state.runId,
                 tool_call_id: toolCall.id,
+                tool_name: action,
                 step_type: action,
                 ok: false,
                 failure_reason: normalized.code   // Comet: e.failureReason
@@ -3377,42 +3859,11 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
           }
         };
       }
-
-      const childPrompt = params.start_url
-        ? `${params.prompt}\n\nStart URL: ${params.start_url}`
-        : params.prompt;
-      const childState = createRunState(
-        {
-          ...parent.params,
-          prompt: childPrompt
-        },
-        {
-          role: "subagent",
-          visibility: "hidden",
-          parentTaskId: params.parent_task_id
-        }
-      );
-
-      const result = taskManager.linkChild(params.parent_task_id, childState);
-      if (result.status === "rejected") {
-        return {
-          ...result,
-          summary: params.goal_summary
-        };
-      }
-
-      memoryStore.upsert(childState.runId, {
-        status: childState.status,
-        params: redactSensitiveJson(childState.params as unknown as JsonObject) ?? {},
-        task: buildTaskState(childState) as unknown as JsonObject
+      return spawnSubagent(parent, {
+        prompt: params.prompt,
+        goal_summary: params.goal_summary,
+        start_url: params.start_url
       });
-      writeParentTaskPatch(parent);
-      void executeRun(childState);
-
-      return {
-        ...result,
-        summary: params.goal_summary
-      };
     }
   };
 }

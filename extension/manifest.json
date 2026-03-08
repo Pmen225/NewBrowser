@@ -6,6 +6,8 @@
   "permissions": [
     "sidePanel",
     "tabs",
+    "tabGroups",
+    "webNavigation",
     "activeTab",
     "storage",
     "scripting",
@@ -42,9 +44,5 @@
       "run_at": "document_start",
       "all_frames": true
     }
-  ],
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
-  }
+  ]
 }

@@ -19,6 +19,28 @@ const OPENAI_DEFAULT_TIMEOUT_MS = 10_000;
 const OPENAI_RUN_TURN_TIMEOUT_MS = 120_000;
 const OPENAI_TRANSCRIBE_TIMEOUT_MS = 120_000;
 
+function extractOpenAiErrorDetails(data: unknown): { message?: string; code?: string } {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return {};
+  }
+
+  const error = (data as { error?: unknown }).error;
+  if (!error || typeof error !== "object" || Array.isArray(error)) {
+    return {};
+  }
+
+  return {
+    message:
+      typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message.trim()
+        : undefined,
+    code:
+      typeof (error as { code?: unknown }).code === "string"
+        ? (error as { code: string }).code.trim()
+        : undefined
+  };
+}
+
 function mapOpenAiReasoningEffort(level: string | undefined): "low" | "medium" | "high" {
   if (level === "minimal" || level === "low") {
     return "low";
@@ -27,6 +49,30 @@ function mapOpenAiReasoningEffort(level: string | undefined): "low" | "medium" |
     return "medium";
   }
   return "high";
+}
+
+function supportsOpenAiReasoning(model: string | undefined): boolean {
+  const normalized = typeof model === "string" ? model.trim().toLowerCase() : "";
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    normalized.startsWith("gpt-5") ||
+    normalized.startsWith("o1") ||
+    normalized.startsWith("o3") ||
+    normalized.startsWith("o4")
+  );
+}
+
+function resolveOpenAiReasoning(model: string | undefined, level: string | undefined): { effort: "low" | "medium" | "high" } | undefined {
+  if (!supportsOpenAiReasoning(model)) {
+    return undefined;
+  }
+
+  return {
+    effort: mapOpenAiReasoningEffort(level)
+  };
 }
 
 function extractOpenAiModels(payload: unknown): string[] {
@@ -46,20 +92,85 @@ function extractOpenAiModels(payload: unknown): string[] {
   );
 }
 
-function toProviderError(status: number, provider: string): Error {
+function toOpenAiInputContent(content: unknown): Array<Record<string, unknown>> {
+  if (Array.isArray(content)) {
+    return content.flatMap((part) => {
+      if (!part || typeof part !== "object") {
+        return [];
+      }
+
+      const record = part as { type?: unknown; text?: unknown; media_type?: unknown; data?: unknown };
+      if (record.type === "image" && typeof record.media_type === "string" && typeof record.data === "string") {
+        return [
+          {
+            type: "input_image",
+            image_url: `data:${record.media_type};base64,${record.data}`
+          }
+        ];
+      }
+
+      if (typeof record.text === "string" && record.text.length > 0) {
+        return [
+          {
+            type: "input_text",
+            text: record.text
+          }
+        ];
+      }
+
+      return [];
+    });
+  }
+
+  const text = typeof content === "string" ? content : "";
+  return [
+    {
+      type: "input_text",
+      text
+    }
+  ];
+}
+
+function toOpenAiInputItem(message: Parameters<NonNullable<ProviderAdapter["runTurn"]>>[0]["messages"][number]): Record<string, unknown> {
+  if (message.role === "tool") {
+    return {
+      type: "function_call_output",
+      call_id: message.tool_call_id,
+      output: typeof message.content === "string" ? message.content : JSON.stringify(message.content ?? "")
+    };
+  }
+
+  const normalizedRole = message.role === "system" ? "developer" : message.role;
+  return {
+    type: "message",
+    role: normalizedRole,
+    content: toOpenAiInputContent(message.content)
+  };
+}
+
+function toProviderError(status: number, provider: string, data?: unknown): Error {
+  const providerError = extractOpenAiErrorDetails(data);
+  const providerMessage = providerError.message;
   if (status === 401 || status === 403) {
-    return createProviderAdapterError("PROVIDER_AUTH_FAILED", `${provider} API key rejected`, false);
+    return createProviderAdapterError("PROVIDER_AUTH_FAILED", providerMessage || `${provider} API key rejected`, false);
   }
 
   if (status === 429) {
-    return createProviderAdapterError("PROVIDER_RATE_LIMITED", `${provider} rate limit reached`, true);
+    if (providerError.code === "insufficient_quota") {
+      return createProviderAdapterError("PROVIDER_RATE_LIMITED", `${provider} quota exceeded. Check billing or switch providers.`, true);
+    }
+    return createProviderAdapterError("PROVIDER_RATE_LIMITED", providerMessage || `${provider} rate limit reached`, true);
   }
 
   if (status >= 500) {
-    return createProviderAdapterError("PROVIDER_UNAVAILABLE", `${provider} service unavailable`, true);
+    return createProviderAdapterError("PROVIDER_UNAVAILABLE", providerMessage || `${provider} service unavailable`, true);
   }
 
-  return createProviderAdapterError("PROVIDER_HTTP_ERROR", `${provider} request failed with HTTP ${status}`, status >= 500);
+  return createProviderAdapterError(
+    "PROVIDER_HTTP_ERROR",
+    providerMessage || `${provider} request failed with HTTP ${status}`,
+    status >= 500
+  );
 }
 
 async function listOpenAiModels(
@@ -83,7 +194,7 @@ async function listOpenAiModels(
   );
 
   if (!response.ok) {
-    throw toProviderError(response.status, "OpenAI");
+    throw toProviderError(response.status, "OpenAI", response.data);
   }
 
   const models = extractOpenAiModels(response.data);
@@ -102,6 +213,7 @@ async function runOpenAiTurn(
   input: Parameters<NonNullable<ProviderAdapter["runTurn"]>>[0]
 ) {
   const normalizedBaseUrl = normalizeBaseUrl(input.baseUrl, OPENAI_DEFAULT_BASE_URL);
+  const reasoning = resolveOpenAiReasoning(input.model, input.thinkingLevel);
   const response = await fetchJsonWithTimeout(
     fetchImpl,
     `${normalizedBaseUrl}/responses`,
@@ -114,27 +226,14 @@ async function runOpenAiTurn(
       },
       body: JSON.stringify({
         model: input.model,
-        input: input.messages.map((message) => ({
-          role: message.role,
-          content: Array.isArray(message.content)
-            ? message.content.map((part: any) =>
-                part.type === "image"
-                  ? { type: "image_url", image_url: { url: `data:${part.media_type};base64,${part.data}` } }
-                  : { type: "text", text: part.text }
-              )
-            : message.content,
-          ...(message.tool_call_id ? { tool_call_id: message.tool_call_id } : {}),
-          ...(message.tool_name ? { tool_name: message.tool_name } : {})
-        })),
+        input: input.messages.map((message) => toOpenAiInputItem(message)),
         tools: input.tools.map((tool) => ({
           type: "function",
           name: tool.name,
           description: tool.description,
           parameters: tool.parameters
         })),
-        reasoning: {
-          effort: mapOpenAiReasoningEffort(input.thinkingLevel)
-        }
+        ...(reasoning ? { reasoning } : {})
       })
     },
     OPENAI_RUN_TURN_TIMEOUT_MS,
@@ -142,7 +241,7 @@ async function runOpenAiTurn(
   );
 
   if (!response.ok) {
-    throw toProviderError(response.status, "OpenAI");
+    throw toProviderError(response.status, "OpenAI", response.data);
   }
 
   const raw = toJsonObject(response.data) ?? {};
@@ -214,7 +313,7 @@ async function transcribeOpenAiAudio(
   );
 
   if (!response.ok) {
-    throw toProviderError(response.status, "OpenAI");
+    throw toProviderError(response.status, "OpenAI", response.data);
   }
 
   const payload = toJsonObject(response.data) ?? {};
@@ -267,6 +366,7 @@ export function createOpenAiAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
     },
     buildExecutionConfig(preferences) {
       const tools = [];
+      const reasoning = resolveOpenAiReasoning(preferences.selected_model, preferences.thinking_level);
       if (preferences.require_browser_search) {
         tools.push({ type: "web_search_preview" });
       }
@@ -281,9 +381,7 @@ export function createOpenAiAdapter(fetchImpl: FetchLike = fetch): ProviderAdapt
         request_shape: {
           endpoint: "responses.create",
           model: preferences.selected_model,
-          reasoning: {
-            effort: mapOpenAiReasoningEffort(preferences.thinking_level)
-          },
+          ...(reasoning ? { reasoning } : {}),
           tools,
           local_code_execution: preferences.enable_code_execution === true
         }

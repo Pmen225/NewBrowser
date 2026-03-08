@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel Settings Harness</title>
+  <link rel="stylesheet" href="/extension/styles.css" />
+</head>
+<body>
+  <main id="root" aria-label="Assistant panel"></main>
+  <script>
+    const storageState = {
+      "ui.panelSettings": {
+        appearanceTheme: "system",
+        requireToolbarPin: true,
+        narrationEnabled: false,
+        transcriptionEnabled: false,
+        transcriptionModelId: "",
+        transcriptionLanguage: "",
+        browserAdminEnabled: false,
+        localShellEnabled: false,
+        extensionManagementEnabled: false,
+        memoryManualEnabled: true,
+        memoryBookmarksEnabled: false,
+        memoryHistoryEnabled: false,
+        memorySettingsEnabled: false
+      },
+      atlas_chat_sessions: { activeSessionId: null, sessions: [] },
+      atlas_model_config: {},
+      atlas_model_catalog: [],
+      atlas_model_benchmark_manifest: null,
+      atlas_shortcuts: []
+    };
+
+    const local = {
+      get(keys, cb) {
+        const list = Array.isArray(keys) ? keys : typeof keys === "string" ? [keys] : Object.keys(keys || {});
+        const out = {};
+        for (const key of list) out[key] = storageState[key];
+        if (typeof cb === "function") cb(out);
+        return Promise.resolve(out);
+      },
+      set(values, cb) {
+        Object.assign(storageState, values || {});
+        if (typeof cb === "function") cb();
+        return Promise.resolve();
+      }
+    };
+
+    window.chrome = {
+      storage: { local, onChanged: { addListener() {} } },
+      runtime: {
+        sendMessage() { return Promise.resolve({}); },
+        onMessage: { addListener() {} },
+        getURL(path) { return `${location.origin}/extension/${path}`; }
+      },
+      tabs: {
+        query() { return Promise.resolve([{ id: 1, url: "https://example.com", title: "Example" }]); },
+        create() { return Promise.resolve(); }
+      },
+      sidePanel: {},
+      webNavigation: {},
+      scripting: {},
+      bookmarks: {},
+      history: {},
+      management: {}
+    };
+
+    window.EventSource = class { close() {} addEventListener() {} };
+    window.WebSocket = class {
+      constructor() {
+        setTimeout(() => {
+          if (typeof this.onclose === "function") this.onclose();
+        }, 0);
+      }
+      addEventListener() {}
+      send() {}
+      close() {}
+    };
+  </script>
+  <script type="module" src="/extension/panel.js"></script>
+</body>
+</html>

@@ -10,6 +10,7 @@ describe("overlay controller", () => {
   it("normalizes overlay kinds deterministically", () => {
     expect(normalizeOverlayKind("slash")).toBe("slash");
     expect(normalizeOverlayKind("shortcutEditor")).toBe("shortcutEditor");
+    expect(normalizeOverlayKind("mission")).toBe("none");
     expect(normalizeOverlayKind("wat")).toBe("none");
     expect(normalizeOverlayKind(null)).toBe("none");
   });
@@ -19,6 +20,7 @@ describe("overlay controller", () => {
     expect(toggleOverlay("slash", "slash")).toBe("none");
     expect(toggleOverlay("slash", "model")).toBe("model");
     expect(toggleOverlay("model", "recents")).toBe("recents");
+    expect(toggleOverlay("recents", "mission")).toBe("none");
   });
 
   it("closes overlays explicitly", () => {
@@ -26,4 +28,3 @@ describe("overlay controller", () => {
     expect(closeOverlay("none")).toBe("none");
   });
 });
-

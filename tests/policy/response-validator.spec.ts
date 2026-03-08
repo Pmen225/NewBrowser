@@ -141,6 +141,33 @@ describe("response validator", () => {
     expect(result.normalized_text).not.toContain("\n- ");
   });
 
+  it("softens markdown-heavy answers into plain prose for ordinary prompts", () => {
+    const result = validateFinalAnswerWithAutofix({
+      userPrompt: "Summarize the page in one sentence.",
+      text: `<answer>## Summary
+
+- The page explains pricing and support options.[web:1]</answer>`,
+      availableCitations: ["[web:1]"]
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.normalized_text).not.toContain("##");
+    expect(result.normalized_text).not.toContain("\n- ");
+    expect(result.normalized_text).toContain("The page explains pricing and support options.[web:1]");
+  });
+
+  it("preserves structured formatting when the user explicitly asks for bullets", () => {
+    const result = validateFinalAnswerWithAutofix({
+      userPrompt: "List the key findings as bullet points.",
+      text: `<answer>- Pricing is visible.[web:1]
+- Support is visible.[web:1]</answer>`,
+      availableCitations: ["[web:1]"]
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.normalized_text).toContain("\n- Support is visible.[web:1]");
+  });
+
   it("drops embedded nested answer tails", () => {
     const result = validateFinalAnswerWithAutofix({
       userPrompt: "Summarize",

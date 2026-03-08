@@ -1,13 +1,98 @@
+import { PANEL_SETTINGS_STORAGE_KEY, normalizePanelSettings } from "./lib/panel-settings.js";
+import { resolveCompletedTabRecovery, resolveOmniboxRecovery } from "./lib/omnibox-recovery.js";
+import { getCapturableActiveTab } from "./lib/page-context.js";
+
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+
+const PIN_REQUIRED_PAGE = "pin-required.html";
 
 const insertContexts = new Map();
 const benchmarkWorkspaces = new Map();
-const activeControlWorkspace = {
-  title: "Atlas active",
-  tabIds: new Set(),
-  groupId: undefined
-};
+const activeControlTabs = new Set();
 const BENCHMARK_URL_MARKER = "atlas-benchmark=";
+const omniboxRecoveryByTab = new Map();
+
+function getPinRequiredUrl() {
+  return chrome.runtime.getURL(PIN_REQUIRED_PAGE);
+}
+
+async function isToolbarPinRequired() {
+  try {
+    const stored = await chrome.storage.local.get([PANEL_SETTINGS_STORAGE_KEY]);
+    return normalizePanelSettings(stored?.[PANEL_SETTINGS_STORAGE_KEY]).requireToolbarPin === true;
+  } catch {
+    return false;
+  }
+}
+
+async function isAssistantPinned() {
+  if (typeof chrome.action?.getUserSettings !== "function") {
+    return true;
+  }
+
+  try {
+    const settings = await chrome.action.getUserSettings();
+    return settings?.isOnToolbar !== false;
+  } catch {
+    return true;
+  }
+}
+
+async function listPinRequiredTabs() {
+  try {
+    return await chrome.tabs.query({ url: getPinRequiredUrl() });
+  } catch {
+    return [];
+  }
+}
+
+async function closePinRequiredTabs() {
+  const tabs = await listPinRequiredTabs();
+  const tabIds = tabs.map((tab) => tab.id).filter((tabId) => typeof tabId === "number");
+  if (tabIds.length > 0) {
+    await chrome.tabs.remove(tabIds).catch(() => {});
+  }
+}
+
+async function ensurePinRequiredTab() {
+  if (!(await isToolbarPinRequired())) {
+    await closePinRequiredTabs();
+    return;
+  }
+
+  if (await isAssistantPinned()) {
+    await closePinRequiredTabs();
+    return;
+  }
+
+  const existingTabs = await listPinRequiredTabs();
+  const existingTab = existingTabs.find((tab) => typeof tab.id === "number");
+  if (existingTab?.id) {
+    await chrome.tabs.update(existingTab.id, { active: true }).catch(() => {});
+    if (typeof existingTab.windowId === "number") {
+      await chrome.windows.update(existingTab.windowId, { focused: true }).catch(() => {});
+    }
+    return;
+  }
+
+  await chrome.tabs.create({
+    url: getPinRequiredUrl(),
+    active: true
+  }).catch(() => {});
+}
+
+async function syncPinnedAssistantState() {
+  if (!(await isToolbarPinRequired())) {
+    await closePinRequiredTabs();
+    return;
+  }
+
+  if (await isAssistantPinned()) {
+    await closePinRequiredTabs();
+    return;
+  }
+  await ensurePinRequiredTab();
+}
 
 function cloneTargetSnapshot(target) {
   if (!target) return undefined;
@@ -250,45 +335,18 @@ async function finalizeBenchmarkWorkspace(benchmarkId, closeTabs) {
   };
 }
 
-async function syncActiveControlWorkspace() {
-  const tabIds = [...activeControlWorkspace.tabIds].filter((tabId) => typeof tabId === "number");
-  if (tabIds.length === 0) {
-    activeControlWorkspace.groupId = undefined;
-    return;
-  }
-
-  try {
-    const groupId = typeof activeControlWorkspace.groupId === "number"
-      ? await chrome.tabs.group({ groupId: activeControlWorkspace.groupId, tabIds })
-      : await chrome.tabs.group({ tabIds });
-    activeControlWorkspace.groupId = groupId;
-    await chrome.tabGroups.update(groupId, {
-      title: activeControlWorkspace.title,
-      color: "blue",
-      collapsed: false
-    });
-  } catch {
-    activeControlWorkspace.groupId = undefined;
-  }
-}
-
 async function registerActiveControlTab(tabId) {
   if (typeof tabId !== "number") {
     return;
   }
-  activeControlWorkspace.tabIds.add(tabId);
-  await syncActiveControlWorkspace();
+  activeControlTabs.add(tabId);
 }
 
 async function unregisterActiveControlTab(tabId) {
   if (typeof tabId !== "number") {
     return;
   }
-  activeControlWorkspace.tabIds.delete(tabId);
-  try {
-    await chrome.tabs.ungroup(tabId);
-  } catch {}
-  await syncActiveControlWorkspace();
+  activeControlTabs.delete(tabId);
 }
 
 function scheduleBenchmarkFinalize(benchmarkId, closeTabs) {
@@ -302,7 +360,74 @@ globalThis.__ATLAS_BENCHMARK_API = {
   finalize: finalizeBenchmarkWorkspace
 };
 
+chrome.webNavigation?.onErrorOccurred.addListener((details) => {
+  const recovery = resolveOmniboxRecovery(details);
+  if (!recovery || typeof details.tabId !== "number") {
+    return;
+  }
+
+  const previous = omniboxRecoveryByTab.get(details.tabId);
+  if (previous?.url === details.url && Date.now() - previous.at < 5_000) {
+    return;
+  }
+
+  omniboxRecoveryByTab.set(details.tabId, {
+    url: details.url,
+    at: Date.now()
+  });
+
+  chrome.tabs.update(details.tabId, { url: recovery.searchUrl }).catch(() => {});
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (typeof tabId !== "number") {
+    return;
+  }
+
+  const recovery = resolveCompletedTabRecovery({
+    url: tab?.url ?? changeInfo.url ?? "",
+    title: tab?.title ?? changeInfo.title ?? "",
+    status: changeInfo.status ?? tab?.status ?? ""
+  });
+  if (!recovery) {
+    return;
+  }
+
+  const previous = omniboxRecoveryByTab.get(tabId);
+  if (previous?.url === (tab?.url ?? changeInfo.url ?? "") && Date.now() - previous.at < 5_000) {
+    return;
+  }
+
+  omniboxRecoveryByTab.set(tabId, {
+    url: tab?.url ?? changeInfo.url ?? "",
+    at: Date.now()
+  });
+
+  chrome.tabs.update(tabId, { url: recovery.searchUrl }).catch(() => {});
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  omniboxRecoveryByTab.delete(tabId);
+  activeControlTabs.delete(tabId);
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+  void syncPinnedAssistantState();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  void syncPinnedAssistantState();
+});
+
+chrome.action.onUserSettingsChanged?.addListener(() => {
+  void syncPinnedAssistantState();
+});
+
 chrome.action.onClicked.addListener(async (tab) => {
+  if ((await isToolbarPinRequired()) && !(await isAssistantPinned())) {
+    await ensurePinRequiredTab();
+    return;
+  }
   if (typeof tab.id !== "number") return;
   await chrome.sidePanel.open({ tabId: tab.id });
 });
@@ -314,12 +439,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  // Screenshot capture — resolve the last focused window explicitly so the
-  // service worker has a concrete windowId (null silently fails in SW context).
   if (message.action === "captureScreenshot") {
-    chrome.windows.getLastFocused({ windowTypes: ["normal"] }, (win) => {
-      const windowId = win?.id ?? chrome.windows.WINDOW_ID_CURRENT;
-      chrome.tabs.captureVisibleTab(windowId, { format: "png", quality: 92 }, (dataUrl) => {
+    void (async () => {
+      const tab = await getCapturableActiveTab((queryInfo) => chrome.tabs.query(queryInfo));
+      if (!tab || typeof tab.windowId !== "number") {
+        sendResponse({ error: "Open a normal website tab to capture a screenshot." });
+        return;
+      }
+
+      chrome.tabs.captureVisibleTab(tab.windowId, { format: "png", quality: 92 }, (dataUrl) => {
         if (chrome.runtime.lastError) {
           sendResponse({ error: chrome.runtime.lastError.message });
         } else if (!dataUrl) {
@@ -328,7 +456,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ dataUrl });
         }
       });
-    });
+    })();
     return true;
   }
 

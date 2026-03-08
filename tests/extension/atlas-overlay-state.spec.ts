@@ -24,7 +24,7 @@ describe("atlas overlay state", () => {
   it("maps authoritative takeover control states", () => {
     expect(controlButtonState("active")).toMatchObject({
       label: "Take control",
-      status: "Logged in · Agent is using your accounts"
+      status: "Browser control active"
     });
     expect(controlButtonState("pausing")).toMatchObject({
       label: "Take control",
@@ -34,5 +34,10 @@ describe("atlas overlay state", () => {
       label: "Resume",
       status: "Paused — you have control"
     });
+  });
+
+  it("avoids implying account use when the overlay only knows browser control state", () => {
+    expect(controlButtonState("active").status).not.toContain("account");
+    expect(controlButtonState("active").status).not.toContain("Logged in");
   });
 });

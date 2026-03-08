@@ -57,7 +57,7 @@ export function controlButtonState(state) {
   if (controlState === 'stopping') {
     return { label: 'Take control', primary: false, status: 'Stopping agent' };
   }
-  return { label: 'Take control', primary: true, status: 'Logged in · Agent is using your accounts' };
+  return { label: 'Take control', primary: true, status: 'Browser control active' };
 }
 
 export function stoppingControlState() {

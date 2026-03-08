@@ -1,7 +1,11 @@
 export const PROVIDER_SESSION_STORAGE_KEY = "ui.session.unlockedProviders";
 
 export function normalizeProviderId(value) {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
+  const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (normalized === "gemini") {
+    return "google";
+  }
+  return normalized;
 }
 
 function wrapChromeArea(area) {

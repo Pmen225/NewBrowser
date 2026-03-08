@@ -342,7 +342,8 @@ describe("system dispatcher", () => {
       max_steps: undefined,
       has_image_input: undefined,
       api_key: "sk-test",
-      base_url: "https://api.openai.com/v1"
+      base_url: "https://api.openai.com/v1",
+      allow_local_shell: undefined
     });
 
     await expect(

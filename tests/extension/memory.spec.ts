@@ -83,6 +83,62 @@ describe("memory store", () => {
     ).toEqual(["manual:1"]);
   });
 
+  it("keeps a recent personal memory in the shortlist when topical matches are only derived", () => {
+    const entries = [
+      {
+        key: "manual:1",
+        source: "manual",
+        text: "Prince prefers short direct answers.",
+        updatedAt: "2026-03-07T13:00:00.000Z"
+      },
+      {
+        key: "bookmark:1",
+        source: "bookmark",
+        text: "Microsoft 365 admin center",
+        title: "Microsoft 365 admin center",
+        updatedAt: "2026-03-07T12:00:00.000Z"
+      },
+      {
+        key: "history:1",
+        source: "history",
+        text: "Halo permissions article",
+        title: "Halo permissions",
+        updatedAt: "2026-03-07T12:30:00.000Z"
+      }
+    ];
+
+    expect(
+      selectRelevantMemoryEntries("Open the Halo permissions article in Microsoft 365", entries, 2).map((entry) => entry.key)
+    ).toEqual(["history:1", "manual:1"]);
+  });
+
+  it("falls back to multiple recent personal memories for generic prompts", () => {
+    const entries = [
+      {
+        key: "settings:1",
+        source: "settings",
+        text: "Extension management is enabled.",
+        updatedAt: "2026-03-07T11:00:00.000Z"
+      },
+      {
+        key: "manual:1",
+        source: "manual",
+        text: "Prince wants the assistant to investigate before emailing users.",
+        updatedAt: "2026-03-07T12:00:00.000Z"
+      },
+      {
+        key: "history:1",
+        source: "history",
+        text: "Example Domain https://example.com",
+        updatedAt: "2026-03-07T13:00:00.000Z"
+      }
+    ];
+
+    expect(
+      selectRelevantMemoryEntries("Help with this task.", entries, 3).map((entry) => entry.key)
+    ).toEqual(["manual:1", "settings:1"]);
+  });
+
   it("prioritizes manual and settings memories for explicit recall prompts", () => {
     const entries = [
       {

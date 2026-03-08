@@ -199,10 +199,22 @@ describe("browser CDP action wrappers", () => {
         { index: 2, ok: true }
       ],
       completed_steps: 3,
-      screenshot_b64: Buffer.from("fake-png").toString("base64")
+      screenshot_b64: Buffer.from("fake-png").toString("base64"),
+      overlay: {
+        cursor: {
+          x: 24,
+          y: 36
+        },
+        click: {
+          x: 24,
+          y: 36
+        }
+      }
     });
 
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
       "DOM.resolveNode",
       "DOM.scrollIntoViewIfNeeded",
       "Runtime.callFunctionOn",
@@ -240,8 +252,49 @@ describe("browser CDP action wrappers", () => {
     });
     expect(transport.sendCalls).toEqual([
       {
+        method: "Page.addScriptToEvaluateOnNewDocument",
+        params: expect.objectContaining({ source: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
+      {
+        method: "Runtime.evaluate",
+        params: expect.objectContaining({ expression: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
+      {
         method: "Page.captureScreenshot",
         params: { format: "png" },
+        sessionId: "session-main"
+      }
+    ]);
+  });
+
+  it("runs a consent preflight before ComputerBatch interactions", async () => {
+    const { transport, runtime } = createRuntime();
+    transport.queueResponse("Input.dispatchKeyEvent", {});
+    transport.queueResponse("Input.dispatchKeyEvent", {});
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("preflight-png").toString("base64")
+    });
+
+    await executeComputerBatch(
+      runtime,
+      "tab-1",
+      {
+        steps: [{ kind: "key", key: "Enter" }]
+      },
+      new AbortController().signal
+    );
+
+    expect(transport.sendCalls.slice(0, 2)).toEqual([
+      {
+        method: "Page.addScriptToEvaluateOnNewDocument",
+        params: expect.objectContaining({ source: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
+      {
+        method: "Runtime.evaluate",
+        params: expect.objectContaining({ expression: expect.stringContaining("__atlasConsentSweep") }),
         sessionId: "session-main"
       }
     ]);
@@ -278,9 +331,29 @@ describe("browser CDP action wrappers", () => {
     expect(result).toEqual({
       steps: [{ index: 0, ok: true }],
       completed_steps: 1,
-      screenshot_b64: Buffer.from("native-click-png").toString("base64")
+      screenshot_b64: Buffer.from("native-click-png").toString("base64"),
+      overlay: {
+        cursor: {
+          x: 120,
+          y: 48
+        },
+        click: {
+          x: 120,
+          y: 48
+        }
+      }
     });
     expect(transport.sendCalls).toEqual([
+      {
+        method: "Page.addScriptToEvaluateOnNewDocument",
+        params: expect.objectContaining({ source: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
+      {
+        method: "Runtime.evaluate",
+        params: expect.objectContaining({ expression: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
       {
         method: "DOM.resolveNode",
         params: { backendNodeId: 211 },
@@ -382,6 +455,16 @@ describe("browser CDP action wrappers", () => {
     expect(result).toEqual({
       steps: [{ index: 0, ok: true }],
       completed_steps: 1,
+      overlay: {
+        cursor: {
+          x: 48,
+          y: 52
+        },
+        click: {
+          x: 48,
+          y: 52
+        }
+      },
       javascript_dialog: {
         type: "prompt",
         message: "Enter Atlas",
@@ -389,6 +472,8 @@ describe("browser CDP action wrappers", () => {
       }
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
       "DOM.resolveNode",
       "DOM.scrollIntoViewIfNeeded",
       "Runtime.callFunctionOn",
@@ -445,6 +530,16 @@ describe("browser CDP action wrappers", () => {
     expect(result).toEqual({
       steps: [{ index: 0, ok: true }],
       completed_steps: 1,
+      overlay: {
+        cursor: {
+          x: 334,
+          y: 291
+        },
+        click: {
+          x: 334,
+          y: 291
+        }
+      },
       javascript_dialog: {
         type: "prompt",
         message: "Enter Atlas",
@@ -452,6 +547,8 @@ describe("browser CDP action wrappers", () => {
       }
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
       "DOM.resolveNode",
       "DOM.scrollIntoViewIfNeeded",
       "Runtime.callFunctionOn",
@@ -499,6 +596,16 @@ describe("browser CDP action wrappers", () => {
       screenshot_b64: Buffer.from("dialog-png").toString("base64")
     });
     expect(transport.sendCalls).toEqual([
+      {
+        method: "Page.addScriptToEvaluateOnNewDocument",
+        params: expect.objectContaining({ source: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
+      {
+        method: "Runtime.evaluate",
+        params: expect.objectContaining({ expression: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
       {
         method: "Page.handleJavaScriptDialog",
         params: { accept: true, promptText: "Atlas prompt" },
@@ -591,9 +698,21 @@ describe("browser CDP action wrappers", () => {
         { index: 1, ok: true }
       ],
       completed_steps: 2,
-      screenshot_b64: Buffer.from("click-dialog-png").toString("base64")
+      screenshot_b64: Buffer.from("click-dialog-png").toString("base64"),
+      overlay: {
+        cursor: {
+          x: 90,
+          y: 110
+        },
+        click: {
+          x: 90,
+          y: 110
+        }
+      }
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
       "DOM.resolveNode",
       "DOM.scrollIntoViewIfNeeded",
       "Runtime.callFunctionOn",
@@ -656,6 +775,16 @@ describe("browser CDP action wrappers", () => {
     expect(result).toEqual({
       steps: [{ index: 0, ok: true }],
       completed_steps: 1,
+      overlay: {
+        cursor: {
+          x: 144,
+          y: 188
+        },
+        click: {
+          x: 144,
+          y: 188
+        }
+      },
       javascript_dialog: {
         type: "prompt",
         message: "Enter Atlas",
@@ -663,6 +792,8 @@ describe("browser CDP action wrappers", () => {
       }
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
       "DOM.resolveNode",
       "DOM.scrollIntoViewIfNeeded",
       "Runtime.callFunctionOn",
@@ -714,12 +845,24 @@ describe("browser CDP action wrappers", () => {
     expect(result).toEqual({
       steps: [{ index: 0, ok: true }],
       completed_steps: 1,
+      overlay: {
+        cursor: {
+          x: 180,
+          y: 220
+        },
+        click: {
+          x: 180,
+          y: 220
+        }
+      },
       javascript_dialog: {
         type: "dialog",
         message: ""
       }
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
       "DOM.resolveNode",
       "DOM.scrollIntoViewIfNeeded",
       "Runtime.callFunctionOn",
@@ -757,6 +900,8 @@ describe("browser CDP action wrappers", () => {
       screenshot_b64: Buffer.from("focused-png").toString("base64")
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.addScriptToEvaluateOnNewDocument",
+      "Runtime.evaluate",
       "Runtime.evaluate",
       "Input.insertText",
       "Page.captureScreenshot"
@@ -1132,6 +1277,56 @@ describe("browser CDP action wrappers", () => {
       },
       sessionId: "session-main"
     });
+  });
+
+  it("runs a consent preflight before FormInput interactions", async () => {
+    const { transport, runtime } = createRuntime();
+    transport.queueResponse("DOM.resolveNode", { object: { objectId: "obj-preflight" } });
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: {
+          blocked: false
+        }
+      }
+    });
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: true
+      }
+    });
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: "Atlas"
+      }
+    });
+
+    await executeFormInput(
+      runtime,
+      "tab-1",
+      {
+        fields: [
+          {
+            ref: "f0:509",
+            kind: "text",
+            value: "Atlas"
+          }
+        ]
+      },
+      new AbortController().signal
+    );
+
+    expect(transport.sendCalls.slice(0, 2)).toEqual([
+      {
+        method: "Page.addScriptToEvaluateOnNewDocument",
+        params: expect.objectContaining({ source: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      },
+      {
+        method: "Runtime.evaluate",
+        params: expect.objectContaining({ expression: expect.stringContaining("__atlasConsentSweep") }),
+        sessionId: "session-main"
+      }
+    ]);
   });
 
   it("rejects relative file upload paths", async () => {

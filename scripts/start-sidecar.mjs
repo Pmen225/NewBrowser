@@ -5,6 +5,7 @@ import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { hardenAssistantProfile } from "./lib/assistant-profile-lock.js";
+import { defaultChromeProfileRoot, resolveRunningChromeCdpWsUrl } from "./lib/cdp-discovery.js";
 import {
   activateChromiumDesktop,
   openAssistantSidePanel,
@@ -15,6 +16,7 @@ const DEFAULT_POLL_INTERVAL_MS = 250;
 const DEFAULT_STARTUP_TIMEOUT_MS = 20_000;
 const DEFAULT_PORT_CANDIDATES = [9555, 9444, 9333, 9222];
 const DEFAULT_HEALTH_TIMEOUT_MS = 30_000;
+const DEFAULT_ATTACHED_TAB_TIMEOUT_MS = 10_000;
 
 function parseNumber(value, fallback) {
   if (!value) {
@@ -104,12 +106,24 @@ async function resolveExistingCdpWebSocketUrl() {
   try {
     const response = await fetch(versionUrl);
     if (!response.ok) {
-      return undefined;
+      return resolveRunningChromeCdpWsUrl({
+        profileRoot: defaultChromeProfileRoot(),
+        host
+      });
     }
     const payload = await response.json();
-    return typeof payload.webSocketDebuggerUrl === "string" ? payload.webSocketDebuggerUrl : undefined;
+    if (typeof payload.webSocketDebuggerUrl === "string") {
+      return payload.webSocketDebuggerUrl;
+    }
+    return resolveRunningChromeCdpWsUrl({
+      profileRoot: defaultChromeProfileRoot(),
+      host
+    });
   } catch {
-    return undefined;
+    return resolveRunningChromeCdpWsUrl({
+      profileRoot: defaultChromeProfileRoot(),
+      host
+    });
   }
 }
 
@@ -124,10 +138,6 @@ function createBrowserArgs({ debuggingPort, userDataDir, extensionPath }) {
     "--disable-background-networking",
     "--disable-sync",
     "--disable-translate",
-    // Remove automation indicators so sites don't detect CDP-controlled browser
-    "--disable-blink-features=AutomationControlled",
-    // Suppress the "Chrome is being controlled by automated software" infobar
-    "--disable-infobars",
     "--disable-features=DisableLoadExtensionCommandLineSwitch,DisableDisableExtensionsExceptCommandLineSwitch",
     `--disable-extensions-except=${extensionPath}`,
     `--load-extension=${extensionPath}`,
@@ -158,12 +168,67 @@ async function pollForCdpReady(port, timeoutMs) {
   throw new Error(`Timed out waiting for a Chrome CDP endpoint on port ${port}`);
 }
 
+async function waitForAttachedPageTabs(healthUrl, timeoutMs = DEFAULT_ATTACHED_TAB_TIMEOUT_MS) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() <= deadline) {
+    try {
+      const response = await fetch(healthUrl);
+      if (response.ok) {
+        const payload = await response.json();
+        if (Array.isArray(payload?.tabs) && payload.tabs.length > 0) {
+          return payload;
+        }
+      }
+    } catch {
+      // Server may still be stabilizing.
+    }
+
+    await new Promise((resolveSleep) => setTimeout(resolveSleep, DEFAULT_POLL_INTERVAL_MS));
+  }
+
+  throw new Error(`Assistant sidecar did not attach a browser tab at ${healthUrl}`);
+}
+
+function spawnServer(cdpWsUrl) {
+  return spawn(process.platform === "win32" ? "npx.cmd" : "npx", ["--yes", "tsx", "sidecar/src/server.ts"], {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      CHROME_CDP_WS_URL: cdpWsUrl
+    }
+  });
+}
+
+async function stopServer(serverProcess) {
+  if (!serverProcess || serverProcess.killed) {
+    return;
+  }
+
+  serverProcess.kill("SIGTERM");
+  await new Promise((resolveStop) => {
+    const timer = setTimeout(resolveStop, 2_000);
+    serverProcess.once("exit", () => {
+      clearTimeout(timer);
+      resolveStop();
+    });
+  });
+}
+
 async function launchBrowser() {
   const binaryPath = await resolvePreferredBinaryPath();
   const extensionPath = await resolveExtensionPath();
   const explicitUserDataDir = process.env.CHROME_USER_DATA_DIR?.trim() || undefined;
   const explicitPort = process.env.CHROME_CDP_PORT?.trim();
   const portCandidates = explicitPort ? [parseNumber(explicitPort, 9222)] : DEFAULT_PORT_CANDIDATES;
+  const persistentDir = explicitUserDataDir || defaultChromeProfileRoot();
+
+  const existingWsUrl = await resolveRunningChromeCdpWsUrl({
+    profileRoot: persistentDir
+  });
+  if (existingWsUrl) {
+    return { browserProcess: undefined, cdpWsUrl: existingWsUrl };
+  }
 
   if (process.platform === "darwin") {
     try {
@@ -185,7 +250,6 @@ async function launchBrowser() {
   let lastError;
 
   for (const debuggingPort of portCandidates) {
-    const persistentDir = join(homedir(), ".local", "share", "new-browser", "chrome-profile");
     const userDataDir = explicitUserDataDir || persistentDir;
     await mkdir(userDataDir, { recursive: true }).catch(() => {});
     await hardenAssistantProfile({
@@ -233,6 +297,7 @@ async function launchBrowser() {
 
 async function main() {
   let browserProcess;
+  let serverProcess;
   try {
     let cdpWsUrl = await resolveExistingCdpWebSocketUrl();
     if (!cdpWsUrl) {
@@ -241,21 +306,43 @@ async function main() {
       cdpWsUrl = launched.cdpWsUrl;
     }
 
-    const serverEnv = {
-      ...process.env,
-      CHROME_CDP_WS_URL: cdpWsUrl
-    };
-    const serverProcess = spawn(process.platform === "win32" ? "npx.cmd" : "npx", ["--yes", "tsx", "sidecar/src/server.ts"], {
-      stdio: "inherit",
-      env: serverEnv
-    });
-
     const healthUrl = `http://${process.env.SIDECAR_HOST?.trim() || "127.0.0.1"}:${parseNumber(process.env.SIDECAR_PORT, 3210)}/health`;
+    let sidecarHealthy = false;
 
-    await waitForSidecarHealth({
-      healthUrl,
-      timeoutMs: DEFAULT_HEALTH_TIMEOUT_MS
-    });
+    try {
+      await waitForSidecarHealth({
+        healthUrl,
+        timeoutMs: 750,
+        pollMs: 150
+      });
+      sidecarHealthy = true;
+    } catch {
+      sidecarHealthy = false;
+    }
+
+    if (!sidecarHealthy) {
+      serverProcess = spawnServer(cdpWsUrl);
+      await waitForSidecarHealth({
+        healthUrl,
+        timeoutMs: DEFAULT_HEALTH_TIMEOUT_MS
+      });
+    }
+
+    try {
+      await waitForAttachedPageTabs(healthUrl);
+    } catch {
+      if (!serverProcess) {
+        throw new Error(`Assistant sidecar is healthy but has no attached browser tabs at ${healthUrl}`);
+      }
+      await stopServer(serverProcess);
+      serverProcess = spawnServer(cdpWsUrl);
+      await waitForSidecarHealth({
+        healthUrl,
+        timeoutMs: DEFAULT_HEALTH_TIMEOUT_MS
+      });
+      await waitForAttachedPageTabs(healthUrl);
+    }
+
     await openAssistantSidePanel({
       browserWsUrl: cdpWsUrl
     });
@@ -269,7 +356,7 @@ async function main() {
           // Ignore cleanup failures.
         }
       }
-      if (!serverProcess.killed) {
+      if (serverProcess && !serverProcess.killed) {
         try {
           serverProcess.kill(signal);
         } catch {
@@ -280,6 +367,10 @@ async function main() {
 
     process.on("SIGINT", () => shutdown("SIGINT"));
     process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+    if (!serverProcess) {
+      return;
+    }
 
     serverProcess.on("exit", (code, signal) => {
       // Do not kill the browser when the server exits—leave it open so you can keep using the panel.

@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { join, relative } from "node:path";
 
 import { createOrchestrator } from "../../sidecar/src/agent/orchestrator";
 import { loadPromptSpecs } from "../../sidecar/src/agent/prompt-loader";
@@ -148,24 +150,26 @@ describe("agent orchestrator", () => {
     });
 
     expect(runTurn).toHaveBeenCalledTimes(1);
-    expect(runTurn.mock.calls[0]?.[1]?.messages).toEqual([
-      {
-        role: "system",
-        content: expect.any(String)
-      },
-      {
-        role: "user",
-        content: "Can you go to Google?"
-      },
-      {
-        role: "assistant",
-        content: "I navigated to Google."
-      },
-      {
-        role: "user",
-        content: "What did I ask you to do?"
-      }
-    ]);
+    expect(runTurn.mock.calls[0]?.[1]?.messages).toEqual(
+      expect.arrayContaining([
+        {
+          role: "system",
+          content: expect.any(String)
+        },
+        {
+          role: "user",
+          content: "Can you go to Google?"
+        },
+        {
+          role: "assistant",
+          content: "I navigated to Google."
+        },
+        {
+          role: "user",
+          content: "What did I ask you to do?"
+        }
+      ])
+    );
   });
 
   it("queues steer prompts onto the active run and replays them on the next provider turn", async () => {
@@ -273,23 +277,62 @@ describe("agent orchestrator", () => {
     });
 
     expect(runTurn).toHaveBeenCalledTimes(1);
-    expect(runTurn.mock.calls[0]?.[1]?.messages).toEqual([
-      {
-        role: "system",
-        content: expect.any(String)
-      },
-      {
-        role: "system",
-        content: expect.stringContaining("plain text only")
-      },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: "What do you see?" },
-          { type: "image", media_type: "image/png", data: "AAAA" }
-        ]
-      }
-    ]);
+    expect(runTurn.mock.calls[0]?.[1]?.messages).toEqual(
+      expect.arrayContaining([
+        {
+          role: "system",
+          content: expect.any(String)
+        },
+        {
+          role: "system",
+          content: expect.stringContaining("plain text only")
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "What do you see?" },
+            { type: "image", media_type: "image/png", data: "AAAA" }
+          ]
+        }
+      ])
+    );
+  });
+
+  it("adds plain-language response guidance for ordinary prompts", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "The page explains pricing.[web:1]",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Summarize the page in one sentence.",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      api_key: "sk-test"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(1);
+    expect(
+      runTurn.mock.calls[0]?.[1]?.messages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "system" &&
+          typeof message.content === "string" &&
+          message.content.includes("Default to plain language with short paragraphs")
+      )
+    ).toBe(true);
   });
 
   it("fails when the provider returns neither text nor tool calls", async () => {
@@ -812,7 +855,7 @@ describe("agent orchestrator", () => {
     ).toBe(true);
   });
 
-  it("does not expose tabs_create for ordinary same-tab navigation prompts", async () => {
+  it("keeps tabs_create available for ordinary navigation prompts", async () => {
     const runTurn = vi.fn().mockResolvedValue({
       assistantText: "I navigated to Google.",
       toolCalls: []
@@ -840,7 +883,7 @@ describe("agent orchestrator", () => {
 
     const toolNames = (runTurn.mock.calls[0]?.[1]?.tools ?? []).map((tool: { name: string }) => tool.name);
     expect(toolNames).toContain("navigate");
-    expect(toolNames).not.toContain("tabs_create");
+    expect(toolNames).toContain("tabs_create");
   });
 
   it("keeps tabs_create available for explicit new-tab requests", async () => {
@@ -871,6 +914,198 @@ describe("agent orchestrator", () => {
 
     const toolNames = (runTurn.mock.calls[0]?.[1]?.tools ?? []).map((tool: { name: string }) => tool.name);
     expect(toolNames).toContain("tabs_create");
+  });
+
+  it("does not expose terminal_exec unless local shell access was explicitly enabled", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I summarized the page.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Check the repo status and summarize it.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const toolNames = (runTurn.mock.calls[0]?.[1]?.tools ?? []).map((tool: { name: string }) => tool.name);
+    expect(toolNames).not.toContain("terminal_exec");
+    expect(toolNames).not.toContain("workspace_list");
+    expect(toolNames).not.toContain("workspace_read");
+    expect(toolNames).not.toContain("workspace_write");
+  });
+
+  it("exposes terminal_exec when local shell access is enabled and returns command output to the parent loop", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will inspect the local workspace first.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "terminal_exec",
+            arguments: {
+              command: `${JSON.stringify(process.execPath)} -e "process.stdout.write('atlas-shell-ok')"`
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "The local shell ran successfully.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Inspect the local workspace and tell me if shell access works.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_local_shell: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>The local shell ran successfully.</answer>");
+    });
+
+    const toolNames = (runTurn.mock.calls[0]?.[1]?.tools ?? []).map((tool: { name: string }) => tool.name);
+    expect(toolNames).toContain("terminal_exec");
+
+    const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" && message.content.includes("local shell access")
+      )
+    ).toBe(true);
+
+    const resumedMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      resumedMessages.some(
+        (message: { role?: string; tool_name?: string; content?: string }) =>
+          message.role === "tool" &&
+          message.tool_name === "terminal_exec" &&
+          typeof message.content === "string" &&
+          message.content.includes("atlas-shell-ok")
+      )
+    ).toBe(true);
+  });
+
+  it("exposes workspace tools with local shell access and can write then read a workspace file", async () => {
+    const workspaceDir = await mkdtemp(join(process.cwd(), "tmp/workspace-tools-"));
+    const filePath = join(workspaceDir, "notes", "shift-summary.txt");
+    const relativePath = relative(process.cwd(), filePath);
+
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will write the file first.",
+        toolCalls: [
+          {
+            id: "call-write",
+            name: "workspace_write",
+            arguments: {
+              path: relativePath,
+              content: "Inbox cleared.\nTickets triaged.",
+              mode: "overwrite"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I will verify the written file.",
+        toolCalls: [
+          {
+            id: "call-read",
+            name: "workspace_read",
+            arguments: {
+              path: relativePath
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I wrote and verified the workspace file.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    try {
+      const started = await orchestrator.run({
+        prompt: "Create a short shift summary file in the workspace and verify it.",
+        provider: "google",
+        model: "models/gemini-2.5-flash",
+        api_key: "test-key",
+        allow_local_shell: true
+      });
+
+      await vi.waitFor(async () => {
+        const state = await orchestrator.getState({ run_id: started.run_id });
+        expect(state.status).toBe("completed");
+        expect(state.final_answer).toBe("<answer>I wrote and verified the workspace file.</answer>");
+      });
+
+      const toolNames = (runTurn.mock.calls[0]?.[1]?.tools ?? []).map((tool: { name: string }) => tool.name);
+      expect(toolNames).toContain("workspace_list");
+      expect(toolNames).toContain("workspace_read");
+      expect(toolNames).toContain("workspace_write");
+
+      const saved = await readFile(filePath, "utf8");
+      expect(saved).toBe("Inbox cleared.\nTickets triaged.");
+
+      const secondTurnMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+      expect(
+        secondTurnMessages.some(
+          (message: { role?: string; tool_name?: string; content?: string }) =>
+            message.role === "tool" &&
+            message.tool_name === "workspace_write" &&
+            typeof message.content === "string" &&
+            message.content.includes(relativePath)
+        )
+      ).toBe(true);
+
+      const thirdTurnMessages = runTurn.mock.calls[2]?.[1]?.messages ?? [];
+      expect(
+        thirdTurnMessages.some(
+          (message: { role?: string; tool_name?: string; content?: string }) =>
+            message.role === "tool" &&
+            message.tool_name === "workspace_read" &&
+            typeof message.content === "string" &&
+            message.content.includes("Tickets triaged.")
+        )
+      ).toBe(true);
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true });
+    }
   });
 
   it("adds explicit capability guidance for allowed browser admin pages", async () => {
@@ -904,6 +1139,41 @@ describe("agent orchestrator", () => {
     expect(
       systemMessages.some((message: { content?: string }) =>
         typeof message.content === "string" && message.content.includes("Do not say those pages are inaccessible.")
+      )
+    ).toBe(true);
+  });
+
+  it("keeps browser admin capability active for generic prompts when the run explicitly allowed it", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I can use browser-admin pages in this run.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Check the repo and stay ready for privileged browser work.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
+    expect(
+      systemMessages.some((message: { content?: string }) =>
+        typeof message.content === "string" && message.content.includes("browser admin pages for this run")
       )
     ).toBe(true);
   });
@@ -995,6 +1265,37 @@ describe("agent orchestrator", () => {
 
     const started = await orchestrator.run({
       prompt: "List the installed browser extensions only.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_extension_management: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+    });
+
+    const tools = runTurn.mock.calls[0]?.[1]?.tools ?? [];
+    expect(tools.some((tool: { name?: string }) => tool.name === "extensions_manage")).toBe(true);
+  });
+
+  it("keeps extension management exposed for generic prompts when the run explicitly allowed it", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "Extension management is available.",
+      toolCalls: []
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Audit the environment and keep privileged tools available.",
       provider: "google",
       model: "models/gemini-2.5-flash",
       api_key: "test-key",
@@ -1144,6 +1445,62 @@ describe("agent orchestrator", () => {
       const state = await orchestrator.getState({ run_id: started.run_id });
       expect(state.status).toBe("completed");
     });
+  });
+
+  it("exposes create_subagent to the model and returns the child summary into the parent tool loop", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "Delegating the verification step.",
+        toolCalls: [
+          {
+            id: "parent-call-1",
+            name: "create_subagent",
+            arguments: {
+              prompt: "Check the delegated workflow and return the result only.",
+              goal_summary: "Verify the delegated workflow"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "Child completed the delegated workflow.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "Parent finished with the delegated evidence.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Handle the main task and delegate if needed.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("Parent finished");
+    });
+
+    const parentToolNames = (runTurn.mock.calls[0]?.[1]?.tools ?? []).map((tool: { name: string }) => tool.name);
+    expect(parentToolNames).toContain("create_subagent");
+
+    const resumedParentMessages = runTurn.mock.calls[2]?.[1]?.messages ?? [];
+    const subagentToolResult = resumedParentMessages.find((message: { role?: string; tool_name?: string }) =>
+      message?.role === "tool" && message?.tool_name === "create_subagent"
+    );
+    expect(subagentToolResult?.content).toContain("Child completed the delegated workflow.");
   });
 
   it("does not emit tool events for hidden subagent runs", async () => {
@@ -2185,7 +2542,7 @@ describe("agent orchestrator", () => {
     await vi.waitFor(async () => {
       const state = await orchestrator.getState({ run_id: started.run_id });
       expect(state.status).toBe("completed");
-      expect(state.final_answer).toBe("<answer>Done.[web:1]</answer>");
+      expect(state.final_answer).toBe("<answer>Done.</answer>");
     });
 
     expect(performAction).toHaveBeenCalledWith(

@@ -122,10 +122,29 @@ export interface ComputerBatchStepResult {
   error_code?: string;
 }
 
+export interface OverlayCursorPoint {
+  x: number;
+  y: number;
+}
+
+export interface OverlayHighlightRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface OverlayTelemetry {
+  cursor?: OverlayCursorPoint;
+  click?: OverlayCursorPoint;
+  highlight?: OverlayHighlightRect;
+}
+
 export interface ComputerBatchResult {
   steps: ComputerBatchStepResult[];
   completed_steps: number;
   screenshot_b64?: string;
+  overlay?: OverlayTelemetry;
   javascript_dialog?: {
     type: string;
     message: string;
@@ -166,6 +185,7 @@ export interface FormInputAppliedField {
 export interface FormInputResult {
   updated: number;
   applied?: FormInputAppliedField[];
+  overlay?: OverlayTelemetry;
 }
 
 export interface TabOperationParams {
@@ -430,6 +450,7 @@ export interface AgentRunParams {
   allow_browser_search?: boolean;
   enable_code_execution?: boolean;
   allow_browser_admin_pages?: boolean;
+  allow_local_shell?: boolean;
   allow_extension_management?: boolean;
 }
 
@@ -1668,6 +1689,10 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     return null;
   }
 
+  if (value.allow_local_shell !== undefined && !isBoolean(value.allow_local_shell)) {
+    return null;
+  }
+
   if (value.allow_extension_management !== undefined && !isBoolean(value.allow_extension_management)) {
     return null;
   }
@@ -1696,6 +1721,7 @@ export function parseAgentRunParams(value: unknown): AgentRunParams | null {
     allow_browser_search: value.allow_browser_search,
     enable_code_execution: value.enable_code_execution,
     allow_browser_admin_pages: value.allow_browser_admin_pages,
+    allow_local_shell: value.allow_local_shell,
     allow_extension_management: value.allow_extension_management
   };
 }

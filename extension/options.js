@@ -40,6 +40,7 @@ import {
   recordModelBenchmarkResult,
   isBrowserControlBenchmarkCandidate
 } from "./lib/model-config.js";
+import { getTranscriptionProviderLabel, resolveTranscriptionConfig } from "./lib/transcription-config.js";
 import {
   SHORTCUTS_STORAGE_KEY,
   normalizeShortcuts,
@@ -66,6 +67,7 @@ const providerKeyInput    = document.getElementById("provider-key-input");
 const providerBaseUrlInput= document.getElementById("provider-base-url-input");
 const providerModelInput  = document.getElementById("provider-model-input");
 const providerSaveBtn     = document.getElementById("provider-save-btn");
+const providerForm        = document.getElementById("provider-form");
 const providerSaveStatus  = document.getElementById("provider-save-status");
 const providerList        = document.getElementById("provider-list");
 
@@ -92,8 +94,11 @@ const modelSaveDot        = document.getElementById("model-save-dot");
 // Audio
 const narrationToggle     = document.getElementById("narration-toggle");
 const transcriptionToggle = document.getElementById("transcription-toggle");
+const transcriptionProviderInput = document.getElementById("transcription-provider-input");
 const transcriptionModelInput = document.getElementById("transcription-model-input");
 const transcriptionLanguageInput = document.getElementById("transcription-language-input");
+const transcriptionProviderStatus = document.getElementById("transcription-provider-status");
+const transcriptionModelStatus = document.getElementById("transcription-model-status");
 const audioSupport        = document.getElementById("audio-support");
 const memoryManualToggle  = document.getElementById("memory-manual-toggle");
 const memoryBookmarksToggle = document.getElementById("memory-bookmarks-toggle");
@@ -107,7 +112,10 @@ const memoryStatus        = document.getElementById("memory-status");
 const memoryManualList    = document.getElementById("memory-manual-list");
 const memoryDerivedList   = document.getElementById("memory-derived-list");
 const browserAdminToggle  = document.getElementById("browser-admin-toggle");
+const localShellToggle = document.getElementById("local-shell-toggle");
 const extensionManagementToggle = document.getElementById("extension-management-toggle");
+const appearanceThemeSelect = document.getElementById("appearance-theme-select");
+const toolbarPinToggle = document.getElementById("toolbar-pin-toggle");
 
 // Chats
 const clearChatsBtn       = document.getElementById("clear-chats-btn");
@@ -125,10 +133,30 @@ const shortcutsSaveBtn       = document.getElementById("shortcuts-save-btn");
 const shortcutsStatus        = document.getElementById("shortcuts-status");
 const shortcutsList          = document.getElementById("shortcuts-list");
 
+// Overview summaries
+const providerSummaryMeta = document.getElementById("provider-summary-meta");
+const providerSummaryBadge = document.getElementById("provider-summary-badge");
+const modelSummaryMeta = document.getElementById("model-summary-meta");
+const modelSummaryBadge = document.getElementById("model-summary-badge");
+const voiceSummaryMeta = document.getElementById("voice-summary-meta");
+const voiceSummaryBadge = document.getElementById("voice-summary-badge");
+const memorySummaryMeta = document.getElementById("memory-summary-meta");
+const memorySummaryBadge = document.getElementById("memory-summary-badge");
+const chatSummaryMeta = document.getElementById("chat-summary-meta");
+const chatSummaryBadge = document.getElementById("chat-summary-badge");
+const agentRuntimeSummaryMeta = document.getElementById("agent-runtime-summary-meta");
+const agentRuntimeSummaryBadge = document.getElementById("agent-runtime-summary-badge");
+const commandsSummaryMeta = document.getElementById("commands-summary-meta");
+const commandsSummaryBadge = document.getElementById("commands-summary-badge");
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function normalizeProviderId(v) {
-  return typeof v === "string" ? v.trim().toLowerCase() : "";
+  const normalized = typeof v === "string" ? v.trim().toLowerCase() : "";
+  if (normalized === "gemini") {
+    return "google";
+  }
+  return normalized;
 }
 
 function maskKey(key) {
@@ -157,6 +185,161 @@ function showSavedDot(el) {
   el.style.animation = "";
   clearTimeout(el._dotTimer);
   el._dotTimer = setTimeout(() => { el.hidden = true; }, 2000);
+}
+
+function setPersistentStatus(el, message, type = "info") {
+  if (!el) {
+    return;
+  }
+  el.textContent = message;
+  el.dataset.type = type;
+  el.hidden = typeof message !== "string" || message.trim().length === 0;
+}
+
+function renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog) {
+  const resolved = resolveTranscriptionConfig({
+    panelSettings: currentSettings,
+    modelConfig: currentModelConfig,
+    catalog: currentCatalog,
+    sessions: currentProviders
+  });
+
+  if (transcriptionProviderInput) {
+    const storedProvider =
+      typeof currentSettings.transcriptionProvider === "string" && currentSettings.transcriptionProvider.trim().length > 0
+        ? currentSettings.transcriptionProvider.trim().toLowerCase()
+        : "auto";
+    const providerOptions = [];
+    const seen = new Set();
+    const addProviderOption = (id, label) => {
+      const normalized = typeof id === "string" ? id.trim().toLowerCase() : "";
+      if (!normalized || seen.has(normalized)) return;
+      seen.add(normalized);
+      providerOptions.push({ id: normalized, label });
+    };
+
+    addProviderOption("auto", resolved.providerMode === "auto"
+      ? `Auto (currently ${resolved.providerLabel})`
+      : "Auto (follow chat provider)");
+
+    for (const entry of Array.isArray(currentProviders) ? currentProviders : []) {
+      const providerId = typeof entry?.provider === "string" ? entry.provider.trim().toLowerCase() : "";
+      if (!providerId) continue;
+      addProviderOption(providerId, getTranscriptionProviderLabel(providerId));
+    }
+
+    if (storedProvider !== "auto") {
+      addProviderOption(storedProvider, getTranscriptionProviderLabel(storedProvider));
+    }
+
+    transcriptionProviderInput.replaceChildren();
+    for (const option of providerOptions) {
+      const node = document.createElement("option");
+      node.value = option.id;
+      node.textContent = option.label;
+      transcriptionProviderInput.append(node);
+    }
+    transcriptionProviderInput.value = [...transcriptionProviderInput.options].some((option) => option.value === storedProvider)
+      ? storedProvider
+      : "auto";
+  }
+
+  if (transcriptionProviderStatus) {
+    const stateLabel = resolved.supported
+      ? resolved.missingProviderSession
+        ? "key needed"
+        : "ready"
+      : "unsupported";
+    transcriptionProviderStatus.textContent = `${resolved.providerLabel} · ${stateLabel}`;
+  }
+
+  if (transcriptionModelInput) {
+    const storedValue =
+      typeof currentSettings.transcriptionModelId === "string" && currentSettings.transcriptionModelId.trim().length > 0
+        ? currentSettings.transcriptionModelId.trim()
+        : "auto";
+
+    transcriptionModelInput.replaceChildren();
+
+    const autoOption = document.createElement("option");
+    autoOption.value = "auto";
+    autoOption.textContent = resolved.resolvedModelId
+      ? `Auto (recommended · ${resolved.resolvedModelId})`
+      : "Auto (recommended)";
+    transcriptionModelInput.append(autoOption);
+
+    for (const option of resolved.availableModels) {
+      const nextOption = document.createElement("option");
+      nextOption.value = option.id;
+      nextOption.textContent = option.label || option.id;
+      transcriptionModelInput.append(nextOption);
+    }
+
+    if (!resolved.supported) {
+      const unsupportedOption = document.createElement("option");
+      unsupportedOption.value = "unsupported";
+      unsupportedOption.textContent = `${resolved.providerLabel} does not support speech-to-text`;
+      transcriptionModelInput.append(unsupportedOption);
+      transcriptionModelInput.value = "unsupported";
+      transcriptionModelInput.disabled = true;
+    } else {
+      const preferredValue = [...transcriptionModelInput.options].some((option) => option.value === storedValue)
+        ? storedValue
+        : "auto";
+      transcriptionModelInput.value = preferredValue;
+      transcriptionModelInput.disabled = false;
+    }
+  }
+
+  const statusType =
+    resolved.status === "ready"
+      ? "ok"
+      : resolved.status === "missing_provider_session"
+        ? "error"
+        : "info";
+  setPersistentStatus(transcriptionModelStatus, resolved.message, statusType);
+  setSummary(
+    voiceSummaryMeta,
+    voiceSummaryBadge,
+    resolved.supported
+      ? `${currentSettings.transcriptionEnabled ? "Dictation on" : "Dictation off"} · ${resolved.providerLabel}${resolved.resolvedModelId ? ` · ${resolved.resolvedModelId}` : ""}`
+      : `${resolved.providerLabel} does not support speech-to-text`,
+    currentSettings.transcriptionEnabled ? "Ready" : "Off"
+  );
+
+  return resolved;
+}
+
+let setActiveSettingsSection = () => {};
+const isEmbeddedPanel = new URLSearchParams(globalThis.location?.search ?? "").get("embedded") === "panel";
+
+function normalizeSettingsPageId(value) {
+  const id = typeof value === "string" ? value.trim().toLowerCase() : "";
+  const aliases = {
+    provider: "general-providers",
+    providers: "general-providers",
+    models: "general-models",
+    data: "data-controls",
+    chats: "data-controls-chats",
+    commands: "agent-mode-commands",
+    advanced: "agent-mode-runtime",
+    agent: "agent-mode"
+  };
+  return aliases[id] || id;
+}
+
+function applyAppearanceTheme(theme) {
+  const value = theme === "light" || theme === "dark" ? theme : "system";
+  if (value === "system") {
+    document.documentElement.removeAttribute("data-ui-theme");
+  } else {
+    document.documentElement.setAttribute("data-ui-theme", value);
+  }
+}
+
+function setSummary(metaNode, badgeNode, meta, badge) {
+  if (metaNode) metaNode.textContent = meta;
+  if (badgeNode) badgeNode.textContent = badge;
 }
 
 function readUnlockedProvidersFromLocalStorage() {
@@ -246,6 +429,85 @@ function readAgentConfigFromForm() {
   });
 }
 
+function updateProviderSummary(providers) {
+  if (!Array.isArray(providers) || providers.length === 0) {
+    setSummary(providerSummaryMeta, providerSummaryBadge, "No provider keys saved yet.", "Empty");
+    return;
+  }
+  const first = providers[0];
+  const extra = providers.length > 1 ? ` +${providers.length - 1}` : "";
+  setSummary(
+    providerSummaryMeta,
+    providerSummaryBadge,
+    `${first.provider}${first.preferredModel ? ` · ${first.preferredModel}` : ""}${extra}`,
+    `${providers.length} saved`
+  );
+}
+
+function updateModelSummary(modelConfig, catalog) {
+  const mode = modelConfig?.defaultModelMode === "manual" ? "Manual" : "Auto";
+  const depth = modelConfig?.thinkingLevel || "low";
+  const count = Array.isArray(catalog) ? catalog.length : 0;
+  setSummary(
+    modelSummaryMeta,
+    modelSummaryBadge,
+    `${count} available model${count === 1 ? "" : "s"} · ${depth} thinking`,
+    mode
+  );
+}
+
+function updateMemorySummary(settings, viewModel) {
+  const enabled = [
+    settings.memoryManualEnabled && "Manual",
+    settings.memoryBookmarksEnabled && "Bookmarks",
+    settings.memoryHistoryEnabled && "History",
+    settings.memorySettingsEnabled && "Settings"
+  ].filter(Boolean);
+  const manualCount = viewModel?.manualItems?.length || 0;
+  const derivedCount = viewModel?.derivedItems?.length || 0;
+  setSummary(
+    memorySummaryMeta,
+    memorySummaryBadge,
+    `${manualCount} manual · ${derivedCount} derived · ${enabled.join(", ") || "all sources off"}`,
+    enabled.length ? "On" : "Off"
+  );
+}
+
+function updateChatSummary(store) {
+  const count = Array.isArray(store?.sessions) ? store.sessions.length : 0;
+  setSummary(
+    chatSummaryMeta,
+    chatSummaryBadge,
+    count ? `${count} recent chat${count === 1 ? "" : "s"} stored locally.` : "No chats saved yet.",
+    count ? `${count}` : "Empty"
+  );
+}
+
+function updateAgentSummary(agentConfig, settings) {
+  const flags = [
+    agentConfig.enableVision && "Vision",
+    agentConfig.displayHighlights && "Highlights",
+    agentConfig.replayHistoricalTasks && "Replay",
+    settings.localShellEnabled && "Workspace"
+  ].filter(Boolean);
+  setSummary(
+    agentRuntimeSummaryMeta,
+    agentRuntimeSummaryBadge,
+    `${flags.join(" · ") || "Core agent defaults"} · ${agentConfig.maxStepsPerTask} steps max`,
+    flags.length ? "Active" : "Review"
+  );
+}
+
+function updateShortcutSummary(shortcuts) {
+  const count = Array.isArray(shortcuts) ? shortcuts.length : 0;
+  setSummary(
+    commandsSummaryMeta,
+    commandsSummaryBadge,
+    count ? `${count} saved slash command${count === 1 ? "" : "s"}.` : "No custom commands yet.",
+    count ? `${count}` : "Empty"
+  );
+}
+
 // ─── Providers ────────────────────────────────────────────────────────────────
 
 async function loadProviders() {
@@ -293,6 +555,7 @@ function renderProviders(list) {
     edit.className = "settings-button";
     edit.textContent = "Edit";
     edit.addEventListener("click", () => {
+      setActiveSettingsSection("general-providers", { scroll: true });
       providerIdInput.value    = entry.provider;
       providerKeyInput.value   = "";
       providerKeyInput.placeholder = maskKey(entry.apiKey) + " (enter new key to change)";
@@ -300,7 +563,7 @@ function renderProviders(list) {
       providerBaseUrlInput.value = entry.baseUrl || "";
       providerIdInput.scrollIntoView({ behavior: "smooth", block: "center" });
       providerKeyInput.focus();
-      document.getElementById("provider").scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("general-provider-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
     const remove = document.createElement("button");
@@ -309,7 +572,9 @@ function renderProviders(list) {
     remove.textContent = "Remove";
     remove.addEventListener("click", async () => {
       await forgetUnlockedProviderSession(entry.provider);
-      renderProviders(await loadProviders());
+      const nextProviders = await loadProviders();
+      renderProviders(nextProviders);
+      updateProviderSummary(nextProviders);
     });
 
     actions.append(edit, remove);
@@ -469,6 +734,7 @@ function renderCatalog(catalog, manifest) {
         const next = deleteManualModel(current, entry.provider, entry.id);
         await saveCatalog(next);
         renderCatalog(next, await loadBenchmarkManifest());
+        updateModelSummary(await loadModelConfig(), next);
       });
       actions.append(remove);
     }
@@ -514,6 +780,7 @@ async function syncModels(providers) {
 
   await saveCatalog(catalog);
   renderCatalog(catalog, await loadBenchmarkManifest());
+  updateModelSummary(await loadModelConfig(), catalog);
   modelsSyncBtn.classList.remove("is-syncing", "is-loading");
 
   if (errors.length > 0) {
@@ -561,6 +828,7 @@ async function loadChats() {
 async function renderMemory(settings, modelConfig) {
   const store = await loadMemoryStore();
   const viewModel = await buildMemoryViewModel(settings, store, { modelConfig });
+  updateMemorySummary(settings, viewModel);
 
   memoryManualList.replaceChildren();
   if (viewModel.manualItems.length === 0) {
@@ -663,7 +931,11 @@ async function renderMemory(settings, modelConfig) {
 
 function renderChats(store) {
   const sessions = store.sessions.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  updateChatSummary(store);
   chatList.replaceChildren();
+  if (clearChatsBtn) {
+    clearChatsBtn.disabled = sessions.length === 0;
+  }
   if (sessions.length === 0) {
     const empty = document.createElement("div");
     empty.className = "settings-empty";
@@ -723,6 +995,7 @@ function closeShortcutForm() {
 }
 
 function renderShortcuts(shortcuts) {
+  updateShortcutSummary(shortcuts);
   shortcutsList.replaceChildren();
   if (!Array.isArray(shortcuts) || shortcuts.length === 0) {
     const empty = document.createElement("div");
@@ -777,36 +1050,115 @@ function renderShortcuts(shortcuts) {
 
 // ─── Active nav tracking ──────────────────────────────────────────────────────
 
-function setupNavHighlight() {
-  const sections = Array.from(document.querySelectorAll(".settings-section[id]"));
-  const navItems = Array.from(document.querySelectorAll(".settings-nav-item[data-section]"));
+function setupSectionFocus() {
+  const pages = Array.from(document.querySelectorAll(".settings-page[id]"));
+  const navItems = Array.from(document.querySelectorAll(".settings-nav-item[data-page]"));
+  const jumpButtons = Array.from(document.querySelectorAll("[data-settings-target]"));
+  const backButtons = Array.from(document.querySelectorAll("[data-settings-back]"));
+  if (!pages.length) return;
+  const query = new URLSearchParams(globalThis.location?.search ?? "");
+  const resolveRootPage = (page) => page?.dataset.root || page?.id || "general";
 
-  if (!sections.length || !navItems.length) return;
+  const syncLocation = (targetId) => {
+    if (isEmbeddedPanel) {
+      const next = new URL(location.href);
+      next.searchParams.set("embedded", "panel");
+      next.searchParams.set("section", targetId);
+      next.hash = "";
+      history.replaceState(null, "", next);
+    } else {
+      history.replaceState(null, "", `#${targetId}`);
+    }
+  };
 
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const id = entry.target.id;
-      navItems.forEach(item => {
-        item.classList.toggle("is-active", item.dataset.section === id);
-      });
+  const applyActiveSection = (nextId, { scroll = false } = {}) => {
+    const normalizedId = normalizeSettingsPageId(nextId);
+    const selectedId = pages.some((page) => page.id === normalizedId) ? normalizedId : "general";
+    const mainScroller = document.querySelector(".settings-main");
+    const activePage = pages.find((page) => page.id === selectedId);
+    const activeRoot = resolveRootPage(activePage);
+
+    pages.forEach((page) => {
+      const active = page.id === selectedId;
+      page.hidden = !active;
+      page.classList.toggle("is-active", active);
     });
-  }, { rootMargin: "-20% 0px -60% 0px", threshold: 0 });
 
-  sections.forEach(s => observer.observe(s));
-
-  // Also handle click navigation
-  navItems.forEach(item => {
-    item.addEventListener("click", () => {
-      navItems.forEach(n => n.classList.remove("is-active"));
-      item.classList.add("is-active");
+    navItems.forEach((item) => {
+      item.classList.toggle("is-active", item.dataset.page === activeRoot);
+      if (item.dataset.page === activeRoot) {
+        item.setAttribute("aria-current", "page");
+      } else {
+        item.removeAttribute("aria-current");
+      }
     });
+
+    if (scroll && !isEmbeddedPanel) {
+      const target = document.getElementById(selectedId);
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (isEmbeddedPanel) {
+      mainScroller?.scrollTo({ top: 0, behavior: "auto" });
+      window.scrollTo(0, 0);
+    }
+  };
+
+  setActiveSettingsSection = applyActiveSection;
+
+  const initialId = isEmbeddedPanel
+    ? (query.get("section") || "general")
+    : typeof location.hash === "string" && location.hash.startsWith("#")
+      ? location.hash.slice(1)
+      : "general";
+  applyActiveSection(initialId);
+  if (isEmbeddedPanel) {
+    window.scrollTo(0, 0);
+  }
+
+  navItems.forEach((item) => {
+    item.addEventListener("click", (event) => {
+      event.preventDefault();
+      const targetId = item.dataset.page;
+      if (!targetId) return;
+      syncLocation(targetId);
+      applyActiveSection(targetId, { scroll: true });
+    });
+  });
+
+  jumpButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.settingsTarget;
+      if (!targetId) return;
+      syncLocation(targetId);
+      applyActiveSection(targetId, { scroll: true });
+    });
+  });
+
+  backButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.settingsBack;
+      if (!targetId) return;
+      syncLocation(targetId);
+      applyActiveSection(targetId, { scroll: true });
+    });
+  });
+
+  if (isEmbeddedPanel) return;
+
+  window.addEventListener("hashchange", () => {
+    const hashId = typeof location.hash === "string" && location.hash.startsWith("#")
+      ? location.hash.slice(1)
+      : "general";
+    applyActiveSection(hashId);
   });
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
+  if (isEmbeddedPanel) {
+    document.body.dataset.embedded = "panel";
+  }
+
   // Render audio support line
   audioSupport.textContent =
     `Narration: ${isNarrationSupported() ? "supported" : "unavailable"} · ` +
@@ -826,34 +1178,67 @@ async function main() {
 
   // ── Audio ──
   let currentSettings = normalizePanelSettings(rawSettings);
+  let currentProviders = providers;
+  let currentModelConfig = modelConfig;
+  let currentCatalog = catalog;
+  applyAppearanceTheme(currentSettings.appearanceTheme);
+  if (appearanceThemeSelect) {
+    appearanceThemeSelect.value = currentSettings.appearanceTheme;
+  }
+  if (toolbarPinToggle) {
+    toolbarPinToggle.checked = currentSettings.requireToolbarPin;
+  }
   narrationToggle.checked    = currentSettings.narrationEnabled;
   transcriptionToggle.checked= currentSettings.transcriptionEnabled;
-  transcriptionModelInput.value = currentSettings.transcriptionModelId;
+  if (transcriptionProviderInput) {
+    transcriptionProviderInput.value = currentSettings.transcriptionProvider || "auto";
+  }
   transcriptionLanguageInput.value = currentSettings.transcriptionLanguage;
   browserAdminToggle.checked = currentSettings.browserAdminEnabled;
+  localShellToggle.checked = currentSettings.localShellEnabled;
   extensionManagementToggle.checked = currentSettings.extensionManagementEnabled;
   memoryManualToggle.checked = currentSettings.memoryManualEnabled;
   memoryBookmarksToggle.checked = currentSettings.memoryBookmarksEnabled;
   memoryHistoryToggle.checked = currentSettings.memoryHistoryEnabled;
   memorySettingsToggle.checked = currentSettings.memorySettingsEnabled;
 
+  const persistPanelSettings = async (patch) => {
+    currentSettings = normalizePanelSettings({
+      ...currentSettings,
+      ...patch
+    });
+    currentSettings = await savePanelSettings(currentSettings);
+    return currentSettings;
+  };
+
+  appearanceThemeSelect?.addEventListener("change", async () => {
+    currentSettings = await persistPanelSettings({ appearanceTheme: appearanceThemeSelect.value });
+    applyAppearanceTheme(currentSettings.appearanceTheme);
+  });
+  toolbarPinToggle?.addEventListener("change", async () => {
+    currentSettings = await persistPanelSettings({ requireToolbarPin: toolbarPinToggle.checked });
+  });
+
   narrationToggle.addEventListener("change", async () => {
-    currentSettings = await savePanelSettings({ ...currentSettings, narrationEnabled: narrationToggle.checked });
+    currentSettings = await persistPanelSettings({ narrationEnabled: narrationToggle.checked });
   });
   transcriptionToggle.addEventListener("change", async () => {
-    currentSettings = await savePanelSettings({ ...currentSettings, transcriptionEnabled: transcriptionToggle.checked });
+    currentSettings = await persistPanelSettings({ transcriptionEnabled: transcriptionToggle.checked });
   });
   const saveTranscriptionFields = async () => {
-    currentSettings = await savePanelSettings({
-      ...currentSettings,
-      transcriptionModelId: transcriptionModelInput.value,
+    currentSettings = await persistPanelSettings({
+      transcriptionProvider: transcriptionProviderInput?.value || "auto",
+      transcriptionModelId: transcriptionModelInput.disabled ? currentSettings.transcriptionModelId : transcriptionModelInput.value,
       transcriptionLanguage: transcriptionLanguageInput.value
     });
+    renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
   };
-  transcriptionModelInput.addEventListener("blur", saveTranscriptionFields);
+  transcriptionProviderInput?.addEventListener("change", saveTranscriptionFields);
+  transcriptionModelInput.addEventListener("change", saveTranscriptionFields);
   transcriptionLanguageInput.addEventListener("blur", saveTranscriptionFields);
   for (const [element, key] of [
     [browserAdminToggle, "browserAdminEnabled"],
+    [localShellToggle, "localShellEnabled"],
     [extensionManagementToggle, "extensionManagementEnabled"],
     [memoryManualToggle, "memoryManualEnabled"],
     [memoryBookmarksToggle, "memoryBookmarksEnabled"],
@@ -861,10 +1246,9 @@ async function main() {
     [memorySettingsToggle, "memorySettingsEnabled"]
   ]) {
     element?.addEventListener("change", async () => {
-      currentSettings = await savePanelSettings({
-        ...currentSettings,
-        [key]: element.checked
-      });
+      currentSettings = await persistPanelSettings({ [key]: element.checked });
+      renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
+      updateAgentSummary(readAgentConfigFromForm(), currentSettings);
       await renderMemory(currentSettings, await loadModelConfig());
     });
   }
@@ -887,28 +1271,33 @@ async function main() {
 
   // ── Agent config — auto-save ──
   applyAgentConfigToForm(agentConfig);
+  updateAgentSummary(agentConfig, currentSettings);
   async function autoSaveAgent() {
     const cfg = readAgentConfigFromForm();
     await chromeSet({ [AGENT_CONFIG_STORAGE_KEY]: cfg });
+    updateAgentSummary(cfg, currentSettings);
     showSavedDot(agentSaveDot);
   }
   for (const el of [agentVisionToggle, agentHighlightsTog, agentReplayToggle]) {
     el?.addEventListener("change", autoSaveAgent);
   }
   for (const el of [agentMaxSteps, agentMaxActions, agentFailureTol, agentReplanFreq, agentPageLoadWait]) {
+    el?.addEventListener("change", autoSaveAgent);
     el?.addEventListener("blur", autoSaveAgent);
   }
 
   // ── Providers ──
-  renderProviders(providers);
-  if (providers.length > 0) {
-    const first = providers[0];
+  renderProviders(currentProviders);
+  updateProviderSummary(currentProviders);
+  if (currentProviders.length > 0) {
+    const first = currentProviders[0];
     providerIdInput.value    = first.provider;
     providerModelInput.value = first.preferredModel || "";
     providerKeyInput.placeholder = maskKey(first.apiKey) + " (enter new key to change)";
   }
+  renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
 
-  providerSaveBtn.addEventListener("click", async () => {
+  const saveProvider = async () => {
     const provider = normalizeProviderId(providerIdInput.value);
     const rawKey   = providerKeyInput.value.trim();
     const baseUrl  = providerBaseUrlInput.value.trim();
@@ -929,17 +1318,30 @@ async function main() {
     const next = updated.filter(p => p.provider !== provider).concat({
       provider, apiKey, baseUrl, preferredModel, unlockedAt: new Date().toISOString()
     });
+    currentProviders = next;
     renderProviders(next);
+    updateProviderSummary(next);
+    renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
     providerKeyInput.value = "";
     providerKeyInput.placeholder = maskKey(apiKey) + " (enter new key to change)";
     showStatus(providerSaveStatus, `✓ ${provider} key saved.`);
+  };
+
+  providerSaveBtn.addEventListener("click", async (event) => {
+    event.preventDefault();
+    await saveProvider();
+  });
+  providerForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await saveProvider();
   });
 
   // ── Models ──
-  renderCatalog(catalog, benchmarkManifest);
+  renderCatalog(currentCatalog, benchmarkManifest);
+  updateModelSummary(currentModelConfig, currentCatalog);
 
   modelsSyncBtn.addEventListener("click", async () => {
-    const currentProviders = await loadProviders();
+    currentProviders = await loadProviders();
     await syncModels(currentProviders);
   });
 
@@ -967,6 +1369,8 @@ async function main() {
     const next    = upsertManualModel(current, { provider, id, displayName: name || undefined, source: "manual" });
     await saveCatalog(next);
     renderCatalog(next, await loadBenchmarkManifest());
+    currentCatalog = next;
+    updateModelSummary(currentModelConfig, next);
     modelsAddForm.hidden = true;
     manualModelProvider.value = "";
     manualModelId.value       = "";
@@ -977,7 +1381,9 @@ async function main() {
   // ── Model config — auto-save ──
   applyModelConfigToForm(modelConfig);
   async function autoSaveModelConfig() {
-    await saveModelConfigFromForm();
+    currentModelConfig = await saveModelConfigFromForm();
+    updateModelSummary(currentModelConfig, currentCatalog);
+    renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
     showSavedDot(modelSaveDot);
   }
   for (const el of [modelModeSelect, thinkingLevelSelect, functionCallingTog, browserSearchTog, codeExecutionTog]) {
@@ -1020,16 +1426,24 @@ async function main() {
       if (changes[PANEL_SETTINGS_STORAGE_KEY]) {
         const next = normalizePanelSettings(changes[PANEL_SETTINGS_STORAGE_KEY].newValue);
         currentSettings = next;
+        if (toolbarPinToggle) {
+          toolbarPinToggle.checked = next.requireToolbarPin;
+        }
         narrationToggle.checked     = next.narrationEnabled;
         transcriptionToggle.checked = next.transcriptionEnabled;
-        transcriptionModelInput.value = next.transcriptionModelId;
+        if (transcriptionProviderInput) {
+          transcriptionProviderInput.value = next.transcriptionProvider || "auto";
+        }
         transcriptionLanguageInput.value = next.transcriptionLanguage;
         browserAdminToggle.checked = next.browserAdminEnabled;
+        localShellToggle.checked = next.localShellEnabled;
         extensionManagementToggle.checked = next.extensionManagementEnabled;
         memoryManualToggle.checked = next.memoryManualEnabled;
         memoryBookmarksToggle.checked = next.memoryBookmarksEnabled;
         memoryHistoryToggle.checked = next.memoryHistoryEnabled;
         memorySettingsToggle.checked = next.memorySettingsEnabled;
+        renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
+        updateAgentSummary(readAgentConfigFromForm(), currentSettings);
         await renderMemory(next, await loadModelConfig());
       }
       if (changes[MEMORY_STORE_STORAGE_KEY]) {
@@ -1042,21 +1456,32 @@ async function main() {
         renderShortcuts(normalizeShortcuts(changes[SHORTCUTS_STORAGE_KEY].newValue));
       }
       if (changes[PROVIDER_SESSION_STORAGE_KEY]) {
-        renderProviders(Object.values(changes[PROVIDER_SESSION_STORAGE_KEY].newValue || {}));
+        currentProviders = Object.values(changes[PROVIDER_SESSION_STORAGE_KEY].newValue || {});
+        renderProviders(currentProviders);
+        updateProviderSummary(currentProviders);
+        renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
       }
       if (changes[MODEL_CONFIG_STORAGE_KEY]) {
-        applyModelConfigToForm(normalizeModelConfig(changes[MODEL_CONFIG_STORAGE_KEY].newValue));
+        currentModelConfig = normalizeModelConfig(changes[MODEL_CONFIG_STORAGE_KEY].newValue);
+        applyModelConfigToForm(currentModelConfig);
+        updateModelSummary(currentModelConfig, currentCatalog);
+        renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
       }
       if (changes[AGENT_CONFIG_STORAGE_KEY]) {
-        applyAgentConfigToForm(normalizeAgentConfig(changes[AGENT_CONFIG_STORAGE_KEY].newValue));
+        const nextAgentConfig = normalizeAgentConfig(changes[AGENT_CONFIG_STORAGE_KEY].newValue);
+        applyAgentConfigToForm(nextAgentConfig);
+        updateAgentSummary(nextAgentConfig, currentSettings);
       }
       if (changes[MODEL_CATALOG_STORAGE_KEY]) {
+        currentCatalog = normalizeModelCatalog(changes[MODEL_CATALOG_STORAGE_KEY].newValue);
         renderCatalog(
-          normalizeModelCatalog(changes[MODEL_CATALOG_STORAGE_KEY].newValue),
+          currentCatalog,
           changes[MODEL_BENCHMARK_STORAGE_KEY]
             ? normalizeModelBenchmarkManifest(changes[MODEL_BENCHMARK_STORAGE_KEY].newValue)
             : await loadBenchmarkManifest()
         );
+        updateModelSummary(currentModelConfig, currentCatalog);
+        renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
       }
       if (changes[MODEL_BENCHMARK_STORAGE_KEY] && !changes[MODEL_CATALOG_STORAGE_KEY]) {
         renderCatalog(await loadCatalog(), normalizeModelBenchmarkManifest(changes[MODEL_BENCHMARK_STORAGE_KEY].newValue));
@@ -1064,7 +1489,7 @@ async function main() {
     });
   }
 
-  setupNavHighlight();
+  setupSectionFocus();
 }
 
 main();

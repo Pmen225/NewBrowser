@@ -22,9 +22,9 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("buildUI(root)");
   });
 
-  it("has the composer with prompt-input, direct settings access, and the current accessibility contract", () => {
+  it("has the composer with prompt-input, header actions, and the current accessibility contract", () => {
     expect(panelJs).toContain('id="prompt-input"');
-    expect(panelJs).toContain('id="settings-btn"');
+    expect(panelJs).toContain('id="btn-new-chat"');
     expect(panelJs).toContain('id="empty-reconnect-btn"');
     expect(panelJs).toContain('const FULL_PROMPT_PLACEHOLDER = "Ask anything...";');
     expect(panelJs).toContain('const PROMPT_ARIA_LABEL = "Ask anything";');
@@ -32,18 +32,32 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain('id="btn-plus"');
     expect(panelJs).toContain('id="btn-model"');
     expect(panelJs).toContain('id="btn-mic"');
+    expect(panelJs).not.toContain('id="btn-recents"');
+    expect(panelJs).not.toContain('id="btn-kebab"');
   });
 
   it("uses provider-backed transcription instead of browser speech recognition", () => {
     expect(panelJs).toContain('ProviderTranscribeAudio');
     expect(panelJs).toContain("createAudioRecorderController");
+    expect(panelJs).toContain("resolveTranscriptionConfig");
     expect(panelJs).not.toContain("createDictationController");
+    expect(panelJs).not.toContain('model = "gpt-4o-mini-transcribe"');
   });
 
   it("derives task capability hints before resolving the auto model", () => {
     expect(panelJs).toContain("buildTaskCapabilityRequest");
     expect(panelJs).toContain("const capabilityRequest = buildTaskCapabilityRequest(");
-    expect(panelJs).toContain("const { provider, model, apiKey, baseUrl } = await resolveProvider(capabilityRequest);");
+    expect(panelJs).toContain("const { provider, model, apiKey, baseUrl, missingProviderSession } = await resolveProvider(capabilityRequest);");
+    expect(panelJs).toContain("buildMissingProviderSessionMessage(provider)");
+  });
+
+  it("renders missing provider setup as a recovery card instead of a giant warning glyph", () => {
+    expect(panelJs).toContain("function buildProviderSetupCard(provider)");
+    expect(panelJs).toContain("setAiContent(currentAiEl, buildProviderSetupCard(provider));");
+    expect(panelJs).toContain('data-open-settings-section="general"');
+    expect(panelJs).toContain("Open General");
+    expect(css).toContain(".inline-state-card");
+    expect(css).toContain(".inline-state-action");
   });
 
   it("includes prior chat turns in follow-up AgentRun payloads", () => {
@@ -56,7 +70,14 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("buildMemoryContextItems");
     expect(panelJs).toContain("memory_items: memoryItems");
     expect(panelJs).toContain("allow_browser_admin_pages: panelSettings.browserAdminEnabled === true");
+    expect(panelJs).toContain("allow_local_shell: panelSettings.localShellEnabled === true");
     expect(panelJs).toContain("allow_extension_management: panelSettings.extensionManagementEnabled === true");
+  });
+
+  it("keeps provider selection aligned when choosing a manual model from the picker", () => {
+    expect(panelJs).toContain('data-provider="${escHtml(provider)}"');
+    expect(panelJs).toContain("const providerId = btn.dataset.provider;");
+    expect(panelJs).toContain("c.selectedProvider = providerId;");
   });
 
   it("queues follow-up prompts onto the active run instead of forcing a stop", () => {
@@ -76,6 +97,32 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("function getTrailingAtQuery(text, cursor = text.length)");
     expect(panelJs).toContain("function insertAtMentionToken(input, label)");
     expect(panelJs).toContain("function expandMentionTokens(text)");
+    expect(panelJs).toContain('id="kebab-recents"');
+    expect(panelJs).not.toContain('recentsButton?.addEventListener("click"');
+  });
+
+  it("keeps slash command editing reachable from the slash palette", () => {
+    expect(panelJs).toContain("async function openCommandsSettingsPage()");
+    expect(panelJs).toContain('data-shortcut-settings="true"');
+    expect(panelJs).toContain("Edit commands");
+    expect(panelJs).toContain('openSettingsPage("agent-mode")');
+  });
+
+  it("keeps recent chats on the shared compact palette contract", () => {
+    expect(panelJs).toContain('function renderRecentsPalette(panel)');
+    expect(panelJs).toContain('id="kebab-recents"');
+    expect(panelJs).toContain('<span class="pi-icon">');
+    expect(panelJs).toContain('data-recents-manage="true"');
+    expect(panelJs).toContain("Manage chats");
+    expect(panelJs).toContain('openSettingsPage("data-controls")');
+    expect(css).toContain('.composer-overlay[data-kind="recents"]');
+    expect(css).toContain('--palette-width-compact: 248px;');
+    expect(css).toContain('width: var(--palette-width-compact);');
+  });
+
+  it("resyncs the composer model label when model config changes in storage", () => {
+    expect(panelJs).toContain("changes[MODEL_CONFIG_STORAGE_KEY]");
+    expect(panelJs).toContain("loadInitialModelLabel()");
   });
 
   it("guards page-dependent prompts when no normal website tab is available", () => {
@@ -125,11 +172,11 @@ describe("screenshot button", () => {
     expect(panelJs).toContain("Screenshot failed:");
   });
 
-  it("background.js uses getLastFocused to resolve windowId for captureVisibleTab", () => {
-    expect(bgJs).toContain("getLastFocused");
+  it("background.js resolves a capturable active web tab before captureVisibleTab", () => {
+    expect(bgJs).toContain("getCapturableActiveTab");
     expect(bgJs).toContain("captureVisibleTab");
-    // Must not pass bare null as windowId (the old broken pattern)
-    expect(bgJs).not.toContain("captureVisibleTab(null,");
+    expect(bgJs).toContain("Open a normal website tab to capture a screenshot.");
+    expect(bgJs).not.toContain("getLastFocused");
   });
 
   it("background.js returns true to keep message channel open for async response", () => {
@@ -156,6 +203,12 @@ describe("insertable draft wiring", () => {
     expect(bgJs).toContain("ATLAS_GET_INSERT_CONTEXT");
     expect(bgJs).toContain("ATLAS_INSERT_DRAFT");
     expect(bgJs).toContain("ATLAS_INSERT_CONTEXT_CHANGED");
+  });
+
+  it("background.js enforces the pinned toolbar contract with a helper page", () => {
+    expect(bgJs).toContain("chrome.action.getUserSettings");
+    expect(bgJs).toContain("chrome.action.onUserSettingsChanged");
+    expect(bgJs).toContain("pin-required.html");
   });
 
   it("CSS contains the draft card surface", () => {

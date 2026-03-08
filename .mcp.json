@@ -1,0 +1,25 @@
+{
+  "inputs": [],
+  "servers": {
+    "desktop-commander": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@wonderwhy-er/desktop-commander@latest"
+      ]
+    },
+    "flyto-core": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "-m",
+        "core.mcp_server"
+      ]
+    },
+    "figma": {
+      "url": "https://mcp.figma.com/mcp",
+      "type": "http"
+    }
+  }
+}

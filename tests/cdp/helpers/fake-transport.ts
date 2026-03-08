@@ -32,6 +32,25 @@ export class FakeTransport implements ICdpTransport {
   async send<T>(method: string, params?: object, sessionId?: string): Promise<T> {
     this.sendCalls.push({ method, params, sessionId });
     const entries = this.responseQueue.get(method) ?? [];
+
+    if (
+      method === "Page.addScriptToEvaluateOnNewDocument" &&
+      typeof (params as { source?: unknown } | undefined)?.source === "string" &&
+      ((params as { source: string }).source.includes("__atlasConsentSweep") ||
+        (params as { source: string }).source.includes("navigator.webdriver"))
+    ) {
+      return {} as T;
+    }
+
+    if (
+      method === "Runtime.evaluate" &&
+      typeof (params as { expression?: unknown } | undefined)?.expression === "string" &&
+      ((params as { expression: string }).expression.includes("__atlasConsentSweep") ||
+        (params as { expression: string }).expression.includes("navigator.webdriver"))
+    ) {
+      return {} as T;
+    }
+
     const next = entries.shift();
     this.responseQueue.set(method, entries);
 

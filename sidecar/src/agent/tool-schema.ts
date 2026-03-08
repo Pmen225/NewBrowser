@@ -174,6 +174,82 @@ const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
     tabScope: "system"
   },
   {
+    name: "terminal_exec",
+    description: "Run a local shell command inside this workspace for file inspection, builds, or tests when the user explicitly allowed shell access.",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        command: { type: "string" },
+        cwd: { type: "string" },
+        timeout_ms: { type: "number" }
+      },
+      required: ["command"]
+    },
+    tabScope: "system"
+  },
+  {
+    name: "workspace_list",
+    description: "List files and directories inside the local workspace when the user explicitly allowed local shell access.",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        path: { type: "string" },
+        depth: { type: "number" },
+        max_entries: { type: "number" },
+        include_hidden: { type: "boolean" }
+      }
+    },
+    tabScope: "system"
+  },
+  {
+    name: "workspace_read",
+    description: "Read a text file from the local workspace when the user explicitly allowed local shell access.",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        path: { type: "string" },
+        max_chars: { type: "number" },
+        start_line: { type: "number" },
+        end_line: { type: "number" }
+      },
+      required: ["path"]
+    },
+    tabScope: "system"
+  },
+  {
+    name: "workspace_write",
+    description: "Write or append a text file inside the local workspace when the user explicitly allowed local shell access.",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        path: { type: "string" },
+        content: { type: "string" },
+        mode: { type: "string", enum: ["overwrite", "append"] }
+      },
+      required: ["path", "content"]
+    },
+    tabScope: "system"
+  },
+  {
+    name: "create_subagent",
+    description: "Delegate a hidden browser subtask to a background worker and wait for its returned summary before continuing.",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        prompt: { type: "string" },
+        goal_summary: { type: "string" },
+        start_url: { type: "string" }
+      },
+      required: ["prompt"]
+    },
+    tabScope: "system"
+  },
+  {
     name: "extensions_manage",
     description: "List, enable, disable, or uninstall browser extensions. Never disable or uninstall the Assistant extension.",
     parameters: {
@@ -216,7 +292,11 @@ export const SYSTEM_REQUIRED_TOOL_NAMES = [
   "tabs_create",
   "computer",
   "form_input",
+  "create_subagent",
   "draft_email",
+  "workspace_list",
+  "workspace_read",
+  "workspace_write",
   "extensions_manage",
   "todo_write"
 ] as const;
