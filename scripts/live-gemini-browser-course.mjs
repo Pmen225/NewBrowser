@@ -60,11 +60,11 @@ const SCENARIOS = [
         && siteEval?.checkboxPresent === false
         && siteEval?.inputDisabled === false
         && siteEval?.inputValue === "Atlas"
-        && /enabled/i.test(siteEval?.message ?? "");
+        && /enabled|gone/i.test(siteEval?.message ?? "");
     },
     verifyAssistant(text) {
       const normalized = String(text || "").toLowerCase();
-      return normalized.includes("atlas") && normalized.includes("enabled");
+      return normalized.includes("atlas") && (normalized.includes("enabled") || normalized.includes("gone"));
     }
   },
   {

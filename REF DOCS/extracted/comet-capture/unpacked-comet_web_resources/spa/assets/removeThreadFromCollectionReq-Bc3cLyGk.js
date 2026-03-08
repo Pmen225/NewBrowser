@@ -1,0 +1,2 @@
+import{s as a,a as n}from"./platform-core-CZ-8UOca.js";const i=async({collectionUUID:r,entryUUID:t,reason:o})=>{try{const{error:e,response:s}=await a.DELETE("/rest/collections/remove_collection_thread",o,{params:{query:{collection_uuid:r,entry_uuid:t}}});if(e)throw new n("API_CLIENTS_ERROR",{message:"Failed to remove thread from collection",cause:e,status:s.status??0})}catch{return}};export{i as r};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/removeThreadFromCollectionReq-Bc3cLyGk.js.map

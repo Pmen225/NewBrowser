@@ -1,5 +1,5 @@
 import type { JsonObject } from "../../../shared/src/transport";
-import { evaluateBlockedNavigation, type BlockedDomainsPolicy } from "./blocked-domains";
+import { evaluateBlockedNavigation, normalizeNavigationUrl, type BlockedDomainsPolicy } from "./blocked-domains";
 import { loadBlockedDomainsPolicyFromSystem } from "./blocked-domains-policy-loader";
 import type { ActionReliabilityHooks } from "./reliability";
 
@@ -62,6 +62,10 @@ function resolvePolicy(
 
 function isNavigateToRequest(params: JsonObject): params is JsonObject & { mode: string; url?: unknown } {
   return typeof params.mode === "string" && params.mode === "to";
+}
+
+function isExplicitSensitiveBrowserRequest(params: JsonObject): boolean {
+  return params.allow_sensitive_browser_pages === true;
 }
 
 function normalizeGuardToken(value: string): string {
@@ -273,6 +277,11 @@ export function createBlockedDomainsGuard(base: ActionDispatcher, options: Block
           throw createDispatcherError("INVALID_REQUEST", "Navigate mode=to requires params.url", false, {
             field: "url"
           });
+        }
+
+        const normalizedUrl = normalizeNavigationUrl(params.url);
+        if (isExplicitSensitiveBrowserRequest(params) && normalizedUrl.toLowerCase().startsWith("chrome://")) {
+          return base.dispatch(action, tabId, params, signal);
         }
 
         const decision = evaluateBlockedNavigation(params.url, resolvePolicy(options.policy, systemPolicyLoader));

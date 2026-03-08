@@ -1,0 +1,157 @@
+MTLB
+NAME
+vertex_main
+TYPE
+HASH 
+dAUx
+YA3Z
+OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_main
+TYPE
+HASH 
+OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+blit_fragment
+TYPE
+HASH 
+OFFT
+VERS
+MDSZ
+RFLT
+ENDTRLST
+UUID
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+b0$
+`Rd\ $e
+0D1A0
+C"EP
+P$v`
+r2H #
+(d<12B
+Ld0H4
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.positionair.arg_type_namefloat4air.arg_namepositionair.vertex_outputgenerated(2uvDv2_f)float2uvair.vertex_iduintvertexID
+ksi{#
+c+s1c
+8H*,M
+omnipotent charSimple C++ TBAA
+P;b` 
+ 4((
+vertex_mainllvm.lifetime.end.p0i8llvm.lifetime.start.p0i832023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`bd\ $f
+",q0
+Tm"A@
+k@_;
+3Y9-
+%n,A
+P$v`
+r2H #
+(d<12B
+4Lt!
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_infofloattimeresolutionintensityrayProgressfocusUVmaskRadiusPxmaskFeatherPxoverlayAlphaair.arg_type_sizeair.arg_type_align_sizeUniformsuniformsomnipotent charSimple C++ TBAA_ZTS8Uniforms
+ tb0
+ tf0
+3u 
+3w`
+@,~P
+DAQe]3$u
+(|}P
+&(#66
+]H&,M
+AhRd
+air-alias-scopes(fragment_main)air-alias-scope-arg(2)
+B0b`
+/n0bp
+G;l)
+Y%@
+sN{c
+llvm.loop.mustprogress
+B0b`
+0pAJT
+]ta0
+_ZL7PALETTEfragment_mainair.fast_clamp.f32air.fast_fmax.f32_ZL20composeSceneNoBorderDv2_fRU11MTLconstantK8Uniformsair.fast_fract.f32air.fast_sin.f32air.mix.v3f32air.fast_pow.f32air.fast_fabs.f32air.fast_atan2.f32air.fast_cos.f32air.convert.f.f32.s.i32air.fast_sqrt.f32air.dot.v2f32air.fast_clamp.v2f32air.fast_rsqrt.f3232023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`Rd\ $e
+qMTD
+a2J4HH*
+A1a0
+P$v`
+r2H #
+(d<12B
+4Lt!
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_infofloattimeresolutionintensityrayProgressfocusUVmaskRadiusPxmaskFeatherPxoverlayAlphaair.arg_type_sizeair.arg_type_align_sizeUniformsuniformsair.textureair.sampletexture2d<float, sample>inputTexair.samplersamplersamp
+0Q3w
+3{P
+4QPTY
+Ts0C
+FIRA
+@m4`
+air-alias-scopes(blit_fragment)air-alias-scope-samplersair-alias-scope-texturesair-alias-scope-arg(2)_ZTS8Uniformsomnipotent charSimple C++ TBAA
+ CP,}
+blit_fragmentair.fast_clamp.f32air.mix.v3f32air.sample_texture_2d.v4f3232023.850.10air64_v26-apple-macosx14.0.0
+RBUF
+AIRR
+vertexID
+uint
+float2
+generated(2uvDv2_f)
+position
+float4
+vertex_main
+ENDT
+RBUF
+AIRR
+overlayAlpha
+maskFeatherPx
+maskRadiusPx
+focusUV
+rayProgress
+intensity
+resolution
+time
+float
+uniforms
+Uniforms
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_main
+ENDT`
+RBUFP
+AIRR
+samp
+sampler
+inputTex
+texture2d<float, sample>
+overlayAlpha
+maskFeatherPx
+maskRadiusPx
+focusUV
+rayProgress
+intensity
+resolution
+time
+float
+uniforms
+Uniforms
+float2
+generated(2uvDv2_f)
+position
+float4
+blit_fragment

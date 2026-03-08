@@ -1,0 +1,2 @@
+import{s as i,g as n,a,l as u}from"./platform-core-CZ-8UOca.js";const g=async({headers:e,reason:s})=>{try{const{data:r,error:t,response:o}=await i.GET("/rest/enterprise/organization/subscription-info",s,{headers:e,timeoutMs:n({productionMs:2e3}),numRetries:1});if(t)throw new a("API_CLIENTS_ERROR",{cause:t,status:o.status??0});return r}catch(r){return u.error("Failed to get org subscription info",r),null}};export{g};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/getOrgSubscriptionInfo-CXd3dqeM.js.map

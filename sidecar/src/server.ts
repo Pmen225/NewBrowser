@@ -45,11 +45,19 @@ import {
 } from "./rpc/dispatcher";
 import { createRpcWebSocketServer } from "./ws/rpcServer";
 import { ChromeCdpTransport } from "./cdp/chrome-cdp-transport";
+import {
+  groupTabsViaExtensionContext,
+  navigateSensitiveTabViaExtensionContext,
+  ungroupTabsViaExtensionContext
+} from "./cdp/extension-tab-groups";
+import { manageExtensionsViaExtensionContext } from "./cdp/extension-management";
+import { BrowserActionError } from "../../src/cdp/browser-actions";
 
 interface TargetInfoLike {
   targetId: string;
   type: string;
   url: string;
+  title?: string;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -336,6 +344,56 @@ function createBrowserRuntime(transport: ChromeCdpTransport, sessionRegistry: Se
     getTab: sessionRegistry.getTab.bind(sessionRegistry),
     listTabs: sessionRegistry.listTabs.bind(sessionRegistry),
     getJavaScriptDialog: sessionRegistry.getJavaScriptDialog.bind(sessionRegistry),
+    groupTabs: async (tabIds, options) => {
+      const targets = tabIds.map((tabId) => {
+        const tab = sessionRegistry.getTab(tabId);
+        if (!tab) {
+          throw new BrowserActionError("TAB_NOT_FOUND", `Tab ${tabId} is not registered`, false, {
+            tab_id: tabId
+          });
+        }
+        return {
+          tabId,
+          targetId: tab.targetId,
+          chromeTabId: tab.chromeTabId
+        };
+      });
+      return groupTabsViaExtensionContext(transport, targets, options);
+    },
+    ungroupTabs: async (tabIds) => {
+      const targets = tabIds.map((tabId) => {
+        const tab = sessionRegistry.getTab(tabId);
+        if (!tab) {
+          throw new BrowserActionError("TAB_NOT_FOUND", `Tab ${tabId} is not registered`, false, {
+            tab_id: tabId
+          });
+        }
+        return {
+          tabId,
+          targetId: tab.targetId,
+          chromeTabId: tab.chromeTabId
+        };
+      });
+      return ungroupTabsViaExtensionContext(transport, targets);
+    },
+    manageExtensions: async (params) => manageExtensionsViaExtensionContext(transport, params),
+    navigateSensitivePage: async (tabId, url) => {
+      const tab = sessionRegistry.getTab(tabId);
+      if (!tab) {
+        throw new BrowserActionError("TAB_NOT_FOUND", `Tab ${tabId} is not registered`, false, {
+          tab_id: tabId
+        });
+      }
+      const result = await navigateSensitiveTabViaExtensionContext(transport, {
+        tabId,
+        targetId: tab.targetId,
+        chromeTabId: tab.chromeTabId
+      }, url);
+      if (result.chromeTabId >= 0) {
+        sessionRegistry.bindChromeTabId(tabId, result.chromeTabId);
+      }
+      return result;
+    },
     attachTab: sessionRegistry.attachTab.bind(sessionRegistry),
     enableDomains: sessionRegistry.enableDomains.bind(sessionRegistry),
     refreshFrameTree: sessionRegistry.refreshFrameTree.bind(sessionRegistry),

@@ -1,0 +1,1497 @@
+ ${t}`);const a=await r.arrayBuffer(),n=new Uint8Array(a);let e="";for(let t=0;t<n.length;t+=32768)e+=String.fromCharCode(...n.subarray(t,t+32768));return btoa(e)}(assetURL);
+ during archive enqueue
+ for location sharing
+ impacted navigation during phase 
+ inline, rendering an inline citation instead
+ is not a valid string
+ missing resets after, ignoring
+ present in account ordering missing from account array
+ this could mean someone is tampering with your device or network. Please try another Wi-Fi network or contact your IT admin for help.
+ unknown keys during decoding
+ without a conversation controller, ignoring
+ without a tab id set, ignoring
+"? You can always create a new link by sharing this chat again.
+$__lazy_storage_$_appPairingContextProvider
+$__lazy_storage_$_appPairingEnabled
+$__lazy_storage_$_appPairingService
+$__lazy_storage_$_appPairingViewModel
+$__lazy_storage_$_backdropContainerGradientMask
+$__lazy_storage_$_borderLayer
+$__lazy_storage_$_enableSteering
+$__lazy_storage_$_gradientEnabledForPaidUsers
+$__lazy_storage_$_locationSharingService
+$__lazy_storage_$_maskLayer
+$__lazy_storage_$_messageInputAppPairingBannerViewModel
+$__lazy_storage_$_messageInputAppPairingButtonViewModel
+$__lazy_storage_$_messageInputAppPairingOverlayViewModel
+$__lazy_storage_$_normalTabsGradientMask
+$s10Foundation19AttributedStringKeyP
+$s10Kingfisher17NetworkMonitoringP
+$s11ChatGPTCore39SharingCustomShareSheetBuilderProvidingP
+$s11OAIMarkdown30AttributedStringRepresentationP
+$s12ObjectLoader25FilenameStringConvertibleP
+$s13Conversations34CustomPrettyDebugStringConvertibleP
+$s13SwiftToolbelt30RedactedDebugStringConvertibleP
+$s14OpenAPIRuntime23PrettyStringConvertibleP
+$s15ChatGPTLocation31LocationSharingServiceProvidingP
+$s15DatadogInternal24AdditionalContextSharingP
+$s16JSONSafeEncoding36_JSONStringDictionaryEncodableMarker33_7EB351A4FEAF8B0B2FC324B3C615096CLLP
+$s17ChatGPTPairWithAI26AppPairingServiceProvidingP
+$s3OwlAAO17TabSharingSessionP
+$s5Mojom03OwlA0O17TabSharingSessionO6TargetP
+$s7Factory15AutoRegisteringP
+$s8Markdown21RecurringInlineMarkupP
+$ss26ExpressibleByStringLiteralP
+$ss27StringInterpolationProtocolP
+$ss32ExpressibleByStringInterpolationP
+&Aring;
+&aring;
+' encountered during conversion
+' not found during swizzling attempt
+, enableFastViewRendering: 
+, maskAllImages: 
+, maskedViewClasses: 
+, unmaskedViewClasses: 
+- Output ONLY search terms (no numbering, no quotes, no backticks, no punctuation).
+13renderingModet
+17StringLiteralType
+19StringInterpolation
+<redacted string of length 
+@"<MTLFunctionHandle>"32@0:8@"NSString"16Q24
+@"<MTLLibrary>"32@0:8@"NSString"16^@24
+@"<MTLLibrary>"40@0:8@"NSString"16@"MTLCompileOptions"24^@32
+@"<NSObject>"48@0:8@"NSString"16@24@"NSOperationQueue"32@?<v@?@"NSNotification">40
+@"<NSSharingServiceDelegate>"32@0:8@"NSSharingServicePicker"16@"NSSharingService"24
+@"<SentrySpan>"24@0:8@"NSString"16
+@"<SentrySpan>"32@0:8@"NSString"16@"NSString"24
+@"MLFeatureValue"24@0:8@"NSString"16
+@"NSArray"24@0:8@"NSSharingServicePicker"16
+@"NSArray"40@0:8@"NSSharingServicePicker"16@"NSArray"24@"NSArray"32
+@"NSAttributedString"
+@"NSAttributedString"16@0:8
+@"NSAttributedString"40@0:8{_NSRange=QQ}16^{_NSRange=QQ}32
+@"NSData"16@?0@"NSString"8
+@"NSData"24@0:8@"NSString"16
+@"NSData"24@?0@8@"NSString"16
+@"NSData"32@0:8@"NSString"16^@24
+@"NSData"32@?0@"NSString"8Q16^@24
+@"NSData"40@0:8@"NSXMLParser"16@"NSString"24@"NSString"32
+@"NSData"40@?0@8@"NSString"16Q24^@32
+@"NSMutableAttributedString"
+@"NSSharingServicePicker"40@0:8@"NSTextView"16@"NSSharingServicePicker"24@"NSArray"32
+@"NSString"
+@"NSString"16@0:8
+@"NSString"24@0:8@"SPUUpdater"16
+@"NSString"32@0:8@"NSFilePromiseProvider"16@"NSString"24
+@"NSString"40@0:8@"NSTextView"16@"NSString"24Q32
+@"NSString"40@0:8Q16^{_NSRange=QQ}24^B32
+@"NSString"56@0:8@"NSView"16q24{CGPoint=dd}32^v48
+@"NSString"8@?0
+@24@0:8@"NSString"16
+@32@0:8@16@"NSString"24
+ACCESS_FLOW_USER_ACTION_TYPE_EXIT_BACKDROP_CLICKED
+AXStringForRange
+Access to Voice with screen sharing
+AdaptiveMeshGradientView
+AdaptiveMeshGradientViewPalette
+AdaptiveMeshGradientViewPerformanceConfiguration
+AdditionalContextSharing
+AgentShimmerRenderer
+Allow ChatGPT to reference relevant memories and chats when sharing data with 
+An error occurred during fetching values for the user. 
+An error occurred during sending events to server. 
+An error occurred while preparing the video for playback
+An unknown error occurred during parsing.
+An unknown error while occurred capturing a screenshot of the selected app. Please try again.
+AnimatedMeshGradientView
+AnnouncementStrings
+App backgrounded during screen-sharing, will not interrupt session regardless of setting.
+App extension file monitoring was cancelled unexpectedly
+AppHangTracking paused. Ignoring reported app hang.
+AppPairing
+AppPairingApplication
+AppPairingApplicationIcon
+AppPairingApplicationIconStack
+AppPairingApplicationPermissionState
+AppPairingApplicationRow
+AppPairingApplicationSettingsContentView
+AppPairingCapabilities
+AppPairingCapabilitiesManifest
+AppPairingContent
+AppPairingConversationObserver
+AppPairingDefaultOnNUX
+AppPairingDefaultOnNUXButtonStyle
+AppPairingEvent
+AppPairingFocusedContentPopover
+AppPairingHeaderPart
+AppPairingOSMonitor
+AppPairingOverlayApplicationRow
+AppPairingOverlayApplicationState
+AppPairingOverlayItemID
+AppPairingRunningApplication
+AppPairingService
+AppPairingServiceProviding
+AppPairingSettingsView
+AppPairingSettingsViewModel
+AppPairingTextHelpers
+AppPairingVoiceContext
+AppPairingVoiceContextProvider
+Apple Intelligence resources are still preparing. Try again shortly.
+Aring
+AttributedString
+AttributedStringAttachmentCell
+AttributedStringRepresentation
+AttributedString_Data
+Audience (aud) claim must be a string or array of strings present in the ID token
+AudioActivityObserver already started. Ignoring start().
+Aura/Icons/New/Default/lightbulb-glow
+Aura/Icons/New/Default/stop-sharing
+Aura/Icons/badge-rings
+Aura/elevatedBorder
+Aura/gradientSliderBlackThemeTint
+Aura/keyCapBorder
+Aura/tabBordersDefault
+Aura/tabVisorBorder
+AuraTabsUI.TabStripBackdropHighlightsView
+AuraTabsUI.TabStripBackdropInnerShadowView
+AuraTabsUI/TabStripBackdropHighlightsView+macOS.swift
+AuraTabsUI/TabStripBackdropInnerShadowView+macOS.swift
+AuraWindow default.metallib not found. Ensure BackgroundShimmer.metal is under Sources/AuraWindow and clean build.
+AuraWindow/BackgroundShimmerRenderer.swift
+AuraWindow/BackgroundShimmerWindowManager.swift
+AuraWindow/TabSharingMenuViewModel.swift
+Authorized Party (azp) claim must be a string present in the ID token when Audience (aud) claim has multiple values
+Auto generated transaction exceeded the max duration of %f seconds. Not capturing transaction.
+AutoRegistering
+AutomaticAppPairingHint
+B20@?0@"NSString"8B16
+B28@?0@8@"NSString"16B24
+B32@0:8@"NSApplication"16@"NSString"24
+B32@0:8@"NSData"16@"NSString"24
+B32@0:8@16@"NSString"24
+B32@?0@"NSString"8@"NSData"16@"NSDictionary"24
+B32@?0@"NSString"8Q16^@24
+B40@0:8@"NSControl"16@"NSString"24@"NSString"32
+B40@?0@8@"NSString"16@"NSData"24@"NSDictionary"32
+B40@?0@8@"NSString"16Q24^@32
+B48@0:8@"NSTextView"16{_NSRange=QQ}24@"NSString"40
+B56@0:8@"NSTextView"16@"<NSTextAttachmentCell>"24Q32@"NSPasteboard"40@"NSString"48
+BackgroundShimmerRenderer
+BackgroundShimmerWindowManager
+BlurImageProcessor
+BlurredBackgroundModalViewModifier
+BlurredBackgroundView
+BlurredBarBackground
+BlurredBarBackgroundRepresentable
+Border
+BorderImageProcessor
+Bring All to Front
+Bring ChatGPT with you across the web for instant answers, smarter suggestions, and help with tasks.
+Bring your bookmarks and browsing history over from 
+Bring your browsing data over from Chrome to pick up where you left off.
+Bring your browsing data over from Safari to pick up where you left off.
+Bring your health data together
+Bring your ideas to life with images
+Bring your saved passwords, bookmarks, extensions, and browsing history over from 
+Bring your saved passwords, bookmarks, extensions, site data, and browsing history over from 
+Bring your saved passwords, extensions, bookmarks, and browsing history over from 
+Bring your saved passwords, site data, extensions, bookmarks, and browsing history over from 
+ByteString
+ByteString_Data
+CFBundleShortVersionString
+CFString
+CFStringCreateWithCStringNoCopy
+CFStringGetCString
+CFStringGetTypeID
+Can't format number string(
+Cannot convert the input object to a `Data` object when storing it to disk cache. 
+Capturing session with status: %@
+Capturing system audio is only supported after macOS 14.2
+ChatGPTLocation/LocationSharingService.swift
+ChatGPTMessageInput.AttributedStringAttachmentCell
+ChatGPTMessageInput/AttributedStringAttachmentCell.swift
+ChatGPTPairWithAI/AppPairingApplication.swift
+ChatGPTPairWithAI/AppPairingDefaultOnNUX.swift
+ChatGPTPairWithAI/AppPairingOSMonitor.swift
+ChatGPTPairWithAI/AppPairingService.swift
+ChatGPTPairWithAI/AppPairingTextHelpers.swift
+ChatGPTPairWithAI/MessageInputAppPairingButton.swift
+ChatGPTPairWithAI/MessageInputAppPairingButtonViewModel.swift
+ChatGPTPairWithAI/MessageInputAppPairingOverlay.swift
+ChatGPTPairWithAI/MessageInputAppPairingOverlayViewModel.swift
+ChatGPTPairWithAI/MessageInputCurrentlySharingBannerRedesign.swift
+ChatGPTPairWithAI/MessageInputCurrentlySharingBannerRedesignViewModel.swift
+ChatGPTProjects/ProjectSharingViewModel.swift
+ChatGPTSettings/AppPairingSettingsView.swift
+ChatGPTSharing
+ChatGPTSharing/API+Share.swift
+ChatGPTSharing/SharingModels.swift
+ChatGPTSharing/StatsigExperimentLayer+Sharing.swift
+Choose the profiles you want to bring along
+ClampedBlurProcessor
+Clearing all conversations
+ClickCapturingView
+ClickCapturingViewRepresentable
+Clinical Engineering
+CodeAttributedString
+Codex is preparing the full task summary.
+CodexBestOfNOrdering
+CollectionViewIsReconfiguringItemsAssociatedObjectKey
+ColorPairing
+CompressedStrings
+Configuring continuous launch profile v2.
+ConnectorBlurb
+ConnectorBlurbsResponse
+ConversationConfirmationStrings
+ConversationStreamStringError
+CornerCircleMask
+Could not append string element
+Could not find the tab to take when configuring window launch destination
+Could not migrate session init, because storing the updated envelope failed: 
+Could not start string element
+Couldn't convert the cString image name to an NSString. This could be due to a different encoding than NSUTF8StringEncoding of the cString..
+Crash reporter was not initialized before checking if app crashed during last launch
+CrashpadMinidumpUploader: Failed to open directory for monitoring
+Create an image of a photorealistic magazine cover for "CUTE ANIMALS," featuring three impossibly cute and stylishly accessorized pets, with realistic, catchy headlines and teaser text.
+CurvedGradient
+CustomLocalizedStringKey
+CustomPrettyDebugStringConvertible
+DSN string is nil
+DefaultTabSharingSession
+Dictionary keys must be Strings to be represented in JSON
+Dictionary<String, Any>
+Dictionary<String, Sendable>
+DismissedSuggestionKey.FilenameStringConvertible
+During a page fault, indicates that the page was rejected as a result of a signature check.
+During a page fault, the memory object indicated that the data could not be returned.
+During a page fault, the target address refers to a memory object that has been destroyed.
+EdgeBorderShape
+ElideWithGradientMaskModifier
+EmptyString
+Enable automatic app pairing
+Entering critical memory pressure state.
+Entering grace period for 
+Error capturing photo
+Error capturing screenshot for window identifier 
+Error comparing VSCode extension versions
+Error decoding JSONPatch delta during streaming
+Error during polling for microphone permission.
+Error during polling for system audio permission.
+Error during sleep for schedule
+Error during switching accounts in multi SSO flow
+Error formatting attributed string for pasteboard
+Error loading SmallStrings cache
+Error reading user-scoped account status response during migration
+Error reading user-scoped cached current user during migration
+Error registering hotkey 
+Error removing tab groups while restoring windows
+Error sharing task. Please try again later.
+Error storing image in cache
+EventTypeMask
+Expected date string to be ISO8601-formatted.
+Expected string for message body, but got '
+Failed preparing conversation
+Failed restoring cached account info response
+Failed to allocate string buffer of size %ul
+Failed to convert HTML to NSAttributedString
+Failed to convert backtrace symbol to NSString.
+Failed to create a formatted time string from hourValue(
+Failed to create an URL with the string '/'.
+Failed to create attributed string with error: 
+Failed to create upload URL from string
+Failed to encode WindowType data to string
+Failed to format ISO8601 date string(
+Failed to initialize mic audio capturing.
+Failed to initialize system audio capturing.
+Failed to parse hour and minute from server time string: 
+Failed to post steering request
+Failed to select tab during tab cycling
+Failed to send app pairing context
+Failed to start agent monitoring
+Failure during scheduled token refresh
+FieldMaskError
+FilenameStringConvertible
+Filtering sample as it came before start time to begin slicing.
+Found mismatched userIDs during migration
+GSgGAFGAHyAoFGGGABy_ACy_ADy_SaySo18NSAttributedStringCGAFGAHyAvFGGGABy_AKGACy_ADy_Say
+GSgSo18NSAttributedStringCSb
+GizmoSharing
+Google_Protobuf_FieldMask
+Google_Protobuf_StringValue
+GradientColorSlider
+GradientColorSliderPalette
+HTTPCookieStringPolicy
+Have fun exploring the web with ChatGPT by your side, all while staying in control of your data and privacy.
+HexString
+Highlightr.CodeAttributedString
+Hive Audio Tap - Self Capturing
+ISOLatin1String
+Ignoring .DS_Store file when building envelopes path at path: %@
+Ignoring ANR because the app is in the background
+Ignoring ANR because the delta is too big: %f.
+Ignoring CFC verification message with type 
+Ignoring PTT start because not connected: 
+Ignoring PTT stop because not connected: 
+Ignoring a generated title for another conversation 
+Ignoring a gizmo review for another conversation 
+Ignoring call to startConnect() as connection is already started
+Ignoring completion error received while no longer waiting for completion
+Ignoring conversation update because api connection state is 
+Ignoring didBecomeActive notification because it was already called.
+Ignoring didOpen for cancelled connection; closing stale task.
+Ignoring forced PTT stop because not connected: 
+Ignoring invalid product image aspect ratio values
+Ignoring non directory when deleting old envelopes at path: %@
+Ignoring old extension version 
+Ignoring product image with invalid dimensions for aspect ratio calculation
+Ignoring remote state update to '
+Ignoring request to mute video because there is no active video track
+Ignoring speaking update because api connection state is 
+Ignoring stale ads content event
+Ignoring stale message complete ads event
+Ignoring streaming message update because api connection state is 
+Ignoring user activity, handoff is disabled
+Ignoring vscode extension with unexpected marketplace ID: 
+ImageGenRendering
+ImageGenerationGradientView
+Invalid base64-encoded string (first 128 bytes): '
+Invalid color hex string
+Invalid date format. The Date must either be a Double/TimeInterval representing the timeIntervalSince1970 or it can be a ISO 8601 formatted String.
+Invalid date format. The following string doesn't represent a valid ISO 8601 date string: '
+Invalid decimal string: 
+Invalid hex color string. Please provide a valid hex color (e.g., #FF0000 or FF0000).
+Issuer (iss) claim must be a string present in the ID token
+JSONString
+JS_STRING
+KnownAllowedSharingRecipient
+Let ChatGPT reference key details from your web browsing. Disable page visibility for websites to keep ChatGPT from remembering the contents of those webpages or seeing them in chats.
+Listening task cancelled during setup. state: 
+Location Sharing Failed
+Location Sharing Request
+Location Sharing Success
+LocationSharingService
+LocationSharingServiceProviding
+LocationSharingUpdateResult
+Measuring span %@; description %@; operation: %@
+Message too large: Bytes and Strings have a max size of 2GB.
+MessageInputAppPairingButton
+MessageInputAppPairingButtonPopover
+MessageInputAppPairingButtonViewModel
+MessageInputAppPairingOverlay
+MessageInputAppPairingOverlayViewModel
+MessageInputCurrentlySharingBanner
+MessageInputCurrentlySharingBannerRedesign
+MessageInputCurrentlySharingBannerRedesignContent
+MessageInputCurrentlySharingBannerRedesignViewModel
+MessageInputSharingBannerContentItem
+MessageInputVoiceScreenSharingButtonPart
+MessageRowAppPairingHeaderPart
+Messages sent or received after sharing your link won't be shared. Anyone with the URL will be able to view your shared chat.
+Missing conversation ID during image feedback
+Missing message ID during image feedback
+ModalBackdropView
+Model limit missing model slug, ignoring
+Motion.SpringAnimation
+NCFStringRef
+NNSAttributedStringDocumentAttributeKey
+NNSAttributedStringDocumentReadingOptionKey
+NNSAttributedStringDocumentType
+NNSAttributedStringKey
+NNSEventMask
+NNSHTTPCookieStringPolicy
+NNSStringEnumerationOptions
+NNSWindowStyleMask
+NSAttributedString
+NSCFConstantString
+NSCFString
+NSSharingServicePickerDelegate
+NSString
+NTP preload retry limit reached; entering cooldown
+NetworkMonitoring
+Non string found in fingerprint array, returning only string elements
+Nonce (nonce) claim must be a string present in the ID token
+Not capturing transaction because finish was not called before timing out.
+Not enough samples in profile during the transaction
+OAIMarkdown/ImageGenerationGradientView.swift
+ObjectLoader/FilenameStringConvertible.swift
+Only instances of NSString and NSRegularExpression are supported inside failedRequestTargets.
+Only instances of NSString and NSRegularExpression are supported inside tracePropagationTargets.
+Optional<String>
+OrderingBehavior
+OrderingKey
+Organization Id (org_id) claim must be a string present in the ID token
+Organization Name (org_name) claim must be a string present in the ID token
+Owl.ModalBackdropView
+PairingError
+PartialStringPolicy
+Pending ads content never published, clearing
+Placeholder summary entry outlining secondary adjustments that Codex is preparing.
+Preparing task
+PrettyStringConvertible
+ProfileManager: Ignoring updateProfile() due to recent logout
+ProjectSharingLevel
+ProjectSharingLevelLabel
+ProjectSharingLevelPicker
+ProjectSharingScreen
+ProjectSharingScreenContent
+ProjectSharingViewModel
+ProtobufString
+Push registration token user_id couldn't be converted to String
+Q32@0:8@"NSString"16@"NSPasteboard"24
+RateLimitBoostService: Could not parse expiry date string to date: 
+Received ads SSE stream but feature flag is off, ignoring
+Received ads not following an assistant message, ignoring
+Received gizmo inline review not following a message, ignoring
+Received gizmo inline review with no ID or conversation ID, ignoring
+Received title generation with no title or conversation ID, ignoring
+RecurringInlineMarkup
+RedactedDebugStringConvertible
+RenderingView
+Request or Response are null, not capturing HTTP Client errors.
+Request url isn't within the request targets, not capturing HTTP Client errors.
+Requesting permission for location sharing
+Response is not nil. We only care about the response and assume the envelope arrived at Sentry. Ignoring the error: %@
+Response isn't a known type, not capturing HTTP Client errors.
+Response status code isn't within the allowed ranges, not capturing HTTP Client errors.
+Restoring original handler.
+RingBurst
+STRING
+STRING_PIECE
+SVG parsing error. No oval radial gradients supported
+SVGAttribute.parse(string:context:) should be overwritten by inheritor
+SVGGradient
+SVGLinearGradient
+SVGRadialGradient
+SVGView.SVGLinearGradient
+SVGView.SVGRadialGradient
+SafeAreaInsetMaskViewModifier
+SaySo16NSSharingServiceCG
+SaySo8NSStringCG
+SaySo8NSStringCGIeghg_
+Sayy13RenderingView
+Sb17deliveringQuietly_t
+SbSaySo8NSStringCGYbScMYccSg
+Screen sharing is not supported on this platform
+Screensharing on macOS is not supported
+SentryCrashReportFilterDataToString
+SentryCrashReportFilterStringToData
+SentryLogBuffer: Delegate not set, not capturing logs data.
+Sg14initialMaskURL_AB0a7PreviewC0t
+SgSo18NSAttributedStringCSgIggyno_
+Sharing
+Sharing another tab
+Sharing data includes:
+Sharing this tab
+SharingCustomShareSheetBuilderProviding
+SharingCustomShareSheetTemplate
+SharingError
+SharingMultimodal
+SharingMultimodalLayerParameter
+SharingServiceInvisiblePickerPresentationSourceView
+SharingSubjectRow
+SharingTarget
+Shimmer
+ShimmerMultilineText
+ShimmerText
+ShimmeringLabel
+ShimmeringTextView
+Should not be able to set location sharing when flag is off
+Skybridge method disabled; not registering
+SmallStrings
+So15CAGradientLayerC
+So15CAGradientLayerCSg
+So15NSMutableStringC
+So18NSAttributedStringC
+So18NSAttributedStringC5input_Sb15whisperIsActiveSb018autocompletePickereF0Sb0C15AndUploadsEmptyt
+So18NSAttributedStringCSg
+So18NSAttributedStringCSgyYbScMYcc
+So18NSAttributedStringCSgz_Xx
+So18NSAttributedStringC_Sb9streamingSDy
+So20MPSImageGaussianBlurCSg
+So22NSSharingServicePickerCSgXw
+So25NSMutableAttributedStringC
+So7NSCacheCySo8NSStringC
+So7NSImageC9maskImage_AB07previewC0t
+So8NSStringC
+So8NSStringCSgIeyBy_
+So8NSStringCSo6NSDataCSgIeyBya_
+So8NSStringCSo6NSDataCSo12NSDictionaryC
+So8NSStringC_Sbt
+Spring
+SpringAnimation
+SpringAnimator
+SpringFunction
+StaticMeshGradientView
+Stop Screen Sharing
+Stop sharing screen
+Storing the renewed credentials failed.
+String16
+String16_Data
+StringBuilder
+StringCodingKey
+StringEncodedDecimal
+StringEncodedOptionalDecimal
+StringInterpolation
+StringKey
+StringLiteralType
+StringSchema
+Strings
+StyleMask
+Styleguide.BlurredBackgroundView
+Styleguide/BlurredBarBackground.swift
+Subject (sub) claim must be a string present in the ID token
+SubscriptionValuePropositionsBorderViewModifier
+SuggestionsCacheKey.FilenameStringConvertible
+SwiftUIToolbelt/View+ReadSizeIgnoringSafeArea.swift
+T@"NSAttributedString",&,N,V_attributedString
+T@"NSAttributedString",N,&
+T@"NSString",&
+T@"NSString",&,N,V_basePath
+T@"NSString",&,N,V_bundleName
+T@"NSString",&,N,V_className
+T@"NSString",&,N,V_colorString
+T@"NSString",&,N,V_diagnosis
+T@"NSString",&,N,V_environment
+T@"NSString",&,N,V_latex
+T@"NSString",&,N,V_leftDelimiter
+T@"NSString",&,N,V_name
+T@"NSString",&,N,V_previousClassName
+T@"NSString",&,N,V_replayId
+T@"NSString",&,N,V_rightDelimiter
+T@"NSString",&,N,V_sampled
+T@"NSString",&,N,V_separatorFmt
+T@"NSString",&,N,V_type
+T@"NSString",&,N,V_value
+T@"NSString",?,R
+T@"NSString",?,R,C
+T@"NSString",C
+T@"NSString",C,N
+T@"NSString",C,N,V_abnormalSessionFilePath
+T@"NSString",C,N,V_appHangEventFilePath
+T@"NSString",C,N,V_appStateFilePath
+T@"NSString",C,N,V_basePath
+T@"NSString",C,N,V_breadcrumbsFilePathOne
+T@"NSString",C,N,V_breadcrumbsFilePathTwo
+T@"NSString",C,N,V_category
+T@"NSString",C,N,V_codeFile
+T@"NSString",C,N,V_contextLine
+T@"NSString",C,N,V_cookies
+T@"NSString",C,N,V_crashedSessionFilePath
+T@"NSString",C,N,V_currentScreen
+T@"NSString",C,N,V_currentSessionFilePath
+T@"NSString",C,N,V_debugID
+T@"NSString",C,N,V_desc
+T@"NSString",C,N,V_dist
+T@"NSString",C,N,V_domain
+T@"NSString",C,N,V_envelopesPath
+T@"NSString",C,N,V_environment
+T@"NSString",C,N,V_eventsPath
+T@"NSString",C,N,V_fileName
+T@"NSString",C,N,V_fragment
+T@"NSString",C,N,V_function
+T@"NSString",C,N,V_helpLink
+T@"NSString",C,N,V_imageAddress
+T@"NSString",C,N,V_imageVmAddress
+T@"NSString",C,N,V_instructionAddress
+T@"NSString",C,N,V_lastInForegroundFilePath
+T@"NSString",C,N,V_logger
+T@"NSString",C,N,V_message
+T@"NSString",C,N,V_method
+T@"NSString",C,N,V_module
+T@"NSString",C,N,V_name
+T@"NSString",C,N,V_nucleus
+T@"NSString",C,N,V_operation
+T@"NSString",C,N,V_origin
+T@"NSString",C,N,V_package
+T@"NSString",C,N,V_platform
+T@"NSString",C,N,V_previousAppStateFilePath
+T@"NSString",C,N,V_previousBreadcrumbsFilePathOne
+T@"NSString",C,N,V_previousBreadcrumbsFilePathTwo
+T@"NSString",C,N,V_profileSessionID
+T@"NSString",C,N,V_queryString
+T@"NSString",C,N,V_queueAddress
+T@"NSString",C,N,V_releaseName
+T@"NSString",C,N,V_sentryPath
+T@"NSString",C,N,V_serverName
+T@"NSString",C,N,V_spanDescription
+T@"NSString",C,N,V_symbolAddress
+T@"NSString",C,N,V_timezoneOffsetFilePath
+T@"NSString",C,N,V_transaction
+T@"NSString",C,N,V_type
+T@"NSString",C,N,V_url
+T@"NSString",C,N,V_value
+T@"NSString",C,V_city
+T@"NSString",C,V_countryCode
+T@"NSString",C,V_distString
+T@"NSString",C,V_email
+T@"NSString",C,V_environmentString
+T@"NSString",C,V_ipAddress
+T@"NSString",C,V_name
+T@"NSString",C,V_region
+T@"NSString",C,V_userId
+T@"NSString",C,V_username
+T@"NSString",N,C
+T@"NSString",N,R
+T@"NSString",R
+T@"NSString",R,C
+T@"NSString",R,C,N
+T@"NSString",R,C,N,V_contentType
+T@"NSString",R,C,N,V_filename
+T@"NSString",R,C,N,V_formatted
+T@"NSString",R,C,N,V_operation
+T@"NSString",R,C,N,V_path
+T@"NSString",R,C,N,V_spanDescription
+T@"NSString",R,C,N,V_type
+T@"NSString",R,N
+T@"NSString",R,N,V_envName
+T@"NSString",R,N,V_environment
+T@"NSString",R,N,V_name
+T@"NSString",R,N,V_publicKey
+T@"NSString",R,N,V_releaseName
+T@"NSString",R,N,V_replayId
+T@"NSString",R,N,V_sampleRand
+T@"NSString",R,N,V_sampleRate
+T@"NSString",R,N,V_sampled
+T@"NSString",R,N,V_transaction
+T@"NSString",R,N,V_userId
+TB,N,V_monitoringFromUninstalledToRestore
+TB,N,VenableFastViewRendering
+TB,N,VmaskAllImages
+TB,N,VmaskAllText
+TODO: showSharingServicePicker
+TYPE_STRING
+TabAttributesMask
+TabContentMask
+TabSharingBadgeIcon
+TabSharingButtonState
+TabSharingMenuViewModel
+TabSharingSession
+TabSharingSessionButtonState
+TabSharingSession_StartSharingThisTab_Params
+TabSharingSession_StartSharingThisTab_Params_Data
+TabSharingSession_StopTabSharing_Params
+TabSharingSession_StopTabSharing_Params_Data
+TabSharingTabRole
+TabStripBackdropHighlightsView
+TabStripBackdropInnerShadowView
+Task Sharing Cancelled
+TextInputHost_GetAttributedSubstringForRange_Params
+TextInputHost_GetAttributedSubstringForRange_Params_Data
+TextInputHost_GetAttributedSubstringForRange_ResponseParams
+TextInputHost_GetAttributedSubstringForRange_ResponseParams_Data
+The user is referring to this in particular:
+There was a problem clearing sign in info. Please try again.
+There was an error preparing the conversation.
+There was an error sharing the conversation.
+ThinBorderWidth
+This official app is free, syncs your history across devices, and brings you the latest model improvements from OpenAI.
+Ti,N,V_monitoring
+Ti,N,V_monitoringWhenUninstalled
+TopBarBackdropView
+TopBarBackdropViewRepresentable
+Touch Moved During Release to Send
+TriggeringProduct
+URLWithString:
+UTF8String
+UUIDString
+Unable to cast the retrieved items to a [[String: Any]] value
+Unable to convert color to hex string
+Unable to convert the retrieved item to a String value
+Unable to decode date string
+Unable to extract the detail context during image feedback
+Unable to extract the file ID during image feedback
+Unable to extract the generation ID during image feedback
+Unable to get text field content when fetching app pairing apply context
+Unable to parse date timestamp string
+Unexpected backdrop hit test when source is not subsection!
+Unexpected source during image feedback
+Unexpectedly got camera access .notDetermined after acquiring access
+Unrecoverable failure, clearing configuration to force reconnect with next URL
+Uring
+VerticalScrollCapturingView
+Visit your settings to delete any memories saved during this chat.
+We could not verify that code. Try entering the latest code from your authenticator app.
+WebContentRendererClient_ShowSharingServicePicker_Params
+WebContentRendererClient_ShowSharingServicePicker_Params_Data
+WebContentRendererClient_ShowSharingServicePicker_ResponseParams
+WebContentRendererClient_ShowSharingServicePicker_ResponseParams_Data
+WebViewClient_RemoveTabSharingButtons_Params
+WebViewClient_RemoveTabSharingButtons_Params_Data
+WebViewClient_ShowTabSharingButtons_Params
+WebViewClient_ShowTabSharingButtons_Params_Data
+When triggering a login, active account must not be nil
+When triggering a login, loginSession must not be nil
+Wrong DidSaveCallback passed to saveMask
+You can opt-out of sharing at any time in [settings](
+[Data Store] Error on clearing all data for `
+_CFURLStringType
+_JSONStringDictionaryEncodableMarker
+_So18NSAttributedStringCtc
+_So18NSAttributedStringCtcSg
+_TtC10AuraAgents20AgentShimmerRenderer
+_TtC10AuraTabsUI30TabStripBackdropHighlightsView
+_TtC10AuraTabsUI31TabStripBackdropInnerShadowView
+_TtC10AuraTabsUIP33_A4F20044158F56E5EA0207A90FC376BF18ClickCapturingView
+_TtC10AuraWindow23TabSharingMenuViewModel
+_TtC10AuraWindow25BackgroundShimmerRenderer
+_TtC10AuraWindow30BackgroundShimmerWindowManager
+_TtC10AuraWindowP33_28931039F5A5C4286282357D623CF94918TopBarBackdropView
+_TtC10Highlightr20CodeAttributedString
+_TtC10Styleguide21BlurredBackgroundView
+_TtC12AuraToolbelt14SpringAnimator
+_TtC12AuraToolbeltP33_00C03BF93562D80192EE4F89B64CE8E927VerticalScrollCapturingView
+_TtC12Localization12SmallStrings
+_TtC14ChatGPTSharing19SharedPostViewModel
+_TtC15ChatGPTLocation22LocationSharingService
+_TtC15ChatGPTProjects23ProjectSharingViewModel
+_TtC15ChatGPTSettings27AppPairingSettingsViewModel
+_TtC17ChatGPTPairWithAI17AppPairingService
+_TtC17ChatGPTPairWithAI19AppPairingOSMonitor
+_TtC17ChatGPTPairWithAI30AppPairingVoiceContextProvider
+_TtC17ChatGPTPairWithAI37MessageInputAppPairingButtonViewModel
+_TtC17ChatGPTPairWithAI38MessageInputAppPairingOverlayViewModel
+_TtC17ChatGPTPairWithAI51MessageInputCurrentlySharingBannerRedesignViewModel
+_TtC19ChatGPTConversation30AppPairingConversationObserver
+_TtC19ChatGPTMessageInput30AttributedStringAttachmentCell
+_TtC7SVGView11SVGGradient
+_TtC7SVGView17SVGLinearGradient
+_TtC7SVGView17SVGRadialGradient
+_TtCC15ChatGPTLocation22LocationSharingService17PropertyPublisher
+_TtCC17ChatGPTPairWithAI37MessageInputAppPairingButtonViewModel17PropertyPublisher
+_TtCC17ChatGPTPairWithAI38MessageInputAppPairingOverlayViewModel17PropertyPublisher
+_TtCC3Owl18WebModalUIDelegateP33_589BF9C91ED9B6956482655EE5B91A1E17ModalBackdropView
+_TtCOO5Mojom8OwlMojom17TabSharingSession10Dispatcher
+_TtCOO5Mojom8OwlMojom17TabSharingSession5Proxy
+_TtCV12NSUIToolbelt51SharingServiceInvisiblePickerPresentationSourceView11Coordinator
+__Key_auraControlAccentBorderColor
+__NSCFConstantString
+__NSCFString
+_allowAppPairingDefaultOn
+_appPairingEnabled
+_appPairingFocusedContent
+_appPairingFocusedContentInactivityTimeout
+_appPairingSetting
+_appPairingSettingEnabled
+_attributedString
+_autoPairingAppHint
+_availableGradientThemes
+_birthdayErroring
+_blurbs
+_blurredBaseURL
+_blurredOverlayOpacity
+_blurredOverlayURL
+_borderVisible
+_borderWidth
+_colorString
+_controlAccentBorderColor
+_distString
+_enableAppPairingAutoApplyPatches
+_enableAppPairingBannerRedesign
+_enableAppPairingDefaultOn
+_enableAppPairingHintsUsingVision
+_environmentString
+_errorCapturingScreenshot
+_erroring
+_filterValueString
+_firstNameErroring
+_hasTriggeredFeaturedLiveDismissDuringActiveDrag
+_hovering
+_hoveringCommand
+_hoveringContent
+_hoveringFrame
+_hoveringIndex
+_iconNeedsBorder
+_isAccessoryButtonHovering
+_isAppPairingEnabled
+_isGradientPlaying
+_isGradientThemeSyncedWithAccount
+_isHovering
+_isHoveringAskChatButton
+_isHoveringBookmarkButton
+_isHoveringButton
+_isHoveringCancelButton
+_isHoveringChip
+_isHoveringComposerMenuButton
+_isHoveringDefaultBrowserBanner
+_isHoveringEnterButton
+_isHoveringOnActionSuggestionButton
+_isHoveringOnSideChatButton
+_isHoveringOverBackground
+_isHoveringPendingProtocolHandlerButton
+_isHoveringPopupBackground
+_isHoveringRateLimitBoostPopover
+_isHoveringSafeModeIndicator
+_isHoveringSiteSettingsButton
+_isHoveringUnavailableOverlay
+_isHoveringUndoButton
+_isHoveringUndoToast
+_isRendering
+_isRestoringPurchases
+_isScreenSharing
+_isSteeringEnabled
+_javaStringCheckUtf8
+_lastBlurredImage
+_lastNameErroring
+_mask
+_monitoring
+_monitoringFromUninstalledToRestore
+_monitoringWhenUninstalled
+_phoneNumberErroring
+_queryString
+_removeAppPairingHintsOnInputChanged
+_renderingError
+_renderingProgress
+_selectedGradientTheme
+_selectionIndicatorBorderWidth
+_sharingServicePickerIsPresented
+_shouldShowAppPairingBanner
+_shouldShowAppPairingButton
+_shouldShowAppPairingFeatureToggle
+_shouldShowErrorBorder
+_showTabSharingButton
+_stringValue
+_submit(_:systemHints:with:clearUploadsAfterSubmit:triggeringSystemHintSuggestion:targetedReplyLabelOverride:isFirstMessageRetry:fromCommandReturn:submissionTrigger:)
+_tabSharingMenuIsVisible
+_tabSharingMenuViewModel
+_tabSharingSession
+_thinBorderWidth
+_topBarBackdropView
+_whatsappSharingLayer
+absoluteString
+acceptAutoPairingAppHint
+acceptAutoPairingAppHint()
+accessibilityAttributedStringForRange:
+accountOrdering
+activateIgnoringOtherApps:
+activateSpan:duringBlock:
+addBorder
+addLatestAppPairingStateToTurnContext(context:)
+addLocalMonitorForEventsMatchingMask:handler:
+addThemedBorder
+agent unexpectedly running during cleanup
+allBordered
+answeringWillKickoffATask
+app-pairing-whisper
+appPairing
+appPairingBanner
+appPairingButton
+appPairingCancellable
+appPairingContent
+appPairingDefaultOn
+appPairingDefaultOnNUXShown
+appPairingEnabled
+appPairingFocusedContentInactivityTimeout
+appPairingMetadata
+appPairingOverlayViewModel
+appPairingService
+appPairingSettings
+app_pairing
+app_pairing_content
+app_pairing_extensions
+appendAttributedString:
+appendString:
+archivedDataWithRootObject:requiringSecureCoding:error:
+aring
+attributedString
+attributedStringValue
+attributedStringWithAttachment:
+attributedStringWithAttachment:attributes:
+attributedSubstringForProposedRange:actualRange:
+attributedSubstringFromRange:
+autoPairingAppHint
+autoRegistering
+availableGradientThemes
+backToCapturingTab
+backdrop
+backdropContainerView
+backdropRect
+backgroundShimmerWindowManager
+badgeBorderColor
+base64String
+basic_string
+blur
+blurFilter
+blurRadius
+blurbs
+blurbsErrorAlert
+blurred
+border
+borderColor
+borderVisibility
+borderWidth
+bordered
+bringPanelToFrontIfNeeded
+buffering
+bufferingNewest
+bufferingOldest
+buildFromString:
+buildFromString:error:
+buttonBorder
+cStringUsingEncoding:
+callStackReturnAddresses is empty, capturing current thread stack trace
+canShowAnimatedGradient
+canShowStaticGradient
+cancel(remoteIDString:browserContextID:contentID:)
+captureFailedRequestsEnabled is disabled, not capturing HTTP Client errors.
+captureOutput:didFinishCapturingDeferredPhotoProxy:error:
+capturingTab
+capturingTabID
+castBlur
+charactersIgnoringModifiers
+chatgpt-desktop-allow-app-pairing-default-on
+chatgpt-desktop-allow-app-pairing-hints-using-vision
+chatgpt-desktop-enabled-app-pairing-m1
+chatgpt-desktop-remove-app-pairing-hints-on-input-changed
+chatgpt-ios-disable-image-sharing-notice
+chatgpt-ios-disable-rich-image-sharing
+chatgpt-ios-enable-codex-task-sharing
+chatgpt-ios-enable-steering
+chatgpt-ios-voice-enable-background-screen-sharing-inactivity-session-end
+chatgpt_ios_fix_whatsapp_sharing
+chatgpt_sharing_multimodal
+checkSpellingOfString:startingAt:language:wrap:inSpellDocumentWithTag:wordCount:
+checkString:range:types:options:inSpellDocumentWithTag:orthography:wordCount:
+clearBorderWidth
+clearingInputFromSubmit
+clinical_engineering
+colorFromHexString:
+colorString
+com.onevcat.Kingfisher.BlurImageProcessor(
+com.onevcat.Kingfisher.BorderImageProcessor(
+com.openai.chatgpt.ClampedBlurProcessor(radius: 
+completionsForPartialWordRange:inString:language:inSpellDocumentWithTag:
+componentsJoinedByString:
+componentsSeparatedByString:
+compressedStringsBundle
+computeLayout(scrollOffsetPolicy:tabWidthsPolicy:ensuringTabVisible:)
+configuring
+contactBlur
+containsString:
+control:didFailToFormatString:errorDescription:
+control:didFailToValidatePartialString:errorDescription:
+controlAccentBorderColorSubject
+conversation_rendering.last_rendered_message_is_user_after_stream_closed
+convertToString
+copyableTranscriptsString
+createSessionDebugString:
+currentMaskAnimating
+currentMaskProgress
+currentSharingLevel
+customBorderColor
+dateFromString:
+delimToString:
+delivering_quietly
+desktopCapturing
+didDragDuringSingleClick
+didPasteStrings
+disallowed_event_substrings
+distString
+dragGestureMask
+draggingSession:sourceOperationMaskForDraggingContext:
+draggingSourceOperationMask
+editedMask
+eligibleAnnouncementStrings
+emojiString
+enableAppPairingAutoApplyPatches
+enableAppPairingBannerRedesign
+enableFastViewRendering
+enableScreenSharingSubject
+encodedJSONString(options:)
+enqueue(remoteIDString:browserContextID:contentID:)
+enumerateMatchesInString:options:range:usingBlock:
+enumerateRenderingAttributesFromLocation:reverse:usingBlock:
+enumerateSubstringsFromLocation:options:usingBlock:
+environmentString
+errorSharingTask
+escapedPatternForString:
+eventMask
+exitBackdropClicked
+expression is not a literal string value
+extraSharingServices
+failedToConvertDataToString
+failedToDecodeStringConvertibleValue
+featureFlagsDidChange(isAppPairingEnabled:visionEnabled:allowAppPairingDefaultOn:denylist:)
+featureValueWithString:
+feedURLStringForUpdater:
+fetchBlurbsTask
+fetchConnectorBlurbs(for:)
+fieldMaskConversion
+filter_value_string
+finalImageFailureLog(_:duringPrefetch:)
+finalImageFailureLog(duringPrefetch:)
+findGlyphForCharacterAtIndex:inString:
+findMatchesForString:relativeToMatch:findOptions:maxResults:resultCollector:
+finished_preparing
+firstMatchInString:options:range:
+geocodeAddressString:completionHandler:
+getAppPairingApplyContext(for:runningApplications:)
+getAppPairingWorkspaces(focusedContent:)
+getEventIdString:
+getNullableStringForKey:defaultValue:
+getObjectValue:forString:errorDescription:
+getSdkVersionString
+getStringForKey:defaultValue:
+get_type_string_func
+glassGradientEnabled
+glassGradientOpacity
+glassGradientPercentage
+google.protobuf.FieldMask
+google.protobuf.StringValue
+gradientEnabledForPaidUsers
+gradientLayer
+gradientMaskLayer
+gradientOverlayView
+gradientStride
+gradientTransform
+gradientUntilComplete
+gradient_enabled_for_paid_users
+handleGradientSelectionChange(_:)
+handleMoreDetails(for:attributedString:)
+hasBorder
+hasFocusRing
+hovering
+hoveringIndexPath
+hoveringItemID
+hoveringTrackingArea
+iconNeedsBorder
+indentString
+indeterminateGradient
+init(__markdownString:options:baseURL:)
+init(attributedString:)
+init(contentRect:styleMask:backing:defer:)
+init(contents:transform:opaque:opacity:clip:mask:)
+init(serverTimeString:)
+init(string:)
+init(string:attributes:)
+init(transform:opaque:opacity:clip:mask:id:)
+initWithAttributedString:
+initWithContentRect:styleMask:backing:defer:
+initWithEnableViewRendererV2:enableFastViewRendering:maskAllText:maskAllImages:maskedViewClasses:unmaskedViewClasses:excludedViewClasses:includedViewClasses:
+initWithMarkdownString:options:baseURL:error:
+initWithSessionSampleRate:onErrorSampleRate:maskAllText:maskAllImages:enableViewRendererV2:enableFastViewRendering:
+initWithString:
+initWithString:attributes:
+initWithString:didFailWithError:
+initWithString:position:range:font:atoms:
+initWithStringArray:
+initWithUUIDString:
+initialLayoutAttributesForAppearingItemAtIndexPath:
+initialLayoutAttributesForAppearingSupplementaryElementOfKind:atIndexPath:
+input of String.init(cString:encoding:) must be null-terminated
+inputEventLatencyRenderingScheduledImplComponent
+inputEventLatencyRenderingScheduledMainComponent
+insertAttributedString:atIndex:
+interruptShimmerWhenDisabled
+invalidAcceptSubstring
+invalidBase64String
+invalidStringEncoding
+ios.conversation_rendering
+ios.messages.image_sharing_format
+ios.rendering_duration
+isBlur
+isBuffering
+isDeliveringQuietly
+isEnabledForImageSharing
+isEnteringProximity
+isEqualToString:
+isFiltering
+isGradientThemeSyncedWithAccount
+isHovering
+isHoveringChipView
+isHoveringCloseButton
+isHoveringOverAddressBarBackground
+isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:
+isRendering
+isScreensharing
+isShimmering
+isString
+isStylusEnteringProximity
+is_enabled_for_image_sharing
+java_string_check_utf8
+jsString
+keepWhenEnteringBackground
+keyEquivalentModifierMask
+keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:
+labelWithString:
+lastObservedURLString
+loadHTMLString:baseURL:
+localizedStringByJoiningStrings:
+localizedStringForCalendarIdentifier:
+localizedStringForDate:relativeToDate:
+localizedStringForKey:value:table:
+localizedStringForLocaleIdentifier:
+localizedStringForStatusCode:
+localizedStringFromNumber:numberStyle:
+locationManager:didStartMonitoringForRegion:
+locationManager:monitoringDidFailForRegion:withError:
+locationSharingFailed
+locationSharingRequest
+locationSharingService
+locationSharingSuccess
+location_sharing_failed
+location_sharing_request
+location_sharing_success
+logEvent:stringValue:
+logEvent:stringValue:metadata:
+lowerUrlAsString
+lowercaseString
+machdep.cpu.brand_string
+malformedFieldMask
+malformedString
+markdownEditAskChatGPTAction(for:selectionRange:attributedString:)
+markdownEditMoreDetailsAction(for:selectionRange:attributedString:)
+mask
+mask-user-input
+maskAll
+maskAllImages
+maskAllInputs
+maskAllText
+maskDisallowed
+maskDuringRipple
+maskFileId
+maskLayer
+maskNonBundledOnly
+maskNone
+maskPlaceholder
+maskSensitiveInputs
+maskTransitionDurationActive
+maskTransitionDurationInitializing
+maskUserInput
+maskWidth
+mask_all
+mask_all_inputs
+mask_disallowed
+mask_non_bundled_only
+mask_none
+mask_placeholder
+mask_sensitive_inputs
+maskedViewClasses
+masksInHorizontalMode
+matchesInString:options:range:
+mathListToString:
+mediumspringgreen
+messageInputAppPairingBannerViewModel
+messageInputGradientEnabled
+messageInputGradientOpacity
+messageInputGradientPercentage
+mismatchedAudString
+modalBackdrop
+modifierMask
+monitoring
+monitoringCancellable
+monitoringFromUninstalledToRestore
+monitoringTask
+monitoringTimer
+monitoringWhenUninstalled
+moveSubsection(_:with:to:covering:processingTabs:)
+nameStringId
+nearing
+nextEventMatchingMask:untilDate:inMode:dequeue:
+normalTabsGradientMaskLocations
+notBorderedButtonBackgroundColor
+noteClientStringWillChange
+numberFromString:
+numberOfMatchesInString:options:range:
+numberString
+oai/apps/hasSeenAppPairingOnboarding
+offeringID
+offeringNotFound
+onGradientSelectionChanged
+operatingSystemVersionString
+operationMask
+orderingBehavior
+overlayMask
+owl.mojom.TabSharingSession
+parseISO8601DateString(_:supportsRelativeFormat:)
+partialStringPolicy
+peerConnection:didChangeIceGatheringState:
+plus_offering_id
+postSteeringRequest(_:additionalHeaders:)
+preparing
+preparing assertion
+preventRefreshingDuringStreams
+prevent_refreshing_during_streams
+privacyFilteringEnabled
+processExternalPairingRequest(forApp:inWorkspace:)
+processString:
+projectSharing
+q32@0:8@"NSString"16^@24
+queryString
+query_string
+rangeOfFirstMatchInString:options:range:
+rangeOfString:
+rangeOfString:options:
+re sharing this so you can be aware and support your child.
+readString
+receive_name specified a receive right which was moved into a port set during the call.
+receivedMessageUpdate(from:to:streamEncodingFormat:streamBufferingEnabled:bytes:modelSlug:conversationID:messageID:)
+recurringTimeFormatStyle
+referringVisitId
+referring_visit_id_$value
+removeAutoPairingAppHint
+removeRenderingAttribute:forTextRange:
+renderedHarmonyString
+renderingProgress
+renderingSurfaceBounds
+renderingTask
+replaceCharactersInRange:withAttributedString:
+replaceCharactersInRange:withString:
+replacementString
+requiresAppPairing
+return"string"==typeof encoding&&"plain"===encoding?async function(t){const r=await fetch(t,{method:"GET"});if(!r.ok)throw new Error(`HTTP ${r.status} ${r.statusText} 
+rich_image_sharing_enabled
+ring
+ringBuffer
+ringColor
+ringFontSize
+ringRadiusMultiplier
+ringScaleOverride
+ringTextBottom
+ringTextTop
+ringTracking
+ringWeight
+s redwood forests represent one of the most critical ecosystems in North America, offering unparalleled carbon storage, biodiversity, and watershed protection. By evaluating current challenges
+saveMask(_:with:strokes:didSave:maskURL:previewURL:)
+scanUpToString:intoString:
+scannerWithString:
+screenSharing
+screenSharingInactivity
+screenSharingInactivitySessionEndTask
+seenAppPairingTooltip
+selfCapturingTab
+sendCode(to:triggeringProduct:)
+sentryIdString
+sentryLevelFromString:
+sentrySpanIdString
+setAttributedString:
+setAttributedStringValue:
+setAutomaticallyAdjustsVideoMirroring:
+setAutoresizingMask:
+setBorderColor:
+setBorderType:
+setBorderWidth:
+setBordered:
+setColorString:
+setDistString:
+setDraggingSourceOperationMask:forLocal:
+setEnableFastViewRendering:
+setEnvironmentString:
+setEventIdString:event:
+setFocusRingType:
+setIsGradientThemeSyncedWithAccount
+setIsGradientThemeSyncedWithAccount(_:)
+setIsHoveringOnSideChatButton
+setKeyEquivalentModifierMask:
+setLocationSharingEnabled(_:source:)
+setMask:
+setMaskAllImages:
+setMaskAllText:
+setMaskedViewClasses:
+setMasksToBounds:
+setMeteringEnabled:
+setMonitoring:
+setMonitoringFromUninstalledToRestore:
+setMonitoringWhenUninstalled:
+setNameFieldStringValue:
+setPlaceholderString:
+setQueryString:
+setRenderingAttributes:forTextRange:
+setSdkName:andVersionString:
+setString:
+setString:forType:
+setStringValue:
+setStyleMask:
+setTranslatesAutoresizingMaskIntoConstraints:
+setUnmaskedViewClasses:
+setVersionString:
+setupCapturing()
+setupTextView(hasFocusRing:)
+sharing
+sharingLevels
+sharingPicker
+sharingServicePicker:delegateForSharingService:
+sharingServicePicker:didChooseSharingService:
+sharingServicePicker:sharingServicesForItems:proposedSharingServices:
+sharingServicePickerCollaborationModeRestrictions:
+sharingTargets
+shimmerColor
+shimmerDuration
+shimmerUpdateInterval
+shimmerWindow
+shimmerWindowCloseObserver
+shimmer_duration_ms
+shimmeringTitle
+shouldAllowStringsToPaste
+shouldChangeTextInRange:replacementString:
+shouldChangeTextInRanges:replacementStrings:
+shouldMonitorScreenSharingInactivity
+shouldReplaceCharactersInRanges:withStrings:
+showBorder
+showCorrectionIndicatorOfType:primaryString:alternativeStrings:forStringInRect:view:completionHandler:
+showDefinitionForAttributedString:range:options:baselineOriginProvider:
+showTabSharingMenu
+showsAppPairingUI
+simpleMeshGradient
+spring
+springAnimation
+springer.com
+standardWindowButton:forStyleMask:
+startMonitoring()
+startPairing
+startScreenSharing
+start_pairing
+steeringVersion
+stopPairing
+stopScreenSharing
+stopSharing
+stop_pairing
+streamBufferingEnabled
+stream_buffering
+string
+stringArray
+stringArrayForKey:
+stringAtIndex:effectiveRange:endsWithSearchBoundary:
+stringByAppendingPathComponent:
+stringByAppendingPathExtension:
+stringByAppendingString:
+stringByDeletingLastPathComponent
+stringByDeletingPathExtension
+stringByExpandingTildeInPath
+stringByReplacingCharactersInRange:withString:
+stringByReplacingMatchesInString:options:range:withTemplate:
+stringByReplacingOccurrencesOfString:withString:
+stringByTrimmingCharactersInSet:
+stringForKey:
+stringForNameSource:
+stringForObjectValue:
+stringForType:
+stringFromByteCount:
+stringFromDate:
+stringFromDateComponents:
+stringFromNumber:
+stringFromTimeInterval:
+stringId
+stringLength
+stringLiteral
+stringPiece
+stringStorage
+stringValue
+stringWithCString:encoding:
+stringWithCapacity:
+stringWithCharacters:length:
+stringWithContentsOfFile:encoding:error:
+stringWithFormat:
+stringWithString:
+stringWithUTF8String:
+string_value
+strings
+stringsArray
+strokeBorder
+styleMask
+subsectionBackdrop
+subsectionBackdropHighlights
+substring
+substringFromIndex:
+substringToIndex:
+substringWithRange:
+supports32BitFloatFiltering
+supportsBuffering
+supportsPrimitiveMotionBlur
+svgIconRenderingMode
+tabCapturing
+tabSharingSession
+tableBorderCornerRadius
+tabslot-mask-overlay
+tabslot-mask-position-x
+targetMaskProgress
+taskSharingCancelled
+task_sharing_cancelled
+tearDownCapturing()
+textView:shouldChangeTextInRange:replacementString:
+textView:shouldChangeTextInRanges:replacementStrings:
+textView:willShowSharingServicePicker:forItems:
+toJSONEncodedCString:
+toString
+tool:app-pairing
+toolAppPairing
+toolTipString
+topGradientMaskLayer
+touchMovedDuringReleaseToSend
+triggeringProduct
+triggeringUserName
+triggering_product
+typeString
+unmaskedViewClasses
+unsupportedAccountSharing
+unsupported_account_sharing
+updateSharingLevel
+uploadMaskAfterConfirmation(maskURL:previewURL:originalImageURL:source:generationID:strokes:)
+uring
+urlAsString
+urlString
+urlStringForEditing
+urlWithReplacementString
+useDeterministicOrdering
+useGradient
+useLimitedPlaybackForAnimatedGradient
+v16@?0@"NSString"8
+v24@0:8@"NSString"16
+v24@?0@"NSString"8@"NSError"16
+v24@?0Q8@"NSString"16
+v28@0:8B16@"NSString"20
+v32@0:8@"NSData"16@"NSString"24
+v32@0:8@"NSSharingServicePicker"16@"NSSharingService"24
+v32@0:8@"NSString"16@"NSNumber"24
+v32@0:8@"NSString"16@"NSString"24
+v32@0:8@"NSXMLParser"16@"NSString"24
+v32@0:8@16@"NSString"24
+v32@?0@"NSString"8@"NSDictionary"16^B24
+v40@0:8@"NSApplication"16@"NSString"24@"NSError"32
+v40@0:8@"NSControl"16@"NSString"24@"NSString"32
+v40@0:8@"NSString"16@"MTLCompileOptions"24@?<v@?@"<MTLLibrary>"@"NSError">32
+v40@0:8@"NSString"16@"NSCoder"24@?<v@?@"NSWindow"@"NSError">32
+v40@0:8@"NSString"16@"NSNumber"24@"SentryMeasurementUnit"32
+v40@0:8@"NSString"16@24@"NSDictionary"32
+v40@0:8@"NSURLSession"16@"NSURLSessionWebSocketTask"24@"NSString"32
+v40@0:8@"NSXMLParser"16@"NSString"24@"NSString"32
+v40@0:8@"WKUserContentController"16@"WKScriptMessage"24@?<v@?@@"NSString">32
+v40@0:8@16@"NSString"24@32
+v40@0:8{_NSRange=QQ}16@"NSString"32
+v40@?0@"NSString"8@"NSTextRange"16@"NSTextRange"24^B32
+v48@0:8@"NSCollectionView"16@"NSView"24@"NSString"32@"NSIndexPath"40
+v48@0:8@"NSXMLParser"16@"NSString"24@"NSString"32@"NSString"40
+v48@0:8@"WKDownload"16@"NSURLResponse"24@"NSString"32@?<v@?@"NSURL">40
+v48@0:8@16:24@"NSString"32@40
+v52@0:8@"LKRTCPeerConnection"16@"LKRTCIceCandidate"24@"LKRTCIceCandidate"32i40@"NSString"44
+v56@0:8@"NSXMLParser"16@"NSString"24@"NSString"32@"NSString"40@"NSDictionary"48
+v56@0:8@"NSXMLParser"16@"NSString"24@"NSString"32@"NSString"40@"NSString"48
+valueString
+verify(_:with:triggeringProduct:)
+versionString
+view:stringForToolTip:point:userData:
+viewsRequiringManualOnDismiss
+voiceScreenSharing
+voice_screen_sharing
+was_new_user_during_default_search_experiment
+windowForSharingRequestFromWindow:
+ySaySo16NSSharingServiceCGG
+ySaySo8NSStringCG
+ySaySo8NSStringCGSiG
+ySo18NSAttributedStringC
+ySo18NSAttributedStringCG
+ySo18NSAttributedStringCGSg
+ySo18NSAttributedStringCGSgG
+ySo18NSAttributedStringCSgG
+ySo18NSAttributedStringC_G
+ySo18NSAttributedStringC_GSSG
+ySo18NSAttributedStringCc
+ySo18NSAttributedStringCcSg
+ySo8NSStringCG
+ySo8NSStringCSbG
+ySo8NSStringC_SbtG
+yXlSgSo8NSStringCSgIeyBhyy_
+y_SaySo18NSAttributedStringCG
+y_SaySo18NSAttributedStringCGAEG
+y_SaySo18NSAttributedStringCGAFG
+y_SaySo18NSAttributedStringCGAGG
+yytAFGGALGGSo18NSAttributedStringCG

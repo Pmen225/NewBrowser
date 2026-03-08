@@ -489,6 +489,8 @@ async function clearPanelThread(cdp, sessionId) {
     cdp,
     sessionId,
     `(() => {
+      const CHAT_SESSIONS_STORAGE_KEY = "ui.chatSessions";
+      chrome.storage?.local?.remove?.([CHAT_SESSIONS_STORAGE_KEY], () => void chrome.runtime?.lastError);
       const button = Array.from(document.querySelectorAll("button")).find((node) => node.textContent?.trim() === "New chat");
       if (button) {
         button.click();
@@ -708,13 +710,38 @@ async function callExtensionBenchmarkApi(cdp, sessionId, method, payload) {
   );
 }
 
+async function resolveChromeTabIdByUrl(cdp, sessionId, tabUrl) {
+  return evaluate(
+    cdp,
+    sessionId,
+    `(() => new Promise((resolve) => {
+      const targetUrl = ${JSON.stringify(tabUrl)};
+      const normalize = (value) => typeof value === "string" ? value.trim() : "";
+      chrome.tabs.query({}, (tabs) => {
+        const error = chrome.runtime.lastError;
+        if (error) {
+          resolve(null);
+          return;
+        }
+        const match = (Array.isArray(tabs) ? tabs : []).find((tab) => {
+          const currentUrl = normalize(tab?.pendingUrl) || normalize(tab?.url);
+          return currentUrl === targetUrl;
+        });
+        resolve(typeof match?.id === "number" ? match.id : null);
+      });
+    }))()`
+  );
+}
+
 export async function runLivePanelCheck({
   cdpWsUrl,
   rpcUrl = process.env.LIVE_RPC_URL?.trim() || "ws://127.0.0.1:3210/rpc",
   targetUrl = process.env.LIVE_TARGET_URL?.trim() || process.env.LIVE_SITE_URL?.trim() || "https://the-internet.herokuapp.com/",
   prompt = process.env.LIVE_PROMPT?.trim() || "",
+  steerPrompt = process.env.LIVE_STEER_PROMPT?.trim() || "",
   siteEvalSource = process.env.LIVE_SITE_EVAL?.trim() || "",
   timeoutMs = Number.parseInt(process.env.LIVE_RESULT_TIMEOUT_MS ?? process.env.LIVE_TIMEOUT_MS ?? "180000", 10),
+  steerDelayMs = Number.parseInt(process.env.LIVE_STEER_DELAY_MS ?? "2500", 10),
   outputDir = resolveOutputDir(),
   provider = process.env.LIVE_PROVIDER?.trim() || "google",
   modelId = process.env.LIVE_MODEL?.trim() || "",
@@ -760,14 +787,6 @@ export async function runLivePanelCheck({
     await navigateSession(cdp, site.sessionId, benchmarkWorkspace.siteUrl);
     console.log(`Loaded target page: ${benchmarkWorkspace.siteUrl}`);
 
-    await rpcCall(rpcUrl, "SetActiveTab", {
-      chrome_tab_id: 0,
-      target_id: site.targetId,
-      url: benchmarkWorkspace.siteUrl,
-      title: await evaluate(cdp, site.sessionId, "document.title")
-    });
-    console.log(`Synced active tab to target ${site.targetId}`);
-
     panel = await createPageSession(cdp);
     createdTargets.push(panel.targetId);
     await navigateSession(cdp, panel.sessionId, benchmarkWorkspace.panelUrl);
@@ -781,6 +800,15 @@ export async function runLivePanelCheck({
       15_000
     );
     console.log("Panel composer is visible");
+
+    const chromeTabId = await resolveChromeTabIdByUrl(cdp, panel.sessionId, benchmarkWorkspace.siteUrl);
+    await rpcCall(rpcUrl, "SetActiveTab", {
+      chrome_tab_id: typeof chromeTabId === "number" ? chromeTabId : 0,
+      target_id: site.targetId,
+      url: benchmarkWorkspace.siteUrl,
+      title: await evaluate(cdp, site.sessionId, "document.title")
+    });
+    console.log(`Synced active tab to target ${site.targetId}${typeof chromeTabId === "number" ? ` (chrome tab ${chromeTabId})` : ""}`);
 
     const registerResult = await callExtensionBenchmarkApi(cdp, panel.sessionId, "register", [
       benchmarkWorkspace.benchmarkMarker,
@@ -822,8 +850,28 @@ export async function runLivePanelCheck({
       console.log(`Sending prompt: ${prompt}`);
       const startedAt = Date.now();
       await sendPrompt(cdp, panel.sessionId, prompt);
+      const steerPromise = steerPrompt
+        ? (async () => {
+            await sleep(Number.isFinite(steerDelayMs) && steerDelayMs >= 0 ? steerDelayMs : 2_500);
+            await waitForFunction(
+              cdp,
+              panel.sessionId,
+              `(() => document.getElementById("btn-send")?.classList.contains("stop-mode") ?? false)()`,
+              10_000
+            ).catch(() => undefined);
+            console.log(`Queueing steer prompt: ${steerPrompt}`);
+            await sendPrompt(cdp, panel.sessionId, steerPrompt);
+            return true;
+          })().catch((error) => {
+            console.warn(`Failed to queue steer prompt: ${error instanceof Error ? error.message : String(error)}`);
+            return false;
+          })
+        : null;
       try {
         panelState = await waitForAssistantResult(cdp, panel.sessionId, timeoutMs);
+        if (steerPromise) {
+          await steerPromise;
+        }
         elapsedMs = Date.now() - startedAt;
         console.log(`Assistant result: ${panelState.assistantText}`);
       } catch (error) {

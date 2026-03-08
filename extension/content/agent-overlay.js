@@ -1,136 +1,240 @@
-// Atlas Agent Overlay — v3, matches Atlas reference UI.
-// Light dim + white dot grid + arrow cursor + floating 2-row card bar.
 (function () {
-  'use strict';
-  if (document.getElementById('atlas-agent-overlay-root')) return;
+  "use strict";
 
-  // Sentinel so guard works even if <body> is replaced
-  const root = document.createElement('div');
-  root.id = 'atlas-agent-overlay-root';
-  root.style.cssText = 'display:none!important;pointer-events:none';
+  if (document.getElementById("atlas-agent-overlay-root")) {
+    return;
+  }
+
+  const PHASE_LABELS = {
+    thinking: "Thinking",
+    planning: "Planning",
+    navigating: "Navigating",
+    reading: "Reading",
+    extracting: "Extracting",
+    typing: "Typing",
+    verifying: "Verifying",
+  };
+
+  const root = document.createElement("div");
+  root.id = "atlas-agent-overlay-root";
   document.documentElement.appendChild(root);
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // STYLES
-  // ═══════════════════════════════════════════════════════════════════════════
-  const style = document.createElement('style');
-  style.id = 'atlas-agent-styles';
+  const style = document.createElement("style");
+  style.id = "atlas-agent-overlay-style";
   style.textContent = `
-    /* ── Dim overlay ─────────────────────────────────────────────────────── */
+    #atlas-agent-overlay-root {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2147483634;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    }
+    #atlas-agent-overlay-root * {
+      box-sizing: border-box;
+    }
+    .atlas-layer {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .atlas-layer.atlas-in {
+      opacity: 1;
+    }
+    .atlas-layer.atlas-out {
+      opacity: 0;
+      transition-duration: 0.28s;
+    }
+
+    #atlas-desat {
+      background: rgba(116, 124, 142, 0.78);
+      mix-blend-mode: saturation;
+    }
+
     #atlas-dim {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.18);
-      pointer-events: none;
-      z-index: 2147483638;
-      opacity: 0;
-      transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1);
+      background:
+        radial-gradient(circle at center, rgba(13, 15, 23, 0.04), rgba(13, 15, 23, 0.2)),
+        rgba(10, 12, 18, 0.18);
     }
-    #atlas-dim.atlas-in  { opacity: 1; }
-    #atlas-dim.atlas-out { opacity: 0; transition: opacity 0.4s ease; }
-    #atlas-dim.paused    { background: rgba(0,0,0,0.08); }
+    #atlas-dim.atlas-paused {
+      background: rgba(10, 12, 18, 0.08);
+    }
 
-    /* ── White dot grid ──────────────────────────────────────────────────── */
+    #atlas-glow {
+      background:
+        radial-gradient(ellipse 64% 48% at 100% 0%, oklch(55.25% 0.085 207.66 / 0.22) 0%, transparent 72%),
+        radial-gradient(ellipse 60% 46% at 0% 0%, oklch(55.25% 0.085 207.66 / 0.18) 0%, transparent 68%),
+        radial-gradient(ellipse 60% 46% at 100% 100%, oklch(55.25% 0.085 207.66 / 0.16) 0%, transparent 68%),
+        radial-gradient(ellipse 56% 44% at 0% 100%, oklch(55.25% 0.085 207.66 / 0.13) 0%, transparent 64%);
+    }
+    #atlas-glow.atlas-in {
+      animation: atlas-glow-breathe 5.4s ease-in-out infinite;
+    }
+    @keyframes atlas-glow-breathe {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.1); }
+    }
+
     #atlas-dots {
-      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.48) 1px, transparent 0);
+      background-size: 20px 20px;
+      -webkit-mask-image: radial-gradient(ellipse 76% 82% at 50% 52%, black 22%, transparent 74%);
+      mask-image: radial-gradient(ellipse 76% 82% at 50% 52%, black 22%, transparent 74%);
+      transition-delay: 100ms;
+    }
+    #atlas-dots::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.2) 48%, transparent 100%),
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.14), transparent 62%);
+      mix-blend-mode: screen;
+      animation:
+        atlas-dots-sweep 4.6s cubic-bezier(0.16, 1, 0.3, 1) infinite,
+        atlas-dots-drift 8.8s linear infinite;
+    }
+    #atlas-dots.atlas-in {
+      animation: atlas-dots-breathe 3.1s ease-in-out infinite;
+    }
+    @keyframes atlas-dots-breathe {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.78; }
+    }
+    @keyframes atlas-dots-drift {
+      0% { transform: translate3d(-10px, -10px, 0); }
+      100% { transform: translate3d(10px, 10px, 0); }
+    }
+    @keyframes atlas-dots-sweep {
+      0%, 100% { transform: translateX(-6%); opacity: 0.32; }
+      50% { transform: translateX(6%); opacity: 0.7; }
+    }
+
+    #atlas-stroke-host {
+      position: absolute;
+      inset: 0;
+      overflow: visible;
       pointer-events: none;
-      z-index: 2147483639;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 0);
-      background-size: 22px 22px;
-      -webkit-mask-image: radial-gradient(ellipse 88% 82% at 50% 50%, black 30%, transparent 100%);
-              mask-image: radial-gradient(ellipse 88% 82% at 50% 50%, black 30%, transparent 100%);
-      opacity: 0;
-      transition: opacity 0.7s ease 0.2s;
     }
-    #atlas-dots.atlas-in  { opacity: 1; }
-    #atlas-dots.atlas-out { opacity: 0; transition: opacity 0.3s ease; }
-
-    /* ── Arrow cursor ────────────────────────────────────────────────────── */
-    #atlas-cursor {
-      position: fixed;
-      width: 24px; height: 24px;
-      pointer-events: none;
-      z-index: 2147483647;
-      opacity: 0;
-      transition:
-        left    0.55s cubic-bezier(0.16,1,0.3,1),
-        top     0.55s cubic-bezier(0.16,1,0.3,1),
-        opacity 0.30s ease;
-    }
-    #atlas-cursor.atlas-visible { opacity: 1; }
-    #atlas-cursor svg {
-      width: 24px; height: 24px;
-      filter: drop-shadow(0 1px 4px rgba(0,0,0,0.50));
-      transition: transform 0.12s cubic-bezier(0.4,0,0.2,1);
-    }
-    #atlas-cursor.atlas-click svg { transform: scale(0.78); }
-
-    /* ── Label capsule ───────────────────────────────────────────────────── */
-    #atlas-label {
-      position: fixed;
-      padding: 5px 13px;
-      border-radius: 999px;
-      background: rgba(12,12,18,0.84);
-      backdrop-filter: blur(14px) saturate(1.6);
-      -webkit-backdrop-filter: blur(14px) saturate(1.6);
-      border: 1px solid rgba(255,255,255,0.10);
-      color: rgba(255,255,255,0.90);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-      font-size: 12px; font-weight: 500; letter-spacing: -0.01em;
-      white-space: nowrap;
-      pointer-events: none;
-      z-index: 2147483647;
-      opacity: 0;
-      transform: translateY(3px);
-      transition:
-        left      0.55s cubic-bezier(0.16,1,0.3,1),
-        top       0.55s cubic-bezier(0.16,1,0.3,1),
-        opacity   0.25s ease,
-        transform 0.25s ease;
-    }
-    #atlas-label.atlas-visible { opacity: 1; transform: translateY(0); }
-
-    /* ── Click ripple ────────────────────────────────────────────────────── */
-    .atlas-ripple {
-      position: fixed; border-radius: 50%;
-      pointer-events: none; z-index: 2147483646;
-      width: 28px; height: 28px;
-      border: 1.5px solid rgba(0,122,255,0.70);
-      transform: translate(-50%,-50%) scale(0);
-      animation: _atlas-ripple 0.62s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    .atlas-ripple-outer {
-      border-color: rgba(0,122,255,0.30);
-      animation: _atlas-ripple 0.84s cubic-bezier(0.16,1,0.3,1) 0.05s both;
-    }
-    @keyframes _atlas-ripple {
-      0%   { transform: translate(-50%,-50%) scale(0);   opacity: 1; }
-      100% { transform: translate(-50%,-50%) scale(3.8); opacity: 0; }
-    }
-
-    /* ── Floating card bar ───────────────────────────────────────────────── */
-    #atlas-bar {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      width: 360px;
-      z-index: 2147483648;
-      background: rgba(20,20,28,0.93);
-      backdrop-filter: blur(32px) saturate(1.8);
-      -webkit-backdrop-filter: blur(32px) saturate(1.8);
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.09);
+    .atlas-stroke-rect {
+      position: absolute;
+      border-radius: 8px;
+      border: 2px solid rgba(0, 122, 255, 0.88);
       box-shadow:
-        0 0 0 1px rgba(0,122,255,0.35),
-        0 0 20px 6px rgba(0,122,255,0.16),
-        0 8px 32px rgba(0,0,0,0.48);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-      pointer-events: auto;
+        0 0 0 3px rgba(0, 122, 255, 0.2),
+        0 0 24px rgba(0, 122, 255, 0.12);
+      animation:
+        atlas-stroke-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both,
+        atlas-stroke-pulse 1.9s ease-in-out infinite 220ms;
+    }
+    .atlas-stroke-rect.atlas-out {
+      animation: none;
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+    @keyframes atlas-stroke-in {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes atlas-stroke-pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2), 0 0 24px rgba(0, 122, 255, 0.12); }
+      50% { box-shadow: 0 0 0 7px rgba(0, 122, 255, 0.08), 0 0 28px rgba(0, 122, 255, 0.18); }
+    }
+
+    .atlas-ripple {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1.5px solid rgba(0, 122, 255, 0.74);
+      transform: translate(-50%, -50%) scale(0);
+      animation: atlas-ripple 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .atlas-ripple.atlas-ripple-outer {
+      border-color: rgba(0, 122, 255, 0.28);
+      animation-duration: 760ms;
+      animation-delay: 40ms;
+    }
+    @keyframes atlas-ripple {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(4); }
+    }
+
+    #atlas-cursor {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 26px;
+      height: 26px;
+      opacity: 0;
+      transform: translate3d(0, 0, 0);
+      transition:
+        transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 180ms ease;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.62)) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
+    }
+    #atlas-cursor.atlas-visible {
+      opacity: 1;
+    }
+    #atlas-cursor.atlas-click svg {
+      transform: scale(0.78);
+    }
+    #atlas-cursor svg {
+      width: 100%;
+      height: 100%;
+      transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #atlas-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(12, 14, 20, 0.84);
+      color: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px) saturate(1.55);
+      -webkit-backdrop-filter: blur(16px) saturate(1.55);
+      font-size: 12px;
+      font-weight: 520;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(4px);
+      transition:
+        opacity 180ms ease,
+        transform 180ms ease,
+        left 520ms cubic-bezier(0.16, 1, 0.3, 1),
+        top 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #atlas-label.atlas-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #atlas-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 30px;
+      width: min(380px, calc(100vw - 24px));
+      transform: translateX(-50%) translateY(18px);
+      border-radius: 16px;
+      background: rgba(20, 22, 30, 0.84);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow:
+        0 0 0 1px rgba(0, 122, 255, 0.22),
+        0 14px 36px rgba(0, 0, 0, 0.45),
+        0 0 30px rgba(0, 122, 255, 0.12);
+      backdrop-filter: blur(24px) saturate(1.45);
+      -webkit-backdrop-filter: blur(24px) saturate(1.45);
       overflow: hidden;
+      pointer-events: auto;
       opacity: 0;
       transition:
-        opacity   0.42s cubic-bezier(0.16,1,0.3,1),
-        transform 0.42s cubic-bezier(0.16,1,0.3,1);
+        opacity 420ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
     }
     #atlas-bar.atlas-in {
       opacity: 1;
@@ -138,370 +242,564 @@
     }
     #atlas-bar.atlas-out {
       opacity: 0;
-      transform: translateX(-50%) translateY(16px);
-      transition: opacity 0.32s ease, transform 0.32s ease;
+      transform: translateX(-50%) translateY(14px);
+      transition-duration: 240ms;
     }
-    #atlas-bar * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* Row 1 — logged-in status */
+    #atlas-bar-row1,
+    #atlas-bar-row2 {
+      display: flex;
+      align-items: center;
+    }
     #atlas-bar-row1 {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 14px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      gap: 10px;
+      padding: 12px 14px;
     }
     #atlas-bar-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #34c759; flex-shrink: 0;
-      animation: _atlas-green-pulse 2s ease-in-out infinite;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #34c759;
+      flex-shrink: 0;
+      animation: atlas-live-dot 2.1s ease-in-out infinite;
     }
-    #atlas-bar-dot.paused { background: #ff9f0a; animation: none; }
-    @keyframes _atlas-green-pulse {
-      0%,100% { box-shadow: 0 0 0 0   rgba(52,199,89,0.50); }
-      55%     { box-shadow: 0 0 0 4px rgba(52,199,89,0);    }
+    #atlas-bar-dot.paused {
+      background: #ff9f0a;
+      animation: none;
+    }
+    @keyframes atlas-live-dot {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.48); }
+      55% { box-shadow: 0 0 0 5px rgba(52, 199, 89, 0); }
     }
     #atlas-bar-status {
-      font-size: 11.5px; font-weight: 500;
-      color: rgba(255,255,255,0.62); letter-spacing: -0.01em;
-      flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1;
+      font-size: 11.5px;
+      font-weight: 520;
+      color: rgba(255, 255, 255, 0.7);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 140ms ease;
     }
-
-    /* Row 2 — site + buttons */
+    #atlas-bar-status.atlas-fade {
+      opacity: 0;
+    }
     #atlas-bar-row2 {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 10px 10px 14px;
+      gap: 10px;
+      padding: 10px 12px 12px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
     #atlas-bar-favicon {
-      width: 16px; height: 16px; border-radius: 3px;
-      flex-shrink: 0; object-fit: contain;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.08);
     }
     #atlas-bar-hostname {
-      font-size: 12px; font-weight: 500;
-      color: rgba(255,255,255,0.75); letter-spacing: -0.01em;
-      flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1;
+      font-size: 12px;
+      font-weight: 560;
+      color: rgba(255, 255, 255, 0.82);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    #atlas-bar-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    #atlas-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
     .atlas-btn {
-      display: inline-flex; align-items: center; height: 28px; padding: 0 12px;
-      border-radius: 7px; border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.80);
-      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em;
-      cursor: pointer; white-space: nowrap;
-      transition: background 130ms ease, border-color 130ms ease, transform 80ms ease;
-      -webkit-user-select: none; user-select: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 88px;
+      height: 30px;
+      padding: 0 14px;
+      border-radius: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.84);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 620;
+      cursor: pointer;
+      transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        transform 90ms ease,
+        opacity 120ms ease;
     }
-    .atlas-btn:hover  { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
-    .atlas-btn:active { transform: scale(0.94); }
+    .atlas-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .atlas-btn:active {
+      transform: scale(0.96);
+    }
+    .atlas-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+      transform: none;
+    }
     .atlas-btn-primary {
-      background: rgba(0,122,255,0.88); border-color: transparent; color: #fff;
+      color: #fff;
+      border-color: rgba(107, 178, 255, 0.44);
+      background: linear-gradient(180deg, rgba(41, 140, 255, 1), rgba(0, 108, 255, 0.92));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
     }
-    .atlas-btn-primary:hover { background: rgba(0,122,255,1); }
+    .atlas-btn-primary:hover {
+      background: linear-gradient(180deg, rgba(48, 148, 255, 1), rgba(7, 116, 255, 0.95));
+    }
     .atlas-btn-stop {
-      background: rgba(255,59,48,0.10); border-color: rgba(255,59,48,0.22);
-      color: rgba(255,69,58,0.90);
+      color: rgba(255, 118, 111, 1);
+      border-color: rgba(255, 86, 76, 0.34);
+      background: rgba(255, 64, 53, 0.14);
     }
-    .atlas-btn-stop:hover { background: rgba(255,59,48,0.20); border-color: rgba(255,59,48,0.40); }
+    .atlas-btn-stop:hover {
+      background: rgba(255, 64, 53, 0.2);
+      border-color: rgba(255, 114, 106, 0.48);
+    }
 
-    /* ── Stroke highlight ────────────────────────────────────────────────── */
-    #atlas-stroke-host {
-      position: fixed; inset: 0; pointer-events: none; z-index: 2147483641; overflow: visible;
+    @media (prefers-color-scheme: light) {
+      #atlas-bar {
+        background: rgba(252, 252, 255, 0.88);
+        border-color: rgba(12, 24, 42, 0.14);
+        box-shadow:
+          0 0 0 1px rgba(12, 24, 42, 0.06),
+          0 14px 32px rgba(16, 30, 52, 0.16),
+          0 0 24px rgba(0, 122, 255, 0.08);
+      }
+      #atlas-bar-status {
+        color: rgba(12, 24, 42, 0.7);
+      }
+      #atlas-bar-hostname {
+        color: rgba(12, 24, 42, 0.82);
+      }
+      .atlas-btn {
+        color: rgba(12, 24, 42, 0.82);
+        background: rgba(19, 36, 58, 0.06);
+        border-color: rgba(12, 24, 42, 0.16);
+      }
+      .atlas-btn-stop {
+        color: rgba(211, 62, 54, 0.92);
+        background: rgba(214, 71, 63, 0.1);
+        border-color: rgba(214, 71, 63, 0.26);
+      }
+      #atlas-label {
+        background: rgba(248, 250, 255, 0.9);
+        color: rgba(12, 24, 42, 0.86);
+        border-color: rgba(12, 24, 42, 0.08);
+      }
     }
-    .atlas-stroke-rect {
-      position: absolute; border-radius: 6px;
-      border: 2px solid rgba(0,122,255,0.85);
-      box-shadow: 0 0 0 3px rgba(0,122,255,0.18), inset 0 0 0 1px rgba(0,122,255,0.12);
-      animation:
-        _atlas-stroke-in    0.3s cubic-bezier(0.16,1,0.3,1) both,
-        _atlas-stroke-pulse 2s  ease-in-out 0.3s infinite;
-      pointer-events: none;
-    }
-    @keyframes _atlas-stroke-in {
-      from { opacity: 0; transform: scale(0.96); }
-      to   { opacity: 1; transform: scale(1);    }
-    }
-    @keyframes _atlas-stroke-pulse {
-      0%,100% { box-shadow: 0 0 0 3px rgba(0,122,255,0.18), inset 0 0 0 1px rgba(0,122,255,0.12); }
-      50%     { box-shadow: 0 0 0 6px rgba(0,122,255,0.08), inset 0 0 0 1px rgba(0,122,255,0.08); }
-    }
-    .atlas-stroke-rect.atlas-out {
-      animation: none; opacity: 0; transition: opacity 0.25s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      .atlas-layer,
+      #atlas-cursor,
+      #atlas-label,
+      #atlas-bar,
+      .atlas-stroke-rect,
+      .atlas-ripple,
+      #atlas-bar-status {
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+      }
     }
   `;
   document.head.appendChild(style);
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BUILD DOM
-  // ═══════════════════════════════════════════════════════════════════════════
-  const html = document.documentElement;
+  function createLayer(id, className) {
+    const element = document.createElement("div");
+    element.id = id;
+    element.className = className ? `atlas-layer ${className}` : "atlas-layer";
+    root.appendChild(element);
+    return element;
+  }
 
-  // 1 — Dim overlay
-  const dim = document.createElement('div');
-  dim.id = 'atlas-dim';
-  html.appendChild(dim);
-  requestAnimationFrame(() => dim.classList.add('atlas-in'));
+  const desat = createLayer("atlas-desat");
+  const dim = createLayer("atlas-dim");
+  const glow = createLayer("atlas-glow");
+  const dots = createLayer("atlas-dots");
 
-  // 2 — White dot grid
-  const dots = document.createElement('div');
-  dots.id = 'atlas-dots';
-  html.appendChild(dots);
-  requestAnimationFrame(() => dots.classList.add('atlas-in'));
+  const strokeHost = document.createElement("div");
+  strokeHost.id = "atlas-stroke-host";
+  root.appendChild(strokeHost);
 
-  // 3 — Arrow cursor
-  const cursor = document.createElement('div');
-  cursor.id = 'atlas-cursor';
-  // Classic system pointer — white fill, thin black outline
-  cursor.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M5.5 2.5 L19.5 11.5 L13 13.5 L10 21 Z"
-      fill="white" stroke="rgba(0,0,0,0.50)" stroke-width="1.2"
-      stroke-linejoin="round" stroke-linecap="round"/>
-    <path d="M13 13.5 L16.5 19.5"
-      fill="none" stroke="white" stroke-width="2.8"
-      stroke-linecap="round"/>
-    <path d="M13 13.5 L16.5 19.5"
-      fill="none" stroke="rgba(0,0,0,0.40)" stroke-width="4"
-      stroke-linecap="round"/>
-  </svg>`;
-  html.appendChild(cursor);
+  const cursor = document.createElement("div");
+  cursor.id = "atlas-cursor";
+  cursor.innerHTML = `
+    <svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path
+        d="M4 2.4 L20.8 12.4 L13.3 14.1 L10.8 22.8 Z"
+        fill="#ffffff"
+        stroke="rgba(0,0,0,0.58)"
+        stroke-width="1.08"
+        stroke-linejoin="round"
+        stroke-linecap="round"
+      />
+      <path
+        d="M13.1 14.1 L17.7 21"
+        fill="none"
+        stroke="rgba(0,0,0,0.5)"
+        stroke-width="1.6"
+        stroke-linecap="round"
+      />
+    </svg>
+  `;
+  root.appendChild(cursor);
 
-  // 4 — Label capsule
-  const labelEl = document.createElement('div');
-  labelEl.id = 'atlas-label';
-  html.appendChild(labelEl);
+  const labelEl = document.createElement("div");
+  labelEl.id = "atlas-label";
+  labelEl.textContent = "Working…";
+  root.appendChild(labelEl);
 
-  // 5 — Floating 2-row card bar
-  const bar = document.createElement('div');
-  bar.id = 'atlas-bar';
+  const bar = document.createElement("div");
+  bar.id = "atlas-bar";
+  bar.innerHTML = `
+    <div id="atlas-bar-row1">
+      <span id="atlas-bar-dot"></span>
+      <span id="atlas-bar-status">Browser control active</span>
+    </div>
+    <div id="atlas-bar-row2">
+      <img id="atlas-bar-favicon" alt="" />
+      <span id="atlas-bar-hostname"></span>
+      <div id="atlas-bar-actions">
+        <button id="atlas-take-control" class="atlas-btn atlas-btn-primary" type="button">Take control</button>
+        <button id="atlas-stop" class="atlas-btn atlas-btn-stop" type="button">Stop</button>
+      </div>
+    </div>
+  `;
+  root.appendChild(bar);
 
-  // Row 1: status
-  const row1 = document.createElement('div');
-  row1.id = 'atlas-bar-row1';
-  const statusDot = document.createElement('span');
-  statusDot.id = 'atlas-bar-dot';
-  const statusText = document.createElement('span');
-  statusText.id = 'atlas-bar-status';
-  statusText.textContent = 'Logged in · Agent is using your accounts';
-  row1.append(statusDot, statusText);
+  const statusDot = bar.querySelector("#atlas-bar-dot");
+  const statusText = bar.querySelector("#atlas-bar-status");
+  const faviconEl = bar.querySelector("#atlas-bar-favicon");
+  const hostnameEl = bar.querySelector("#atlas-bar-hostname");
+  const takeControlButton = bar.querySelector("#atlas-take-control");
+  const stopButton = bar.querySelector("#atlas-stop");
 
-  // Row 2: site + buttons
-  const row2 = document.createElement('div');
-  row2.id = 'atlas-bar-row2';
-  const faviconEl = document.createElement('img');
-  faviconEl.id = 'atlas-bar-favicon';
-  const hn = location.hostname.replace(/^www\./, '');
-  faviconEl.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hn)}&sz=32`;
-  faviconEl.onerror = () => { faviconEl.style.display = 'none'; };
-  const hostnameEl = document.createElement('span');
-  hostnameEl.id = 'atlas-bar-hostname';
-  hostnameEl.textContent = hn;
-  const actionsDiv = document.createElement('div');
-  actionsDiv.id = 'atlas-bar-actions';
-  const takeCtrlBtn = document.createElement('button');
-  takeCtrlBtn.className = 'atlas-btn atlas-btn-primary';
-  takeCtrlBtn.textContent = 'Take control';
-  const stopBtn = document.createElement('button');
-  stopBtn.className = 'atlas-btn atlas-btn-stop';
-  stopBtn.textContent = 'Stop';
-  actionsDiv.append(takeCtrlBtn, stopBtn);
-  row2.append(faviconEl, hostnameEl, actionsDiv);
+  let currentX = window.innerWidth / 2;
+  let currentY = window.innerHeight / 2;
+  let cursorVisible = false;
+  let paused = false;
+  let controlState = "active";
+  let tearingDown = false;
+  let strokeEl = null;
+  let statusSwapTimer = null;
+  let labelSwapTimer = null;
 
-  bar.append(row1, row2);
-  document.body.appendChild(bar);
-  requestAnimationFrame(() => requestAnimationFrame(() => bar.classList.add('atlas-in')));
+  function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+  }
 
-  // 6 — Stroke host
-  const strokeHost = document.createElement('div');
-  strokeHost.id = 'atlas-stroke-host';
-  html.appendChild(strokeHost);
-  let _strokeEl = null;
+  function normalizePoint(x, y) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const nextX = typeof x === "number" && x <= 1 ? x * viewportWidth : x;
+    const nextY = typeof y === "number" && y <= 1 ? y * viewportHeight : y;
+    return {
+      x: clamp(Number.isFinite(nextX) ? nextX : viewportWidth / 2, 0, viewportWidth),
+      y: clamp(Number.isFinite(nextY) ? nextY : viewportHeight / 2, 0, viewportHeight),
+    };
+  }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // STATE
-  // ═══════════════════════════════════════════════════════════════════════════
-  let curX        = window.innerWidth / 2;
-  let curY        = window.innerHeight / 2;
-  let cursorShown = false;
-  let paused      = false;
+  function phaseLabel(phase) {
+    return PHASE_LABELS[String(phase || "").toLowerCase()] || "Agent";
+  }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CURSOR MOVEMENT
-  // ═══════════════════════════════════════════════════════════════════════════
+  function statusLine(message) {
+    const text = String(message?.text || message?.statusText || "").trim();
+    if (!text) {
+      return "Agent is working";
+    }
+    return `${phaseLabel(message?.phase)} · ${text}`;
+  }
+
+  function shortLabel(message) {
+    const text = String(message?.text || message?.statusText || "").trim();
+    if (!text) {
+      return "Working…";
+    }
+    if (/^navigate\s*→/i.test(text)) {
+      const host = text
+        .replace(/^navigate\s*→\s*/i, "")
+        .replace(/^https?:\/\/(www\.)?/i, "")
+        .split("/")[0]
+        .trim();
+      return host ? `Navigating · ${host}` : "Navigating";
+    }
+    if (/^reading page/i.test(text)) {
+      return "Reading page";
+    }
+    if (/^extracting page text/i.test(text) || /^extracting/i.test(text)) {
+      return "Extracting";
+    }
+    if (/^search:/i.test(text)) {
+      return "Searching";
+    }
+    if (/^find:/i.test(text)) {
+      return "Finding element";
+    }
+    if (/^filling form/i.test(text)) {
+      return "Filling form";
+    }
+    return text.replace(/[.…]+$/g, "").trim() || "Working…";
+  }
+
+  function updateLabelPosition() {
+    const labelWidth = labelEl.offsetWidth || 140;
+    const left = clamp(currentX + 28, 8, window.innerWidth - labelWidth - 8);
+    const top = clamp(currentY - 8, 8, window.innerHeight - 48);
+    labelEl.style.left = `${left}px`;
+    labelEl.style.top = `${top}px`;
+  }
+
+  function showCursor() {
+    if (paused || cursorVisible) {
+      return;
+    }
+    cursorVisible = true;
+    cursor.classList.add("atlas-visible");
+    labelEl.classList.add("atlas-visible");
+  }
+
+  function hideCursor() {
+    cursorVisible = false;
+    cursor.classList.remove("atlas-visible");
+    labelEl.classList.remove("atlas-visible");
+  }
+
   function moveCursor(x, y) {
-    curX = x; curY = y;
-    cursor.style.left = x + 'px';
-    cursor.style.top  = y + 'px';
-    // Label: 28px right, -10px up from cursor tip
-    const lx = Math.min(x + 28, window.innerWidth  - (labelEl.offsetWidth  || 120) - 12);
-    const ly = Math.max(y - 10, 8);
-    labelEl.style.left = Math.max(8, lx) + 'px';
-    labelEl.style.top  = ly + 'px';
-    if (!cursorShown && !paused) {
-      cursorShown = true;
-      cursor.classList.add('atlas-visible');
-      labelEl.classList.add('atlas-visible');
+    const point = normalizePoint(x, y);
+    currentX = point.x;
+    currentY = point.y;
+    cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+    updateLabelPosition();
+    showCursor();
+  }
+
+  function swapText(element, nextText, timerName) {
+    if (!element || element.textContent === nextText) {
+      return;
     }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LABEL TEXT (cross-fade)
-  // ═══════════════════════════════════════════════════════════════════════════
-  function setLabelText(text) {
-    if (labelEl.textContent === text) return;
-    labelEl.style.transition = 'opacity 0.12s ease';
-    labelEl.style.opacity = '0';
-    setTimeout(() => {
-      labelEl.textContent = text;
-      labelEl.style.opacity = '';
-      labelEl.style.transition = '';
-    }, 130);
-  }
-
-  function statusToLabel(text) {
-    return text
-      .replace(/Navigate\s*→\s*.+$/i, 'Navigating')
-      .replace(/…$|\.{3}$/, '')
-      .replace(/\.$/, '')
-      .trim() || text;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CLICK RIPPLE
-  // ═══════════════════════════════════════════════════════════════════════════
-  function spawnRipple(x, y) {
-    [false, true].forEach((outer) => {
-      const r = document.createElement('div');
-      r.className = 'atlas-ripple' + (outer ? ' atlas-ripple-outer' : '');
-      r.style.left = x + 'px';
-      r.style.top  = y + 'px';
-      html.appendChild(r);
-      r.addEventListener('animationend', () => r.remove());
-    });
-    cursor.classList.add('atlas-click');
-    setTimeout(() => cursor.classList.remove('atlas-click'), 200);
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // STROKE HIGHLIGHT
-  // ═══════════════════════════════════════════════════════════════════════════
-  function showStroke(rect) {
-    if (_strokeEl) {
-      _strokeEl.classList.add('atlas-out');
-      const old = _strokeEl;
-      setTimeout(() => old.remove(), 280);
-      _strokeEl = null;
+    if (timerName === "label" && labelSwapTimer) {
+      clearTimeout(labelSwapTimer);
     }
-    if (!rect) return;
-    const el = document.createElement('div');
-    el.className = 'atlas-stroke-rect';
-    el.style.cssText = `left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px`;
-    strokeHost.appendChild(el);
-    _strokeEl = el;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BAR INTERACTIONS
-  // ═══════════════════════════════════════════════════════════════════════════
-  takeCtrlBtn.addEventListener('click', () => {
-    paused = !paused;
-    if (paused) {
-      takeCtrlBtn.textContent = 'Resume';
-      takeCtrlBtn.classList.remove('atlas-btn-primary');
-      statusDot.classList.add('paused');
-      statusText.textContent = 'Paused — you have control';
-      dim.classList.add('paused');
-      dots.classList.remove('atlas-in');
-      cursor.classList.remove('atlas-visible');
-      labelEl.classList.remove('atlas-visible');
-      cursorShown = false;
-      showStroke(null);
+    if (timerName === "status" && statusSwapTimer) {
+      clearTimeout(statusSwapTimer);
+    }
+    element.classList.add("atlas-fade");
+    const timer = setTimeout(() => {
+      element.textContent = nextText;
+      element.classList.remove("atlas-fade");
+      updateLabelPosition();
+      if (timerName === "label") {
+        labelSwapTimer = null;
+      } else {
+        statusSwapTimer = null;
+      }
+    }, 120);
+    if (timerName === "label") {
+      labelSwapTimer = timer;
     } else {
-      takeCtrlBtn.textContent = 'Take control';
-      takeCtrlBtn.classList.add('atlas-btn-primary');
-      statusDot.classList.remove('paused');
-      statusText.textContent = 'Logged in · Agent is using your accounts';
-      dim.classList.remove('paused');
-      dots.classList.add('atlas-in');
+      statusSwapTimer = timer;
     }
-    chrome.runtime.sendMessage({ type: 'ATLAS_CONTROL', action: paused ? 'pause' : 'resume' });
-  });
-
-  stopBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ type: 'ATLAS_CONTROL', action: 'stop' });
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // TEARDOWN
-  // ═══════════════════════════════════════════════════════════════════════════
-  function teardown() {
-    cursor.classList.remove('atlas-visible');
-    labelEl.classList.remove('atlas-visible');
-    showStroke(null);
-
-    dim.classList.remove('atlas-in');
-    dim.classList.add('atlas-out');
-    dots.classList.remove('atlas-in');
-    dots.classList.add('atlas-out');
-    bar.classList.add('atlas-out');
-
-    setTimeout(() => {
-      [dim, dots, cursor, labelEl, bar, strokeHost, root, style].forEach(el => el.remove());
-    }, 560);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MESSAGE HANDLER
-  // ═══════════════════════════════════════════════════════════════════════════
-  function onMessage(msg) {
-    if (!msg || typeof msg.type !== 'string') return;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+  function showStroke(rect) {
+    if (strokeEl) {
+      const previousStroke = strokeEl;
+      previousStroke.classList.add("atlas-out");
+      setTimeout(() => previousStroke.remove(), 180);
+      strokeEl = null;
+    }
+    if (!rect || paused) {
+      return;
+    }
+    const nextStroke = document.createElement("div");
+    nextStroke.className = "atlas-stroke-rect";
+    nextStroke.style.left = `${rect.x}px`;
+    nextStroke.style.top = `${rect.y}px`;
+    nextStroke.style.width = `${rect.w}px`;
+    nextStroke.style.height = `${rect.h}px`;
+    strokeHost.appendChild(nextStroke);
+    strokeEl = nextStroke;
+  }
 
-    switch (msg.type) {
-      case 'ATLAS_OVERLAY_STOP':
+  function spawnRipple(x, y) {
+    if (paused) {
+      return;
+    }
+    const point = normalizePoint(x, y);
+    ["", " atlas-ripple-outer"].forEach((suffix) => {
+      const ripple = document.createElement("div");
+      ripple.className = `atlas-ripple${suffix}`;
+      ripple.style.left = `${point.x}px`;
+      ripple.style.top = `${point.y}px`;
+      root.appendChild(ripple);
+      ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+    });
+    cursor.classList.add("atlas-click");
+    setTimeout(() => cursor.classList.remove("atlas-click"), 180);
+  }
+
+  function setStatusFromMessage(message) {
+    if (paused) {
+      return;
+    }
+    swapText(statusText, statusLine(message), "status");
+    swapText(labelEl, shortLabel(message), "label");
+    showCursor();
+  }
+
+  function emitControl(action) {
+    try {
+      chrome.runtime.sendMessage({ type: "ATLAS_CONTROL", action });
+    } catch {}
+  }
+
+  function applyControlState(nextState) {
+    controlState = String(nextState || "active").toLowerCase();
+    paused = controlState === "pausing" || controlState === "paused" || controlState === "stopping";
+
+    const isActive = controlState === "active";
+    const isPaused = controlState === "paused";
+    const isPausing = controlState === "pausing";
+    const isStopping = controlState === "stopping";
+
+    takeControlButton.disabled = isPausing || isStopping;
+    stopButton.disabled = isStopping;
+    takeControlButton.textContent = isPaused ? "Resume" : "Take control";
+    takeControlButton.classList.toggle("atlas-btn-primary", isActive);
+    statusDot.classList.toggle("paused", !isActive);
+
+    if (isPaused) {
+      statusText.textContent = "Paused, you have control";
+    } else if (isPausing) {
+      statusText.textContent = "Pausing";
+    } else if (isStopping) {
+      statusText.textContent = "Stopping agent";
+    } else {
+      statusText.textContent = "Browser control active";
+    }
+
+    dim.classList.toggle("atlas-paused", paused);
+    if (paused) {
+      dots.classList.remove("atlas-in");
+      hideCursor();
+      showStroke(null);
+      return;
+    }
+
+    dots.classList.add("atlas-in");
+    showCursor();
+  }
+
+  function updateSiteInfo(message) {
+    const fallbackHost = location.hostname.replace(/^www\./, "") || "current page";
+    let hostname = fallbackHost;
+    if (message?.url) {
+      try {
+        hostname = new URL(message.url).hostname.replace(/^www\./, "") || fallbackHost;
+      } catch {}
+    }
+    hostnameEl.textContent = hostname;
+
+    const favicon = typeof message?.favicon === "string" && message.favicon.trim()
+      ? message.favicon
+      : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=32`;
+    faviconEl.src = favicon;
+    faviconEl.onerror = () => {
+      faviconEl.style.display = "none";
+    };
+    faviconEl.style.display = "";
+  }
+
+  function teardown() {
+    if (tearingDown) {
+      return;
+    }
+    tearingDown = true;
+    hideCursor();
+    showStroke(null);
+    [desat, dim, glow, dots].forEach((element) => {
+      element.classList.remove("atlas-in");
+      element.classList.add("atlas-out");
+    });
+    bar.classList.remove("atlas-in");
+    bar.classList.add("atlas-out");
+    chrome.runtime.onMessage.removeListener(onMessage);
+    window.removeEventListener("resize", handleResize);
+    setTimeout(() => {
+      root.remove();
+      style.remove();
+    }, 520);
+  }
+
+  function handleResize() {
+    moveCursor(currentX, currentY);
+  }
+
+  function onMessage(message) {
+    if (!message || typeof message.type !== "string") {
+      return;
+    }
+
+    switch (message.type) {
+      case "ATLAS_OVERLAY_STOP":
         teardown();
-        chrome.runtime.onMessage.removeListener(onMessage);
         break;
-
-      case 'ATLAS_CURSOR': {
-        const px = (msg.x != null && msg.x <= 1) ? msg.x * vw : (msg.x ?? vw / 2);
-        const py = (msg.y != null && msg.y <= 1) ? msg.y * vh : (msg.y ?? vh / 2);
-        moveCursor(px, py);
-        break;
-      }
-
-      case 'ATLAS_STATUS_UPDATE': {
-        const text = (msg.text || '').trim();
-        if (!text) break;
-        setLabelText(statusToLabel(text));
-        // Update row-1 status text while agent is running
-        if (!paused) statusText.textContent = 'Logged in · Agent is using your accounts';
-        break;
-      }
-
-      case 'ATLAS_CLICK': {
-        const px = (msg.x != null && msg.x <= 1) ? msg.x * vw : (msg.x ?? curX);
-        const py = (msg.y != null && msg.y <= 1) ? msg.y * vh : (msg.y ?? curY);
-        spawnRipple(px, py);
-        break;
-      }
-
-      case 'ATLAS_HIGHLIGHT':
-        showStroke(msg.rect || null);
-        break;
-
-      case 'ATLAS_SITE_INFO': {
-        // Update favicon + hostname when panel sends site info
-        if (msg.url) {
-          try {
-            const u = new URL(msg.url);
-            const h = u.hostname.replace(/^www\./, '');
-            hostnameEl.textContent = h;
-            faviconEl.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=32`;
-          } catch {}
+      case "ATLAS_CURSOR":
+        if (!paused) {
+          moveCursor(message.x, message.y);
         }
         break;
-      }
+      case "ATLAS_STATUS_UPDATE":
+        setStatusFromMessage(message);
+        break;
+      case "ATLAS_CONTROL_STATE":
+        applyControlState(message.state);
+        break;
+      case "ATLAS_CLICK":
+        spawnRipple(message.x, message.y);
+        break;
+      case "ATLAS_HIGHLIGHT":
+        showStroke(message.rect || null);
+        break;
+      case "ATLAS_SITE_INFO":
+        updateSiteInfo(message);
+        break;
+      default:
+        break;
     }
   }
 
+  takeControlButton.addEventListener("click", () => {
+    if (controlState === "active") {
+      emitControl("pause");
+      return;
+    }
+    if (controlState === "paused") {
+      emitControl("resume");
+    }
+  });
+
+  stopButton.addEventListener("click", () => {
+    emitControl("stop");
+  });
+
+  updateSiteInfo({});
+  applyControlState("active");
   chrome.runtime.onMessage.addListener(onMessage);
+  window.addEventListener("resize", handleResize);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      [desat, dim, glow, dots].forEach((element) => element.classList.add("atlas-in"));
+      bar.classList.add("atlas-in");
+      moveCursor(currentX, currentY);
+    });
+  });
 })();

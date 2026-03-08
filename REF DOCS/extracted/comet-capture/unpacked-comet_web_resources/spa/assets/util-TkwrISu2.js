@@ -1,0 +1,2 @@
+function o(t){const e=new Date(`${t}T00:00:00`),n=new Date;return e.getFullYear()<=n.getFullYear()&&e.getMonth()<=n.getMonth()&&e.getDate()<=n.getDate()}function a(t){return t.status==="CANCELED"?"canceled":o(t.check_out_date)?"completed":o(t.check_in_date)?"ongoing":t.status.toLowerCase()}function u(t){return t==="SBT2"}export{a as g,u as i};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/util-TkwrISu2.js.map

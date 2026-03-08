@@ -1,0 +1,2 @@
+import{r}from"./vendors-bqg7Hkg3.js";import{i as c}from"./bootstrap-lbc7vRfH.js";import{fF as f}from"./ask-input-bElm95Z5.js";import{e as u,f as n}from"./platform-core-CZ-8UOca.js";function P(){const[s,t]=r.useState(!1),o=c(),i=r.useCallback(e=>{u(f,e.toString()),t(e)},[t]);return r.useEffect(()=>{const e=n(f);t(e==="true"||e===void 0&&o!=="US")},[o]),r.useMemo(()=>({prefersMetric:s,setPrefersMetric:i}),[s,i])}export{P as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/useGetPreferMetric-WnHvLUMs.js.map

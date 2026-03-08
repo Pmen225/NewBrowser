@@ -1,0 +1,2 @@
+import{$ as e}from"./pplx-icons-ednd-3tn.js";const a={pro:e("custom-perplexity-copilot"),collection:e("layout-grid"),research:e("telescope"),labs:e("table-plus"),comet_login:e("custom-brand-comet"),invite:e("mail"),pro_perks:e("heart-handshake"),app:e("layout-collage"),slides:e("presentation"),document:e("file"),plaintext:e("file"),canvas:e("file"),advanced_models:e("cpu"),map_pin:e("map-pin")};export{a as I};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/icons-CDngPbyH.js.map

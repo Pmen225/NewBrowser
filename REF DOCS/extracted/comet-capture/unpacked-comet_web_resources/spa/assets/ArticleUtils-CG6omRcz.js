@@ -1,0 +1,2 @@
+const a=3;const c=2,I=4;function M(e){return"article_info"in e}const r=e=>e?e.image_width&&e.image_height?e.image_width<120?!1:e.image_width>=1.5*e.image_height:!0:!1,T=(e,o,i,t)=>{const s=[...e],n=o.find(_=>_.image===i);return n&&t<s.length&&s.splice(t,1,n),s},A=(e,o,i)=>{const t=[...e],s=t.findIndex(n=>n.image===o);if(s!==-1&&i<t.length){const n=t[i],_=t[s];n&&_&&(t[i]=_,t[s]=n)}return t};export{c as R,a as S,r as a,I as b,M as i,T as m,A as s};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/ArticleUtils-CG6omRcz.js.map

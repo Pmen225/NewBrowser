@@ -1,0 +1,2 @@
+import{h as t,m as i,fp as a}from"./ask-input-bElm95Z5.js";var r;(function(s){s.MY_FILES="my-files",s.SOURCES="sources",s.MY_CONNECTORS="my-connectors",s.SPACES="spaces"})(r||(r={}));function S({feature:s,connectionType:n}){const{isEnterprise:o}=t({reason:"useHasConnectorsAccess"}),{hasAccessToProFeatures:c}=i(),{variation:e}=a(!1,{connectionType:n??""});return o?!0:c?s===r.MY_FILES||s===r.SOURCES?e:!0:!1}export{r as C,S as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/useHasConnectorsAccess-PkQolVcS.js.map

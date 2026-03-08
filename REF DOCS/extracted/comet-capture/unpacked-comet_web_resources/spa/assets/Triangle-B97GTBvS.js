@@ -1,0 +1,2 @@
+import{j as e}from"./vendors-bqg7Hkg3.js";const o=({className:l})=>e.jsx("svg",{width:"6",viewBox:"0 0 18 35",fill:"none",xmlns:"http://www.w3.org/2000/svg",className:l,children:e.jsx("path",{fillRule:"evenodd",clipRule:"evenodd",d:"M18 0.322327L0.822266 17.5L18 34.6777V0.322327Z",className:"fill-foreground"})});export{o as T};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/Triangle-B97GTBvS.js.map

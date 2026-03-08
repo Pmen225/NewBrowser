@@ -1,0 +1,2 @@
+import{R as a,j as n}from"./vendors-bqg7Hkg3.js";import{E as s}from"./platform-core-CZ-8UOca.js";import{T as m}from"./TabBar-3EXZjXrx.js";const T=a.memo(function({vertical:r=!0,size:i,collapsed:t,actionList:o,...e}){return n.jsx(m,{layout:t?"center":"left",size:i,iconOnly:t,vertical:r,actionList:o??s,indicatorPos:t?"right":"none",fillSpace:!0,...e})});export{T as S};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/SiteTabs-lLjvVRhR.js.map

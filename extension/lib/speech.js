@@ -2,6 +2,13 @@ function safeWindow() {
   return typeof window === "undefined" ? null : window;
 }
 
+const DEFAULT_RECORDING_MIME_TYPES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg;codecs=opus"
+];
+
 export function isNarrationSupported() {
   const win = safeWindow();
   return Boolean(win?.speechSynthesis && typeof win.SpeechSynthesisUtterance === "function");
@@ -44,100 +51,174 @@ export function speakText(text, { rate = 1, pitch = 1, lang } = {}) {
   }
 }
 
-export function isDictationSupported() {
+export function isAudioRecordingSupported() {
   const win = safeWindow();
-  return Boolean(win && (win.SpeechRecognition || win.webkitSpeechRecognition));
+  return Boolean(
+    win &&
+    typeof win.MediaRecorder === "function" &&
+    typeof win.navigator?.mediaDevices?.getUserMedia === "function"
+  );
 }
 
-export function createDictationController({ onText, onInterim, onError, language, continuous, interim } = {}) {
+export function resolveRecordingMimeType(preferredMimeType, win = safeWindow()) {
+  if (!win || typeof win.MediaRecorder !== "function") {
+    return null;
+  }
+
+  const candidates = [];
+  if (typeof preferredMimeType === "string" && preferredMimeType.trim().length > 0) {
+    candidates.push(preferredMimeType.trim());
+  }
+  for (const candidate of DEFAULT_RECORDING_MIME_TYPES) {
+    if (!candidates.includes(candidate)) {
+      candidates.push(candidate);
+    }
+  }
+
+  const supportsMimeType = typeof win.MediaRecorder.isTypeSupported === "function"
+    ? win.MediaRecorder.isTypeSupported.bind(win.MediaRecorder)
+    : null;
+  if (!supportsMimeType) {
+    return candidates[0] ?? null;
+  }
+
+  for (const candidate of candidates) {
+    try {
+      if (supportsMimeType(candidate) === true) {
+        return candidate;
+      }
+    } catch {}
+  }
+
+  return null;
+}
+
+export function createAudioRecorderController({ onChunk, onStateChange, onError, mimeType } = {}) {
   const win = safeWindow();
-  const Recognition = win?.SpeechRecognition || win?.webkitSpeechRecognition;
-  if (!Recognition) {
+  if (!isAudioRecordingSupported()) {
     return {
       supported: false,
-      active: false,
-      start() {},
-      stop() {},
-      toggle() {}
+      state: "idle",
+      async start() {},
+      async stop() { return null; },
+      async toggle() { return null; }
     };
   }
 
-  const useContinuous = continuous === true;
-  const useInterim    = interim !== false;
-  const useLang       = typeof language === "string" && language.trim().length > 0 ? language.trim() : "";
+  let state = "idle";
+  let recorder = null;
+  let stream = null;
+  let chunks = [];
 
-  let active = false;
-  let recognition = null;
+  const setState = (nextState) => {
+    state = nextState;
+    onStateChange?.(nextState);
+  };
 
-  const ensure = () => {
-    if (recognition) {
-      return recognition;
+  const cleanup = () => {
+    if (stream) {
+      for (const track of stream.getTracks()) {
+        try {
+          track.stop();
+        } catch {}
+      }
     }
-    recognition = new Recognition();
-    recognition.continuous      = useContinuous;
-    recognition.interimResults  = useInterim;
-    recognition.maxAlternatives = 1;
-    if (useLang) recognition.lang = useLang;
-    recognition.onresult = (event) => {
-      try {
-        if (useContinuous || useInterim) {
-          // In continuous/interim mode, stream partial results
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const result = event.results[i];
-            const transcript = result?.[0]?.transcript;
-            if (typeof transcript !== "string" || !transcript.trim()) continue;
-            if (result.isFinal) {
-              onText?.(transcript.trim());
-            } else {
-              onInterim?.(transcript.trim());
-            }
-          }
-        } else {
-          const result = event.results?.[event.resultIndex ?? 0];
-          if (result?.isFinal === false) return;
-          const transcript = result?.[0]?.transcript;
-          if (typeof transcript === "string" && transcript.trim().length > 0) {
-            onText?.(transcript.trim());
-          }
-        }
-      } catch {}
-    };
-    recognition.onerror = (event) => {
-      active = false;
-      onError?.(typeof event?.error === "string" ? event.error : "speech_error");
-    };
-    recognition.onend = () => {
-      active = false;
-    };
-    return recognition;
+    stream = null;
+    recorder = null;
   };
 
   return {
     supported: true,
-    get active() {
-      return active;
+    get state() {
+      return state;
     },
-    start() {
+    async start() {
+      if (state === "recording") {
+        return;
+      }
+
       try {
-        ensure().start();
-        active = true;
+        stream = await win.navigator.mediaDevices.getUserMedia({ audio: true });
+        chunks = [];
+        const resolvedMimeType = resolveRecordingMimeType(mimeType, win);
+        recorder = resolvedMimeType
+          ? new win.MediaRecorder(stream, { mimeType: resolvedMimeType })
+          : new win.MediaRecorder(stream);
+        recorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            chunks.push(event.data);
+            onChunk?.(event.data);
+          }
+        };
+        recorder.onerror = (event) => {
+          setState("idle");
+          cleanup();
+          onError?.(typeof event?.error?.message === "string" ? event.error.message : "audio_recording_error");
+        };
+        recorder.onstop = () => {
+          setState("idle");
+          cleanup();
+        };
+        recorder.start();
+        setState("recording");
       } catch (error) {
-        active = false;
-        onError?.(error instanceof Error ? error.message : "speech_error");
+        setState("idle");
+        cleanup();
+        onError?.(error instanceof Error ? error.message : "audio_recording_error");
       }
     },
-    stop() {
-      try {
-        recognition?.stop?.();
-      } catch {}
-      active = false;
-    },
-    toggle() {
-      if (active) {
-        this.stop();
-      } else {
-        this.start();
+    async stop() {
+      if (!recorder || state !== "recording") {
+        return null;
       }
+
+      return await new Promise((resolve) => {
+        const activeRecorder = recorder;
+        activeRecorder.onstop = async () => {
+          try {
+            const outputMimeType =
+              typeof activeRecorder.mimeType === "string" && activeRecorder.mimeType.trim().length > 0
+                ? activeRecorder.mimeType.trim()
+                : resolveRecordingMimeType(mimeType, win) ?? "audio/webm";
+            const blob = new Blob(chunks, { type: outputMimeType });
+            const arrayBuffer = await blob.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = "";
+            for (const value of bytes) {
+              binary += String.fromCharCode(value);
+            }
+            setState("idle");
+            cleanup();
+            resolve({
+              mimeType: outputMimeType,
+              base64: btoa(binary)
+            });
+          } catch (error) {
+            setState("idle");
+            cleanup();
+            onError?.(error instanceof Error ? error.message : "audio_recording_error");
+            resolve(null);
+          }
+        };
+        setState("stopping");
+        try {
+          activeRecorder.stop();
+        } catch {
+          setState("idle");
+          cleanup();
+          resolve(null);
+        }
+      });
+    },
+    async toggle() {
+      if (state === "recording") {
+        return await this.stop();
+      }
+      if (state === "stopping") {
+        return null;
+      }
+      await this.start();
+      return null;
     }
   };
 }

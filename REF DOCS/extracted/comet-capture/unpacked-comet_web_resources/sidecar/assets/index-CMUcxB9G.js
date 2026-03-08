@@ -1,0 +1,2 @@
+import{r as o,j as r}from"./vendors-BAND5Q4O.js";import{l as a}from"./platform-core-H3yLE1Sq.js";import{L as s}from"./_restricted/restricted-feature-loader-C6CRTu_1.js";import"./vite-CuyfC2og.js";let e=!1;function u({children:t}){return o.useEffect(()=>{e||(a.debug(`${s} loaded`),e=!0)},[]),r.jsx(r.Fragment,{children:t})}export{u as RestrictedFeatureLoader};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_sidecar/assets/index-CMUcxB9G.js.map

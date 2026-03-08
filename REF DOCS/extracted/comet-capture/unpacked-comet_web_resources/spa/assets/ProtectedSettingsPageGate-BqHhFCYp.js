@@ -1,0 +1,2 @@
+import{r as o,j as t}from"./vendors-bqg7Hkg3.js";import{b as s,aD as i}from"./platform-core-CZ-8UOca.js";import{P as n}from"./loading-Ccs_Y3r8.js";const m={type:"loading"},P={type:"authorized"},g=o.memo(function({state:e,Authorized:a,Loading:r=n}){switch(e.type){case"loading":return t.jsx(r,{});case"authorized":return t.jsx(a,{});case"unauthorized":return t.jsx(i,{to:e.redirectTo,replace:!0});default:s(e)}});export{g as P,P as a,m as b};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/ProtectedSettingsPageGate-BqHhFCYp.js.map

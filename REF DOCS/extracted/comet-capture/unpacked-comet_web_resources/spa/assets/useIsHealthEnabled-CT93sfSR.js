@@ -1,0 +1,2 @@
+import{r as i}from"./vendors-bqg7Hkg3.js";import{u as r}from"./experimentation-AW3antsu.js";const n=(a,t,o)=>{const{value:e,loading:s}=r({flag:"is-health-assistant-web-enabled",defaultValue:a,extraAttributes:t,subjectType:"visitor_id",shortCircuitCases:o});return i.useMemo(()=>({variation:e,loading:s}),[e,s])},b=()=>{const{variation:a,loading:t}=n(!1);return{enabled:a,loading:t}};export{b as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/useIsHealthEnabled-CT93sfSR.js.map

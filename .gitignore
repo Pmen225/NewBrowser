@@ -6,3 +6,8 @@ output/
 *.local
 chrome-profile/
 ~/.local/share/new-browser/
+.sidecar-traces/
+.codex-artifacts/
+.sidecar-build/
+.cursor/
+.claude/

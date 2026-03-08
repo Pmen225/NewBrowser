@@ -1,0 +1,2 @@
+import{R as c,r as i,j as l}from"./vendors-bqg7Hkg3.js";import{m,n as u}from"./page-components-home-CZfq8mM1.js";import{L as d}from"./platform-core-CZ-8UOca.js";const x=c.memo(function({query:e,children:o,nofollow:r=!0,sources:n,...t}){const a=`/search/new?q=${encodeURIComponent(e)}${n?`&sources=${n.join(",")}`:""}`,s=i.useCallback(()=>m({query:e}),[e]);return l.jsx(d,{href:u()?void 0:a,rel:r?"nofollow":void 0,onClick:s,...t,children:o})});export{x as C};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/CanonicalQuery-BWa3jos3.js.map

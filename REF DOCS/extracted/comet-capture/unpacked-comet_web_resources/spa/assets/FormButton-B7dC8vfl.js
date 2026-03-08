@@ -1,0 +1,2 @@
+import{j as r}from"./vendors-bqg7Hkg3.js";import{ac as e}from"./ask-input-bElm95Z5.js";const i=({text:o,onClick:t,variant:a="secondary",disabled:s=!1})=>r.jsx(e,{text:o,onClick:t,disabled:s,testId:`task-modal-${o.toLowerCase()}-button`,variant:a==="secondary"?"common":"inverted",extraCSS:"min-w-[100px]"});export{i as F};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/FormButton-B7dC8vfl.js.map

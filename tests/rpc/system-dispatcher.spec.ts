@@ -25,6 +25,8 @@ describe("system dispatcher", () => {
     expect(dispatcher.supports?.("ProviderCatalogGet")).toBe(true);
     expect(dispatcher.supports?.("ProviderCatalogSync")).toBe(true);
     expect(dispatcher.supports?.("ProviderBenchmarkBrowserControl")).toBe(true);
+    expect(dispatcher.supports?.("ProviderTranscribeAudio")).toBe(true);
+    expect(dispatcher.supports?.("AgentSteer")).toBe(true);
     expect(dispatcher.supports?.("Navigate")).toBe(false);
   });
 
@@ -86,7 +88,8 @@ describe("system dispatcher", () => {
   it("delegates provider actions to registry", async () => {
     const registry = {
       validate: vi.fn(async () => ({ provider: "anthropic" as const, ok: false, error_code: "PROVIDER_AUTH_FAILED" })),
-      listModels: vi.fn(async () => ({ provider: "google" as const, models: ["models/gemini-1.5-pro"], default_model: "models/gemini-1.5-pro" }))
+      listModels: vi.fn(async () => ({ provider: "google" as const, models: ["models/gemini-1.5-pro"], default_model: "models/gemini-1.5-pro" })),
+      transcribeAudio: vi.fn(async () => ({ provider: "google" as const, model_id: "models/gemini-2.5-flash", text: "hello world" }))
     };
 
     const dispatcher = createSystemDispatcher({
@@ -132,6 +135,26 @@ describe("system dispatcher", () => {
     });
     expect(registry.validate).toHaveBeenCalledTimes(1);
     expect(registry.listModels).toHaveBeenCalledTimes(1);
+
+    const transcriptionResult = await dispatcher.dispatch(
+      "ProviderTranscribeAudio",
+      "__system__",
+      {
+        provider: "google",
+        model_id: "models/gemini-2.5-flash",
+        api_key: "g-test",
+        audio_b64: "AAAA",
+        mime_type: "audio/webm"
+      },
+      new AbortController().signal
+    );
+
+    expect(transcriptionResult).toEqual({
+      provider: "google",
+      model_id: "models/gemini-2.5-flash",
+      text: "hello world"
+    });
+    expect(registry.transcribeAudio).toHaveBeenCalledTimes(1);
   });
 
   it("maps provider list errors to dispatcher errors", async () => {
@@ -275,6 +298,7 @@ describe("system dispatcher", () => {
       run: vi.fn(async () => ({ run_id: "run-1", status: "started" as const })),
       pause: vi.fn(async () => ({ run_id: "run-1", status: "pausing" as const })),
       resume: vi.fn(async () => ({ run_id: "run-1", status: "running" as const })),
+      steer: vi.fn(async () => ({ run_id: "run-1", status: "queued" as const, queued_count: 1 })),
       stop: vi.fn(async () => ({ run_id: "run-1", status: "stopped" as const })),
       getState: vi.fn(async () => ({ run_id: "run-1", status: "running" as const, steps: [] }))
     };
@@ -366,6 +390,22 @@ describe("system dispatcher", () => {
 
     await expect(
       dispatcher.dispatch(
+        "AgentSteer",
+        "__system__",
+        {
+          run_id: "run-1",
+          prompt: "Actually use the latest note I just added."
+        },
+        new AbortController().signal
+      )
+    ).resolves.toEqual({
+      run_id: "run-1",
+      status: "queued",
+      queued_count: 1
+    });
+
+    await expect(
+      dispatcher.dispatch(
         "AgentStop",
         "__system__",
         {
@@ -383,6 +423,10 @@ describe("system dispatcher", () => {
     });
     expect(orchestrator.resume).toHaveBeenCalledWith({
       run_id: "run-1"
+    });
+    expect(orchestrator.steer).toHaveBeenCalledWith({
+      run_id: "run-1",
+      prompt: "Actually use the latest note I just added."
     });
   });
 

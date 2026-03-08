@@ -1,0 +1,2 @@
+import{bL as A}from"./ask-input-bElm95Z5.js";const r=(C,E)=>C.filter(_=>_.name===E).map(_=>_.connection_uuid).filter(_=>_!=null),I=C=>C==="LINEAR"||C==="NOTION_MCP"||C==="LINEAR_ALT"||C==="SLACK"||C==="GITHUB_MCP_DIRECT"||C==="ASANA_MCP_DIRECT"||C==="ASANA_MCP_MERGE"||C==="ATLASSIAN_MCP_DIRECT"||C==="SLACK_DIRECT"||C==="JIRA_MCP_MERGE"||C==="CONFLUENCE_MCP_MERGE"||C==="MICROSOFT_TEAMS_MCP_MERGE"||C==="CUSTOM",R=C=>!A.includes(C);export{I as a,r as g,R as i};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/connectorUtils-DLuyNaLl.js.map

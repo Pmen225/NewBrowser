@@ -1,0 +1,2 @@
+const m=(a,i,l,r="auto",c="long")=>{const o=new Date(a).getTime(),n=new Date(i).getTime(),f=new Intl.RelativeTimeFormat(l,{localeMatcher:"best fit",numeric:r,style:c}),t=Math.abs(n-o),u=o>n;let e=t/6e4,s="days";return e<1?(e=t/1e3,s="seconds"):e<60?(e=t/6e4,s="minutes"):e<1440?(e=t/36e5,s="hours"):(e=t/864e5,s="days"),e=Math.floor(e)*(u?1:-1),f.format(e,s)};export{m as t};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/time-likaoK5X.js.map

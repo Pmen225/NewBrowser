@@ -1,0 +1,2 @@
+import{s as i,a as n}from"./platform-core-CZ-8UOca.js";const d=async({taskId:a,payload:t,reason:e})=>{const{data:r,error:s,response:o}=await i.PATCH("/rest/tasks/{task_id}",e,{params:{path:{task_id:a}},body:t});if(s)throw new n("API_CLIENTS_ERROR",{message:"Failed to update user task",cause:s,status:o.status??0});return r};export{d as u};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/updateUserTask-CT9UOGxi.js.map

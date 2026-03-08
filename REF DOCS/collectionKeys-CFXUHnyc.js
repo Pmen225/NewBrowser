@@ -1,0 +1,2 @@
+import{a as e}from"./react-query-CHE1_28B.js";const t=t=>e.makeQueryKey(`/rest/collections/get_collection`,{collection_slug:t.slice(-22)}),n=t=>e.makeQueryKey(`/rest/collections/list_collection_threads`,t?.slice(-22)),r=t=>t?[...n(t.collection_slug),t.filter_by_user,t.filter_by_shared_threads]:e.makeQueryKey(`/rest/collections/list_collection_threads`),i=()=>e.makeQueryKey(`/rest/collections/list_user_collections`,{});export{i,r as n,n as r,t};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_sidecar/assets/assets/collectionKeys-CFXUHnyc.js.map

@@ -1,16 +1,18 @@
 import { randomUUID } from "node:crypto";
 
 import type { JsonObject } from "../../../shared/src/transport";
+import type { JavaScriptDialogRecord } from "../../../src/cdp/types";
 import { getRpcRequestContext } from "../observability/request-context";
 import { recordReadPageTraceArtifacts } from "../observability/read-page-trace";
 import type { TraceLogger } from "../observability/trace-logger";
-import type { CdpClient, ReadPageRequest } from "../../../src/sidecar/read-page/types";
+import type { CdpClient, ReadPageRequest, ReadPageResponse, ReadPageResult } from "../../../src/sidecar/read-page/types";
 import { handleReadPageTool } from "../../../src/sidecar/tools/read-page-tool";
 import { parseRefId } from "../../../src/sidecar/tools/browser-action-types";
 import type { ActionDispatcher } from "./dispatcher";
 
 export interface ReadPageDispatcherOptions {
   getClientForTab: (tabId: string) => CdpClient | undefined;
+  getDialogForTab?: (tabId: string) => JavaScriptDialogRecord | undefined;
   traceLogger?: TraceLogger;
 }
 
@@ -43,7 +45,18 @@ function parseReadPageParams(params: JsonObject): ReadPageRequest["params"] | nu
     }
   }
 
-  const filter = params.filter;
+  const rawFilter = typeof params.filter === "string" ? params.filter.trim().toLowerCase() : params.filter;
+  let filter: ReadPageRequest["params"]["filter"] | undefined;
+  if (rawFilter !== undefined) {
+    if (rawFilter === "interactive" || rawFilter === "all") {
+      filter = rawFilter;
+    } else if (typeof rawFilter === "string" && (rawFilter === "checkbox" || rawFilter === "checkboxes")) {
+      filter = "interactive";
+    } else {
+      return null;
+    }
+  }
+
   if (filter !== undefined && filter !== "interactive" && filter !== "all") {
     return null;
   }
@@ -67,6 +80,51 @@ function parseReadPageParams(params: JsonObject): ReadPageRequest["params"] | nu
   }
 
   return parsed;
+}
+
+function escapeYamlString(value: string): string {
+  return value.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"");
+}
+
+function createDialogReadPageResponse(request: ReadPageRequest, dialog: JavaScriptDialogRecord): ReadPageResponse {
+  const result: ReadPageResult & {
+    dialog: {
+      open: true;
+      type: JavaScriptDialogRecord["type"];
+      message: string;
+      default_prompt?: string;
+    };
+  } = {
+    yaml: [
+      "javascript_dialog:",
+      "  open: true",
+      `  type: "${escapeYamlString(dialog.type)}"`,
+      `  message: "${escapeYamlString(dialog.message)}"`,
+      ...(typeof dialog.defaultPrompt === "string"
+        ? [`  default_prompt: "${escapeYamlString(dialog.defaultPrompt)}"`]
+        : []),
+      "  action_hint: \"Use computer with {\\\"kind\\\":\\\"dialog\\\",\\\"accept\\\":true} or {\\\"kind\\\":\\\"dialog\\\",\\\"accept\\\":false}.\"",
+      "interactables: []"
+    ].join("\n"),
+    tree: [],
+    meta: {
+      frame_count: 0,
+      interactable_count: 0,
+      generated_at: new Date().toISOString()
+    },
+    dialog: {
+      open: true,
+      type: dialog.type,
+      message: dialog.message,
+      ...(typeof dialog.defaultPrompt === "string" ? { default_prompt: dialog.defaultPrompt } : {})
+    }
+  };
+
+  return {
+    request_id: request.request_id,
+    ok: true,
+    result
+  };
 }
 
 async function traceLog(
@@ -117,6 +175,26 @@ export function createReadPageDispatcher(options: ReadPageDispatcherOptions): Ac
         params: parsedParams as unknown as JsonObject
       });
 
+      const dialog = options.getDialogForTab?.(tabId);
+      if (dialog) {
+        const response = createDialogReadPageResponse(request, dialog);
+        if (options.traceLogger) {
+          await recordReadPageTraceArtifacts(options.traceLogger, request, response);
+        }
+        const result = response.result;
+        await traceLog(options.traceLogger, {
+          request_id: request.request_id,
+          action: request.action,
+          tab_id: tabId,
+          event: "read_page.response",
+          result: {
+            frame_count: result.meta.frame_count,
+            interactable_count: result.meta.interactable_count
+          }
+        });
+        return result as unknown as JsonObject;
+      }
+
       const response = await handleReadPageTool(
         {
           getClientForTab: options.getClientForTab
@@ -135,6 +213,7 @@ export function createReadPageDispatcher(options: ReadPageDispatcherOptions): Ac
       if (!response.ok) {
         throw createDispatcherError(response.error.code, response.error.message, response.error.retryable);
       }
+      const result = response.result;
 
       await traceLog(options.traceLogger, {
         request_id: request.request_id,
@@ -142,12 +221,12 @@ export function createReadPageDispatcher(options: ReadPageDispatcherOptions): Ac
         tab_id: tabId,
         event: "read_page.response",
         result: {
-          frame_count: response.result.meta.frame_count,
-          interactable_count: response.result.meta.interactable_count
+          frame_count: result.meta.frame_count,
+          interactable_count: result.meta.interactable_count
         }
       });
 
-      return response.result as unknown as JsonObject;
+      return result as unknown as JsonObject;
     }
   };
 }

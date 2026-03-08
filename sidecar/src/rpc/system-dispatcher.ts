@@ -4,10 +4,12 @@ import {
   parseAgentPauseParams,
   parseAgentRunParams,
   parseAgentResumeParams,
+  parseAgentSteerParams,
   parseAgentStopParams,
   parseGetRuntimeStateParams,
   parseProviderBenchmarkBrowserControlParams,
   parseProviderListModelsParams,
+  parseProviderTranscribeAudioParams,
   parseProviderValidateParams,
   type GetRuntimeStateResult
 } from "../../../shared/src/transport";
@@ -72,6 +74,7 @@ export function createSystemDispatcher(options: SystemDispatcherOptions): Action
         action === "GetRuntimeState" ||
         action === "ProviderValidate" ||
         action === "ProviderListModels" ||
+        action === "ProviderTranscribeAudio" ||
         action === "ProviderBenchmarkBrowserControl" ||
         action === "ProviderDefaultsGet" ||
         action === "ProviderDefaultsPut" ||
@@ -80,6 +83,7 @@ export function createSystemDispatcher(options: SystemDispatcherOptions): Action
         action === "AgentRun" ||
         action === "AgentPause" ||
         action === "AgentResume" ||
+        action === "AgentSteer" ||
         action === "AgentStop" ||
         action === "AgentGetState"
       );
@@ -163,6 +167,42 @@ export function createSystemDispatcher(options: SystemDispatcherOptions): Action
           }
 
           throw createDispatcherError("PROVIDER_UNAVAILABLE", "Provider request failed", true);
+        }
+      }
+
+      if (action === "ProviderTranscribeAudio") {
+        const parsed = parseProviderTranscribeAudioParams(params);
+        if (!parsed) {
+          throw createDispatcherError("INVALID_REQUEST", "Invalid ProviderTranscribeAudio params", false);
+        }
+
+        if (typeof registry.transcribeAudio !== "function") {
+          throw createDispatcherError("NOT_IMPLEMENTED", "Provider transcription is not configured", false);
+        }
+
+        try {
+          const result = await registry.transcribeAudio(parsed);
+          return result as unknown as JsonObject;
+        } catch (error) {
+          if (error && typeof error === "object") {
+            const candidate = error as {
+              code?: unknown;
+              message?: unknown;
+              retryable?: unknown;
+              details?: unknown;
+            };
+
+            if (typeof candidate.code === "string" && typeof candidate.message === "string") {
+              throw createDispatcherError(
+                candidate.code,
+                candidate.message,
+                candidate.retryable === true,
+                candidate.details && typeof candidate.details === "object" ? (candidate.details as Record<string, unknown>) : undefined
+              );
+            }
+          }
+
+          throw createDispatcherError("PROVIDER_UNAVAILABLE", "Provider transcription failed", true);
         }
       }
 
@@ -292,6 +332,20 @@ export function createSystemDispatcher(options: SystemDispatcherOptions): Action
         }
 
         const result = await options.orchestrator.resume(parsed);
+        return result as unknown as JsonObject;
+      }
+
+      if (action === "AgentSteer") {
+        if (!options.orchestrator) {
+          throw createDispatcherError("NOT_IMPLEMENTED", "Agent orchestrator is not configured", false);
+        }
+
+        const parsed = parseAgentSteerParams(params);
+        if (!parsed) {
+          throw createDispatcherError("INVALID_REQUEST", "Invalid AgentSteer params", false);
+        }
+
+        const result = await options.orchestrator.steer(parsed);
         return result as unknown as JsonObject;
       }
 

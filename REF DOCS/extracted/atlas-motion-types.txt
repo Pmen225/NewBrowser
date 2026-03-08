@@ -1,0 +1,56 @@
+Animation
+AnimationBehavior
+AnimationConfiguration
+AnimationDriver
+AnimationDriverObserver
+AnimationEnvironment
+AnimationEnvironmentProxy
+AnimationEnvironmentStorage
+AnimationFrame
+AnimationGroup
+AnimationOptions
+AnimationPhase
+AnimationState
+AnimationType
+Animations
+BasicAnimation
+BasicBlockContainer
+BasicConversationRepository
+BasicHandler
+BasicInlineContainer
+Bezier
+BezierFunction
+Blend in a photo
+BlendingMode
+CurvedGradient
+Duration
+Duration is missing
+Duration must be greater than 0
+DurationCodingKeys
+EasingFunction
+Motion
+Motion can't run because this Mac doesn't have a screen
+Motion failed to get the CGDirectDisplayID for screen 
+Motion.AnimationGroup
+Motion.Animator
+Motion.BasicAnimation
+Motion.DecayAnimation
+Motion.SpringAnimation
+Motion/NSScreen+AnimationEnvironment.swift
+Motion/ValueAnimation.swift
+Phase
+Response
+Response is nil. Stopping sending and not deleting envelope. Will retry sending envelope later.
+Response is not nil. We only care about the response and assume the envelope arrived at Sentry. Ignoring the error: %@
+Response isn't a known type, not capturing HTTP Client errors.
+Response status code isn't within the allowed ranges, not capturing HTTP Client errors.
+ResponseCodingKeys
+ResponseDisposition
+ResponseErrorReason
+ResponseType
+Responses may take a moment to load.
+Responses shouldn
+Spring
+SpringAnimation
+SpringAnimator
+SpringFunction

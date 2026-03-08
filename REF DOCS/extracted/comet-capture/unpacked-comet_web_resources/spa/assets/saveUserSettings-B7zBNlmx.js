@@ -1,0 +1,2 @@
+import{s as u,g as i,a as n}from"./platform-core-CZ-8UOca.js";const c=async({settings:e,isLoggedIn:t,reason:r})=>{if(!t)return{status:"success"};const{error:s,response:a}=await u.PUT("/rest/user/save-settings",r,{body:{updated_settings:e},timeoutMs:i(),numRetries:1});if(s)throw new n("API_CLIENTS_ERROR",{message:"Failed to save user settings",cause:s,status:a.status??0});return{status:"success"}};export{c as s};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/saveUserSettings-B7zBNlmx.js.map

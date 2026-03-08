@@ -5,6 +5,13 @@ const DEFAULT_STORE = {
   activeSessionId: null
 };
 
+function createMessageId(idFactory) {
+  const factory = typeof idFactory === "function"
+    ? idFactory
+    : () => `message-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return factory();
+}
+
 function nowIso(value) {
   if (typeof value === "string" && value.trim().length > 0) {
     return value;
@@ -17,12 +24,12 @@ function createId(idFactory) {
   return factory();
 }
 
-function normalizeMessage(raw) {
+function normalizeMessage(raw, options = {}) {
   if (!raw || typeof raw !== "object") {
     return null;
   }
 
-  const id = typeof raw.id === "string" && raw.id.trim().length > 0 ? raw.id.trim() : "";
+  const id = typeof raw.id === "string" && raw.id.trim().length > 0 ? raw.id.trim() : createMessageId(options.idFactory);
   const role = raw.role === "user" || raw.role === "assistant" ? raw.role : "";
   const text = typeof raw.text === "string" ? raw.text : "";
   const ts = typeof raw.ts === "string" && raw.ts.trim().length > 0 ? raw.ts.trim() : "";
@@ -62,7 +69,7 @@ function normalizeSession(raw) {
   const title = typeof raw.title === "string" ? raw.title.trim() : "";
 
   const messages = Array.isArray(raw.messages)
-    ? raw.messages.map(normalizeMessage).filter(Boolean)
+    ? raw.messages.map((entry) => normalizeMessage(entry)).filter(Boolean)
     : [];
 
   return {
@@ -138,7 +145,7 @@ function deriveTitle(existingTitle, message) {
 
 export function appendSessionMessage(store, sessionId, message, options = {}) {
   const normalizedStore = normalizeChatSessionsStore(store);
-  const normalizedMessage = normalizeMessage(message);
+  const normalizedMessage = normalizeMessage(message, options);
   if (!normalizedMessage) {
     return normalizedStore;
   }
@@ -190,4 +197,3 @@ export function pruneChatSessions(store, { maxSessions = 15, maxMessagesPerSessi
     activeSessionId
   };
 }
-

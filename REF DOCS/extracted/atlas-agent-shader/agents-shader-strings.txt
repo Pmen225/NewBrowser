@@ -1,0 +1,398 @@
+MTLB
+NAME
+vertex_main
+TYPE
+HASH 
+dAUx
+YA3Z
+OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_main
+TYPE
+HASH 
+vOFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_glow_additive
+TYPE
+HASH 
+OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_blur_separable
+TYPE
+HASH 
+"Z%i
+OFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_downsample
+TYPE
+HASH 
+ROFFT
+VERS
+MDSZ
+RFLT
+ENDT
+NAME
+fragment_upsample_add
+TYPE
+HASH 
+nOFFT
+VERS
+MDSZ
+RFLT
+ENDTRLST
+UUID
+.ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+ENDT
+b0$
+`Rd\ $e
+0D1A0
+C"EP
+P$v`
+r2H #
+(d<12B
+Ld0H4
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.positionair.arg_type_namefloat4air.arg_namepositionair.vertex_outputgenerated(2uvDv2_f)float2uvair.vertex_iduintvertexID
+ksi{#
+c+s1c
+8H*,M
+omnipotent charSimple C++ TBAA
+P;b` 
+ 4((
+vertex_mainllvm.lifetime.end.p0i8llvm.lifetime.start.p0i832023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`bd\ $f
+8HBJ
+0&$Ga 
+`0D3
+`H5>V
+ v,A
+P$v`
+r2H #
+(d<12B
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_inforesolutioncircleColorfloatradiusPxtimeSecondspatternTimeSecondsdotTimeSecondscolorIntensityuniformTintAmountdotVisibilitygreyTintAmountpausedmaskProgressrippleElapsedmaskAnimatingclickRippleCenterUVclickRippleProgressbottomProminentair.arg_type_sizeair.arg_type_align_sizeUniformsuniforms
+ da0
+ de0
+ dg0
+ dk0
+ do0
+ ds0
+3}P
+4QPTY
+(Ddp
+ksi{#
+c+s1c
+_H*,M
+sN~c
+4<~c
+_ZTS8Uniformsomnipotent charSimple C++ TBAAair-alias-scopes(fragment_main)air-alias-scope-arg(2)llvm.loop.mustprogress
+y0Ah
+$R"$TB$Tb$6+
+$6+
+ ka@A
+?bp !
+?b` !
+?K T
+.TC.(
+?bp !
+1b` !
+J "#2b
+0bp !
+K `O
+T2A0b` !
+?b` !
+?bp !
+Tdlp
+2b` !
+?bp !
+2 I0P
+2bp !
+P`7w3
+?bp !
+?b` !
+S`P7
+?b` !
+h"m#
+8XbK
+?b` !
+?b` !
+0b` !
+B0bp !
+?b` !
+C0b` !
+A0b` !
+?b` !
+?bp !
+?bp !
+?b` !
+?bp !
+0bp !
+8dQ0b
+A0b` !
+?bp !
+?b` !
+0b` !
+fragment_mainair.mix.v3f32air.fast_clamp.f32air.mix.f32air.fast_fmax.f32air.fast_exp.f32air.fast_exp2.f32air.fast_sqrt.f32air.dot.v2f32air.dot.v3f32_Z13sampleTwinkleDv2_ffair.fast_log2.f32air.fast_sin.f32air.fast_fract.f32air.fast_fract.v2f32air.convert.f.f32.s.i32air.fast_floor.v2f32_Z22computeMaskTrailParamsDv2_ffffffff_Z18computeBlobForTimeDv2_ffair.fast_cos.f32air.fast_fmin.f32_Z24computeClickRippleParamsDv2_fS_S_fair.fast_clamp.v2f32_Z17computeRegionMaskDv2_fffair.mix.v2f32air.convert.f.f32.u.i1air.fast_rsqrt.f3232023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`bd\ $f
+0&$Ga 
+(dBA
+`0D3
+X?0
+!U>D
+,`HU3f@
+ v,A
+P$v`
+r2H #
+(d<12B
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_inforesolutioncircleColorfloatradiusPxtimeSecondspatternTimeSecondsdotTimeSecondscolorIntensityuniformTintAmountdotVisibilitygreyTintAmountpausedmaskProgressrippleElapsedmaskAnimatingclickRippleCenterUVclickRippleProgressbottomProminentair.arg_type_sizeair.arg_type_align_sizeUniformsuniforms&
+ \c0
+ \e0
+ \i0
+ \m0
+ \q0
+3{ 
+3}`
+DAQe]3${
+(lr@
+A(@wP
+&(#66
+qH&,M
+sN~c
+`0F`
+4<~c
+_ZTS8Uniformsomnipotent charSimple C++ TBAAair-alias-scopes(fragment_glow_additive)air-alias-scope-arg(2)llvm.loop.mustprogress
+x0Ah
+$R"$TB$Tb$6+
+$6+
+?b` !
+D0b` !
+0bp !
+sXP
+1A/
+A9`p
+1b` !
+0bp !
+?bp !
+"A0b` !
+Fj` 
+?b` !
+1+B0b
+!""H
+GH)"
+tCP#
+1b` !
+K0Kp
+0t`0
+T\|P
+2b` !
+ Cp'
+@E"$h
+T$,5
+N 2#3
+ C .93
+8XbKq
+?b` !
+?b` !
+0b` !
+B0bp !
+?b` !
+C0b` !
+A0b` !
+?b` !
+?bp !
+/dQ0b
+A0b` !
+?bp !
+?b` !
+0b` !
+?bp !
+?b` !
+?bp !
+0bp !
+fragment_glow_additiveair.fast_fmax.f32air.mix.v3f32air.fast_clamp.f32air.fast_exp2.f32_Z13sampleTwinkleDv2_ffair.mix.f32air.fast_log2.f32air.fast_sin.f32air.fast_fract.f32air.dot.v2f32air.fast_fract.v2f32air.fast_sqrt.f32air.convert.f.f32.s.i32air.fast_floor.v2f32air.fast_fmin.f32_Z22computeMaskTrailParamsDv2_ffffffff_Z18computeBlobForTimeDv2_ffair.fast_cos.f32_Z17computeRegionMaskDv2_fffair.mix.v2f32_Z24computeClickRippleParamsDv2_fS_S_fair.fast_clamp.v2f32air.convert.f.f32.u.i1air.dot.v3f32air.fast_rsqrt.f3232023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`bd\ $f
+&DaL
+`0D3
+P$v`
+r2H #
+(d<12B
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.bufferair.buffer_sizeair.location_indexair.readair.address_spaceair.struct_type_infotexelSizedirectionfloatsigmagainair.arg_type_sizeair.arg_type_align_sizeBlurUniformsbuair.textureair.sampletexture2d<float, sample>srcair.samplersamplersamp
+D3s
+3wP
+4QPTY
+(|}P
+ksi{#
+c+s1c
+UH*,M
+Q"H_
+_ZTS12BlurUniformsomnipotent charSimple C++ TBAAair-alias-scopes(fragment_blur_separable)air-alias-scope-arg(2)air-alias-scope-samplersair-alias-scope-texturesllvm.loop.mustprogress
+?DsMp
+g T8
+scP
+fragment_blur_separableair.sample_texture_2d.v4f32air.convert.f.f32.s.i32air.fast_exp2.f32air.fast_fmax.f3232023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`Rd\ $e
+0D1!0&
+A2aP
+`0D3
+CbEP
+P$v`
+r2H #
+(d<12B
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.textureair.location_indexair.sampletexture2d<float, sample>srcair.samplersamplersampf`
+3iP
+4QPTY
+Ta0C
+air-alias-scopes(fragment_downsample)air-alias-scope-texturesair-alias-scope-samplers
+fragment_downsampleair.sample_texture_2d.v4f32air.convert.f.f32.u.i32air.get_height_texture_2dair.get_width_texture_2d32023.850.10air64_v26-apple-macosx14.0.0
+b0$
+`Rd\ $e
+`0D3
+?0C*
+*`HUm
+CbEP
+P$v`
+r2H #
+(d<12B
+SDK Versionwchar_sizeframe-pointerair.max_device_buffersair.max_constant_buffersair.max_threadgroup_buffersair.max_texturesair.max_read_write_texturesair.max_samplersApple metal version 32023.850 (metalfe-32023.850.10)Metalair.compile.denorms_disableair.compile.fast_math_enableair.compile.framebuffer_fetch_enableair.render_targetair.arg_type_namefloat4air.positionair.centerair.no_perspectiveair.arg_namepositionair.arg_unusedair.fragment_inputgenerated(2uvDv2_f)air.perspectivefloat2uvair.textureair.location_indexair.sampletexture2d<float, sample>baseTexglowTexair.samplersamplersamp
+3jP
+4QPTY
+ksi{#
+c+s1c
+>H*,M
+air-alias-scopes(fragment_upsample_add)air-alias-scope-samplersair-alias-scope-textures
+fragment_upsample_addair.sample_texture_2d.v4f3232023.850.10air64_v26-apple-macosx14.0.0
+RBUF
+AIRR
+vertexID
+uint
+float2
+generated(2uvDv2_f)
+position
+float4
+vertex_main
+ENDT@
+RBUF0
+AIRR
+bottomProminent
+clickRippleProgress
+clickRippleCenterUV
+maskAnimating
+rippleElapsed
+maskProgress
+paused
+greyTintAmount
+dotVisibility
+uniformTintAmount
+colorIntensity
+dotTimeSeconds
+patternTimeSeconds
+timeSeconds
+radiusPx
+float
+circleColor
+resolution
+uniforms
+Uniforms
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_main
+ENDTH
+RBUF8
+AIRR
+bottomProminent
+clickRippleProgress
+clickRippleCenterUV
+maskAnimating
+rippleElapsed
+maskProgress
+paused
+greyTintAmount
+dotVisibility
+uniformTintAmount
+colorIntensity
+dotTimeSeconds
+patternTimeSeconds
+timeSeconds
+radiusPx
+float
+circleColor
+resolution
+uniforms
+Uniforms
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_glow_additive
+ENDT
+RBUF
+AIRR
+samp
+sampler
+texture2d<float, sample>
+gain
+sigma
+float
+direction
+texelSize
+BlurUniforms
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_blur_separable
+ENDTT
+RBUFD
+AIRR
+samp
+sampler
+texture2d<float, sample>
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_downsample
+ENDT
+RBUF
+AIRR
+samp
+sampler
+glowTex
+baseTex
+texture2d<float, sample>
+float2
+generated(2uvDv2_f)
+position
+float4
+fragment_upsample_add

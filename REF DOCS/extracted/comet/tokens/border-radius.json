@@ -1,0 +1,652 @@
+[
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-track-radius)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-thumb-radius)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-corner-radius)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".3125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".3125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".25rem!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0!important",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1.25rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "10px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "4px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".3125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "inherit",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".125rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-track-radius)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-thumb-radius)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-corner-radius)",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".75rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-overlay.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-content.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "8px",
+    "source": "comet-content.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "50%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "50%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "50%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "50%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".3125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".3125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".3125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1.25rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "4px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "100%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "10px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "116px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "122px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "12px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "13px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "15px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "16px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "20px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "37px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "4px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "50%",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "52px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "54px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "6px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".3125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".125rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-track-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-thumb-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-corner-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-track-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-thumb-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-corner-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-track-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-thumb-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--scrollbar-corner-radius)",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "inherit",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "1.25rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".5rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".75rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": ".375rem",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "9999px!important",
+    "source": "comet-sidecar-main.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "2px",
+    "source": "markdownView.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "3px",
+    "source": "menu.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "inherit",
+    "source": "menuItem.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--sys-shape-corner-extra-small)",
+    "source": "iconButton.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "3px",
+    "source": "textInput.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--sys-shape-corner-full)",
+    "source": "checkbox.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "5px",
+    "source": "checkbox.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "2px",
+    "source": "checkbox.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--sys-size-5)",
+    "source": "dialog.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--sys-shape-corner-extra-small)",
+    "source": "selectMenu.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "3px 0 0 3px",
+    "source": "selectMenu.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--sys-shape-corner-extra-small)",
+    "source": "selectMenuButton.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "0 3px 3px 0",
+    "source": "selectMenuButton.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "50%",
+    "source": "fileSourceIcon.css"
+  },
+  {
+    "property": "border-radius",
+    "value": "var(--sys-shape-corner-small)",
+    "source": "shortcutDialog.css"
+  }
+]

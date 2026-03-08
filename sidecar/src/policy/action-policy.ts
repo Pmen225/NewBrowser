@@ -94,6 +94,8 @@ function isSensitiveBrowserPage(url: URL): boolean {
 
   const sensitiveHosts = new Set([
     "settings",
+    "flags",
+    "extensions",
     "history",
     "bookmarks",
     "password-manager",
@@ -210,7 +212,9 @@ export function createActionPolicyGuard(
             });
           }
 
-          if (policy.blockSensitiveBrowserDataAccess && isSensitiveBrowserPage(parsedUrl)) {
+          const explicitSensitiveAccess = params.allow_sensitive_browser_pages === true;
+
+          if (policy.blockSensitiveBrowserDataAccess && isSensitiveBrowserPage(parsedUrl) && !explicitSensitiveAccess) {
             block("sensitive_browser_data_access_blocked", "Access to browser history, settings, bookmarks, passwords, and autofill data is blocked.", {
               url: parsedUrl.toString()
             });

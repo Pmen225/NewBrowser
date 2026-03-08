@@ -1,0 +1,2 @@
+import{s as r,g as i,a as n}from"./platform-core-CZ-8UOca.js";const p=async({reason:e})=>{const{data:t,error:s,response:o}=await r.GET("/rest/shopping/retrieve-customer-shopping-info",e,{timeoutMs:i({productionMs:5e3})});if(s)throw new n("API_CLIENTS_ERROR",{message:"Failed to get customer shopping info",cause:s,status:o.status??0});return t};export{p as g};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/getCustomerShoppingInfo-DFS0q328.js.map

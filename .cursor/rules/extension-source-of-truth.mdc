@@ -1,0 +1,12 @@
+---
+description: Single Assistant extension location; do not create another
+alwaysApply: true
+---
+
+# Assistant extension — single source of truth
+
+- **The only Assistant extension in this repo is `extension/`** (at the repository root).
+- **Do not create, add, or copy the Assistant extension anywhere else.** Do not create `apps/*/source-extension/`, `apps/*/assistant-ext/`, or any second unpacked extension directory for the Assistant.
+- All edits to the Chrome extension (panel, options, background, content scripts, manifest, CSS, assets) must be made in **`extension/`**.
+- When running or loading the extension, use **`extension/`** (e.g. `npm start` loads it by default, or set `NEW_BROWSER_EXTENSION_PATH` to the repo path ending in `/extension` if needed).
+- Reference docs and snapshots under `REF DOCS/extracted/` are not the Assistant; they are other products. The runnable Assistant is only in **`extension/`**.

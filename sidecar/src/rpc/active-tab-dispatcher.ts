@@ -5,6 +5,7 @@ import type { ActionDispatcher } from "./dispatcher";
 interface ActiveTabSessionRegistry {
   listTabs(): TabRecord[];
   attachTab(targetId: string): Promise<TabRecord>;
+  bindChromeTabId?: (tabId: string, chromeTabId: number) => void;
   enableDomains(tabId: string): Promise<void>;
   refreshFrameTree(tabId: string): Promise<FrameTreeSnapshot>;
 }
@@ -147,6 +148,7 @@ export function createActiveTabDispatcher(options: ActiveTabDispatcherOptions): 
       const resolvedTabId = existing?.tabId;
 
       if (resolvedTabId) {
+        options.sessionRegistry.bindChromeTabId?.(resolvedTabId, parsed.chrome_tab_id);
         notifyIfChanged(resolvedTabId);
         return {
           tab_id: resolvedTabId,
@@ -155,6 +157,7 @@ export function createActiveTabDispatcher(options: ActiveTabDispatcherOptions): 
       }
 
       const attached = await options.sessionRegistry.attachTab(matched.targetId);
+      options.sessionRegistry.bindChromeTabId?.(attached.tabId, parsed.chrome_tab_id);
       await options.sessionRegistry.enableDomains(attached.tabId);
       await options.sessionRegistry.refreshFrameTree(attached.tabId);
       notifyIfChanged(attached.tabId);

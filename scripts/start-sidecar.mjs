@@ -4,6 +4,8 @@ import { closeSync, openSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
+import { hardenAssistantProfile } from "./lib/assistant-profile-lock.js";
+
 const DEFAULT_POLL_INTERVAL_MS = 250;
 const DEFAULT_STARTUP_TIMEOUT_MS = 20_000;
 const DEFAULT_PORT_CANDIDATES = [9555, 9444, 9333, 9222];
@@ -116,6 +118,10 @@ function createBrowserArgs({ debuggingPort, userDataDir, extensionPath }) {
     "--disable-background-networking",
     "--disable-sync",
     "--disable-translate",
+    // Remove automation indicators so sites don't detect CDP-controlled browser
+    "--disable-blink-features=AutomationControlled",
+    // Suppress the "Chrome is being controlled by automated software" infobar
+    "--disable-infobars",
     "--disable-features=DisableLoadExtensionCommandLineSwitch,DisableDisableExtensionsExceptCommandLineSwitch",
     `--disable-extensions-except=${extensionPath}`,
     `--load-extension=${extensionPath}`,
@@ -176,6 +182,10 @@ async function launchBrowser() {
     const persistentDir = join(homedir(), ".local", "share", "new-browser", "chrome-profile");
     const userDataDir = explicitUserDataDir || persistentDir;
     await mkdir(userDataDir, { recursive: true }).catch(() => {});
+    await hardenAssistantProfile({
+      profileRoot: userDataDir,
+      extensionPath
+    }).catch(() => {});
     const stdoutLogFd = openSync(join(userDataDir, "launcher.stdout.log"), "a");
     const stderrLogFd = openSync(join(userDataDir, "launcher.stderr.log"), "a");
 
@@ -192,6 +202,10 @@ async function launchBrowser() {
 
     try {
       const cdpWsUrl = await pollForCdpReady(debuggingPort, DEFAULT_STARTUP_TIMEOUT_MS);
+      await hardenAssistantProfile({
+        profileRoot: userDataDir,
+        extensionPath
+      }).catch(() => {});
       return { browserProcess, cdpWsUrl };
     } catch (error) {
       lastError = error;
@@ -251,19 +265,19 @@ async function main() {
     process.on("SIGTERM", () => shutdown("SIGTERM"));
 
     serverProcess.on("exit", (code, signal) => {
-      if (browserProcess && !browserProcess.killed) {
-        try {
-          browserProcess.kill("SIGTERM");
-        } catch {
-          // Ignore cleanup failures.
-        }
-      }
-
+      // Do not kill the browser when the server exits—leave it open so you can keep using the panel.
+      // Browser is only killed on explicit SIGINT/SIGTERM to this process (shutdown()).
       if (signal) {
+        if (browserProcess && !browserProcess.killed) {
+          try {
+            browserProcess.kill(signal);
+          } catch {
+            // Ignore cleanup failures.
+          }
+        }
         process.kill(process.pid, signal);
         return;
       }
-
       process.exit(code ?? 0);
     });
   } catch (error) {

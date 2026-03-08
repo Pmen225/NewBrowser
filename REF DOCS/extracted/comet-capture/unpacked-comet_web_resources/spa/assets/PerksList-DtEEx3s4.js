@@ -1,0 +1,2 @@
+import{j as r}from"./vendors-bqg7Hkg3.js";import{a as s}from"./aether-core-CKfJhZ_c.js";import{T as l,$ as e}from"./pplx-icons-ednd-3tn.js";const n=({perks:i})=>r.jsx("ul",{children:i.map((t,a)=>r.jsxs("li",{className:"mb-sm gap-x-sm flex",children:[r.jsx(s,{color:"light",variant:"small",children:r.jsx(l,{icon:e("check")})}),r.jsx(s,{color:"light",variant:"small",textWrap:"pretty",children:t})]},a))});export{n as P};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/PerksList-DtEEx3s4.js.map

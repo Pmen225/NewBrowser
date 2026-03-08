@@ -1,0 +1,2 @@
+const n=async(e,t)=>{if(!t){await a(e);return}try{const o=new Blob([t],{type:"text/html"}),c=new Blob([e],{type:"text/plain"});await navigator.clipboard.write([new ClipboardItem({"text/html":o,"text/plain":c})])}catch{await a(e)}},a=async e=>{try{await navigator.clipboard.writeText(e)}catch{const t=document.createElement("textarea");t.value=e,document.body.appendChild(t),t.select(),document.execCommand("copy"),document.body.removeChild(t)}};export{a,n as c};
+//# sourceMappingURL=https://pplx-static-sourcemaps.perplexity.ai/_spa/assets/copyUtils-DT1Hotnl.js.map

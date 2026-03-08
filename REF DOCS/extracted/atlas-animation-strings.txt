@@ -1,0 +1,3 @@
+$s7SwiftUI4ViewP
+setAnimationBehavior:
+setReleasedWhenClosed:

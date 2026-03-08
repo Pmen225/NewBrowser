@@ -1,5 +1,5 @@
 import type { JsonObject } from "../../../shared/src/transport";
-import type { AgentToolSchemaEntry } from "./types";
+import type { AgentToolSchemaEntry, PromptDeclaredTool } from "./types";
 
 const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
   {
@@ -95,13 +95,39 @@ const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
   },
   {
     name: "computer",
-    description: "Perform low-level browser interactions such as click, type, scroll, or screenshot.",
+    description: "Perform low-level browser interactions such as click, type, scroll, screenshot, wait, drag, or handling a JavaScript dialog. For alert/confirm/prompt dialogs, use a dialog step such as {\"kind\":\"dialog\",\"accept\":true} or {\"kind\":\"dialog\",\"accept\":false,\"prompt_text\":\"example\"}.",
     parameters: {
       type: "object",
       properties: {
         steps: {
           type: "array",
-          items: { type: "object" }
+          items: {
+            type: "object",
+            properties: {
+              kind: {
+                type: "string",
+                enum: ["click", "type", "key", "scroll", "drag", "screenshot", "wait", "dialog"]
+              },
+              ref: { type: "string" },
+              x: { type: "number" },
+              y: { type: "number" },
+              button: { type: "string" },
+              click_count: { type: "number" },
+              text: { type: "string" },
+              key: { type: "string" },
+              delta_x: { type: "number" },
+              delta_y: { type: "number" },
+              from_ref: { type: "string" },
+              to_ref: { type: "string" },
+              from_x: { type: "number" },
+              from_y: { type: "number" },
+              to_x: { type: "number" },
+              to_y: { type: "number" },
+              duration_ms: { type: "number" },
+              accept: { type: "boolean" },
+              prompt_text: { type: "string" }
+            }
+          }
         }
       },
       required: ["steps"]
@@ -110,18 +136,59 @@ const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
   },
   {
     name: "form_input",
-    description: "Fill one or more form fields by ref_id.",
+    description: "Fill one or more form fields by ref_id. Use kind 'file' with an absolute local file path for file inputs.",
     parameters: {
       type: "object",
       properties: {
         fields: {
           type: "array",
-          items: { type: "object" }
+          items: {
+            type: "object",
+            properties: {
+              ref: { type: "string" },
+              kind: { type: "string", enum: ["text", "select", "checkbox", "file"] },
+              value: {
+                oneOf: [{ type: "string" }, { type: "boolean" }]
+              }
+            },
+            required: ["ref", "kind", "value"]
+          }
         }
       },
       required: ["fields"]
     },
     tabScope: "active_tab"
+  },
+  {
+    name: "draft_email",
+    description: "Create a structured email draft artifact for the side panel to render and insert into the current page.",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        subject: { type: "string" },
+        body_markdown: { type: "string" }
+      },
+      required: ["subject", "body_markdown"]
+    },
+    tabScope: "system"
+  },
+  {
+    name: "extensions_manage",
+    description: "List, enable, disable, or uninstall browser extensions. Never disable or uninstall the Assistant extension.",
+    parameters: {
+      type: "object",
+      properties: {
+        operation: {
+          type: "string",
+          enum: ["list", "enable", "disable", "uninstall"]
+        },
+        extension_id: { type: "string" },
+        query: { type: "string" }
+      },
+      required: ["operation"]
+    },
+    tabScope: "system"
   },
   {
     name: "todo_write",
@@ -140,8 +207,89 @@ const TOOL_SCHEMAS: AgentToolSchemaEntry[] = [
   }
 ];
 
+export const SYSTEM_REQUIRED_TOOL_NAMES = [
+  "read_page",
+  "find",
+  "get_page_text",
+  "search_web",
+  "navigate",
+  "tabs_create",
+  "computer",
+  "form_input",
+  "draft_email",
+  "extensions_manage",
+  "todo_write"
+] as const;
+
+export interface ToolSchemaAuditResult {
+  available: string[];
+  missing: string[];
+}
+
 function cloneParameters(parameters: JsonObject): JsonObject {
   return JSON.parse(JSON.stringify(parameters)) as JsonObject;
+}
+
+export function listToolSchemaNames(): string[] {
+  return TOOL_SCHEMAS.map((entry) => entry.name);
+}
+
+export function validateRequiredToolSchemas(requiredToolNames: readonly string[]): ToolSchemaAuditResult {
+  const availableSet = new Set(listToolSchemaNames());
+  const missing = requiredToolNames.filter((toolName) => !availableSet.has(toolName));
+  const available = requiredToolNames.filter((toolName) => availableSet.has(toolName));
+
+  return { available, missing };
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
+}
+
+function asStringSet(value: unknown): Set<string> {
+  return new Set(Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").map((item) => item.toLowerCase()) : []);
+}
+
+export function findToolCatalogMismatches(declaredTools: PromptDeclaredTool[], catalog: AgentToolSchemaEntry[]): string[] {
+  const catalogByName = new Map(catalog.map((entry) => [entry.name.toLowerCase(), entry]));
+  const mismatches: string[] = [];
+
+  for (const declared of declaredTools) {
+    const implemented = catalogByName.get(declared.name.toLowerCase());
+    if (!implemented) {
+      mismatches.push(`missing:${declared.name}`);
+      continue;
+    }
+
+    if (!declared.parameters) {
+      continue;
+    }
+
+    const declaredParameters = asRecord(declared.parameters);
+    const implementedParameters = asRecord(implemented.parameters);
+    const declaredProps = asRecord(declaredParameters?.properties);
+    const implementedProps = asRecord(implementedParameters?.properties);
+
+    if (!declaredProps || !implementedProps) {
+      continue;
+    }
+
+    for (const propertyName of Object.keys(declaredProps)) {
+      if (!(propertyName in implementedProps)) {
+        mismatches.push(`param:${declared.name}.${propertyName}`);
+      }
+    }
+
+    const declaredRequired = asStringSet(declaredParameters?.required);
+    const implementedRequired = asStringSet(implementedParameters?.required);
+    for (const requiredName of declaredRequired) {
+      if (!implementedRequired.has(requiredName)) {
+        mismatches.push(`required:${declared.name}.${requiredName}`);
+      }
+    }
+  }
+
+  return mismatches;
 }
 
 export function buildToolSchemaCatalog(toolNames: string[]): AgentToolSchemaEntry[] {
