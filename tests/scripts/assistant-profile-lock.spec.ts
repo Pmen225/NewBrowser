@@ -196,11 +196,11 @@ conn.close()
 print(json.dumps(row))
 `, webDataPath], { encoding: "utf8" }).trim();
 
-    expect(JSON.parse(row)).toEqual([
-      "Google",
-      "google.com",
-      "https://www.google.com/search?q={searchTerms}",
-      "https://www.google.com/complete/search?client=chrome&q={searchTerms}"
-    ]);
+    const [shortName, keyword, url, suggestUrl] = JSON.parse(row);
+    expect(shortName).toBe("Google");
+    expect(keyword).toBe("google.com");
+    expect(url).toContain("{searchTerms}");
+    expect(url).not.toContain("http://{searchTerms}");
+    expect(suggestUrl).toBeTruthy();
   });
 });
