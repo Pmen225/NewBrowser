@@ -880,6 +880,48 @@ html, body {
   color: var(--text-quiet);
 }
 
+.thinking-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.thinking-task-summary,
+.thinking-task-note {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-quiet);
+}
+
+.thinking-task-note--error {
+  color: oklch(62.8% .258 29.23);
+}
+
+.thinking-task-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.thinking-task-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-hover) 78%, transparent);
+  font-size: 10.5px;
+  color: var(--text-quiet);
+}
+
 @keyframes thinkingFloat {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1px); }

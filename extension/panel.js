@@ -364,6 +364,144 @@ export function deriveTerminalRunSnapshot(payload) {
   };
 }
 
+function stripAnswerEnvelope(raw) {
+  return typeof raw === "string" ? raw.replace(/<\/?answer>/gi, "").trim() : "";
+}
+
+function normalizeTaskPayload(task) {
+  if (!task || typeof task !== "object") {
+    return null;
+  }
+
+  const children = Array.isArray(task.children) ? task.children.filter((value) => typeof value === "string") : [];
+  return {
+    taskId: typeof task.task_id === "string" ? task.task_id : "",
+    role: typeof task.role === "string" ? task.role : "primary",
+    visibility: typeof task.visibility === "string" ? task.visibility : "panel",
+    children,
+    activeChildTaskId: typeof task.active_child_task_id === "string" ? task.active_child_task_id : "",
+    childSummary: stripAnswerEnvelope(task.child_summary),
+    childError: typeof task.child_error === "string" ? task.child_error : null
+  };
+}
+
+export function deriveTaskStatusMeta(task) {
+  if (!task) {
+    return null;
+  }
+
+  const children = Array.isArray(task.children) ? task.children : [];
+  const childCount = children.length;
+  const chips = [];
+  chips.push(task.role === "subagent" ? "Worker" : "Primary");
+  chips.push(task.visibility === "hidden" ? "Hidden" : "Panel");
+  if (childCount > 0) {
+    chips.push(`${childCount} hidden worker${childCount === 1 ? "" : "s"}`);
+  }
+  if (task.activeChildTaskId) {
+    chips.push("Delegating");
+  } else if (task.childError) {
+    chips.push("Needs review");
+  } else if (task.childSummary) {
+    chips.push("Returned");
+  }
+
+  let description = task.role === "subagent"
+    ? "Running as a delegated worker for the active task."
+    : "Keeping this page live while the agent works.";
+
+  if (task.activeChildTaskId) {
+    description = "Delegating a hidden worker while keeping this page live.";
+  } else if (task.childError) {
+    description = "A delegated worker hit a problem and returned control here.";
+  } else if (task.childSummary) {
+    description = "A delegated worker returned with an update.";
+  }
+
+  return {
+    description,
+    chips,
+    summary: task.childSummary || "",
+    error: task.childError || ""
+  };
+}
+
+export function deriveLiveRunState(currentRunState, payload) {
+  const nextRunState = {
+    ...(currentRunState && typeof currentRunState === "object" ? currentRunState : {}),
+    status: typeof payload?.status === "string" ? payload.status : currentRunState?.status ?? "running",
+    steps: Array.isArray(currentRunState?.steps)
+      ? currentRunState.steps
+      : Array.isArray(payload?.steps)
+        ? payload.steps
+        : []
+  };
+
+  const task = normalizeTaskPayload(payload?.task);
+  if (task) {
+    nextRunState.task = task;
+  }
+
+  return nextRunState;
+}
+
+export function deriveOverlayCueForToolStart(toolName, input = {}) {
+  if (toolName === "computer") {
+    const coord = Array.isArray(input.coordinate) ? input.coordinate : null;
+    const action = String(input.action || "").toLowerCase();
+    if (coord && coord.length === 2) {
+      return {
+        cursor: { x: coord[0], y: coord[1] },
+        ...((action === "click" || action === "left_click" || action === "double_click")
+          ? { click: { x: coord[0], y: coord[1] } }
+          : {})
+      };
+    }
+  }
+
+  if (toolName === "navigate") {
+    return { cursor: { x: 0.82, y: 0.08 } };
+  }
+
+  if (toolName === "read_page" || toolName === "get_page_text") {
+    return {
+      cursor: { x: 0.5, y: 0.18 },
+      highlight: { x: 0.08, y: 0.16, w: 0.84, h: 0.64 }
+    };
+  }
+
+  if (toolName === "find") {
+    return { cursor: { x: 0.5, y: 0.24 } };
+  }
+
+  return null;
+}
+
+export function deriveOverlayCueForToolDone(_toolName, payload = {}) {
+  const cue = {};
+  if (payload.cursor && typeof payload.cursor.x === "number" && typeof payload.cursor.y === "number") {
+    cue.cursor = { x: payload.cursor.x, y: payload.cursor.y };
+  }
+  if (payload.click && typeof payload.click.x === "number" && typeof payload.click.y === "number") {
+    cue.click = { x: payload.click.x, y: payload.click.y };
+  }
+  if (
+    payload.highlight &&
+    typeof payload.highlight.x === "number" &&
+    typeof payload.highlight.y === "number" &&
+    typeof payload.highlight.w === "number" &&
+    typeof payload.highlight.h === "number"
+  ) {
+    cue.highlight = {
+      x: payload.highlight.x,
+      y: payload.highlight.y,
+      w: payload.highlight.w,
+      h: payload.highlight.h
+    };
+  }
+  return Object.keys(cue).length > 0 ? cue : null;
+}
+
 export function deriveDraftInsertState(insertContext) {
   const hasSubject = Boolean(insertContext?.subject?.targetId);
   const hasBody = Boolean(insertContext?.body?.targetId);
@@ -728,6 +866,7 @@ function buildThinkingState(message) {
   const latestStep = steps.at(-1) ?? null;
   const completedCount = steps.filter((step) => step?.status === "completed").length;
   const details = describeAgentStep(latestStep);
+  const taskMeta = deriveTaskStatusMeta(runState?.task ?? null);
 
   if (completedCount > 0 && !latestStep) {
     article.classList.add("message--assistant-stale");
@@ -773,6 +912,45 @@ function buildThinkingState(message) {
   copy.appendChild(headline);
   copy.appendChild(summary);
   copy.appendChild(chips);
+
+  if (taskMeta) {
+    const taskCard = document.createElement("div");
+    taskCard.className = "thinking-task-card";
+
+    const taskDescription = document.createElement("p");
+    taskDescription.className = "thinking-task-summary";
+    taskDescription.textContent = taskMeta.description;
+    taskCard.appendChild(taskDescription);
+
+    if (taskMeta.summary) {
+      const taskReturned = document.createElement("p");
+      taskReturned.className = "thinking-task-note";
+      taskReturned.textContent = taskMeta.summary;
+      taskCard.appendChild(taskReturned);
+    }
+
+    if (taskMeta.error) {
+      const taskError = document.createElement("p");
+      taskError.className = "thinking-task-note thinking-task-note--error";
+      taskError.textContent = taskMeta.error;
+      taskCard.appendChild(taskError);
+    }
+
+    if (taskMeta.chips.length > 0) {
+      const taskChips = document.createElement("div");
+      taskChips.className = "thinking-task-chips";
+      taskMeta.chips.forEach((label) => {
+        const chip = document.createElement("span");
+        chip.className = "thinking-task-chip";
+        chip.textContent = label;
+        taskChips.appendChild(chip);
+      });
+      taskCard.appendChild(taskChips);
+    }
+
+    copy.appendChild(taskCard);
+  }
+
   thinking.appendChild(dots);
   thinking.appendChild(copy);
   article.appendChild(thinking);
@@ -790,6 +968,7 @@ function renderThinkingState(messageEl, runState) {
   clearThinkingState(messageEl);
   const thinking = buildThinkingState({ runState });
   content.prepend(thinking);
+  syncOverlayTaskStatus(runState);
 }
 
 function findLatestActiveThinkingIndex(messages) {
@@ -881,6 +1060,24 @@ function refreshOverlayForLiveState() {
     return;
   }
   broadcastOverlayControlState();
+  syncOverlayTaskStatus(currentRunState);
+}
+
+function syncOverlayTaskStatus(runState = currentRunState) {
+  if (!overlayActive || !overlayTabId) {
+    return;
+  }
+  const taskMeta = deriveTaskStatusMeta(runState?.task ?? null);
+  if (!taskMeta?.description) {
+    return;
+  }
+  chrome.runtime.sendMessage({
+    type: "ATLAS_STATUS_UPDATE",
+    tabId: overlayTabId,
+    text: taskMeta.description,
+    phase: taskMeta.chips.includes("Delegating") ? "planning" : "verifying",
+    progress: taskMeta.chips.includes("Returned") ? 82 : 36
+  }).catch(() => {});
 }
 
 function setOverlayControlState(nextState) {
@@ -1850,20 +2047,34 @@ function connectSSE() {
         clearRunState(currentAiEl.querySelector(".msg-content"));
         renderThinkingState(currentAiEl, currentRunState);
 
-        // Page overlay — inject/move cursor on computer tool
-        if (toolName === "computer" && overlayTabId) {
+        const overlayCue = deriveOverlayCueForToolStart(toolName, p?.tool_input);
+        if (overlayCue && overlayTabId) {
           if (!overlayActive) {
             chrome.runtime.sendMessage({ type: "ATLAS_OVERLAY_START", tabId: overlayTabId }).catch(() => {});
             overlayActive = true;
           }
-          const coord = p?.tool_input?.coordinate;
-          if (Array.isArray(coord) && coord.length === 2) {
-            chrome.runtime.sendMessage({ type: "ATLAS_CURSOR", tabId: overlayTabId, x: coord[0], y: coord[1] }).catch(() => {});
-            // Dispatch click ripple for click/left_click actions
-            const act = (p?.tool_input?.action ?? "").toLowerCase();
-            if (act === "click" || act === "left_click" || act === "double_click") {
-              chrome.runtime.sendMessage({ type: "ATLAS_CLICK", tabId: overlayTabId, x: coord[0], y: coord[1] }).catch(() => {});
-            }
+          if (overlayCue.cursor) {
+            chrome.runtime.sendMessage({
+              type: "ATLAS_CURSOR",
+              tabId: overlayTabId,
+              x: overlayCue.cursor.x,
+              y: overlayCue.cursor.y
+            }).catch(() => {});
+          }
+          if (overlayCue.click) {
+            chrome.runtime.sendMessage({
+              type: "ATLAS_CLICK",
+              tabId: overlayTabId,
+              x: overlayCue.click.x,
+              y: overlayCue.click.y
+            }).catch(() => {});
+          }
+          if (overlayCue.highlight) {
+            chrome.runtime.sendMessage({
+              type: "ATLAS_HIGHLIGHT",
+              tabId: overlayTabId,
+              rect: overlayCue.highlight
+            }).catch(() => {});
           }
         }
         // Forward status text to overlay
@@ -1897,6 +2108,32 @@ function connectSSE() {
         const item = actionItems.get(p.tool_call_id);
         finishActionItem(item);
         actionItems.delete(p.tool_call_id);
+        const overlayCue = deriveOverlayCueForToolDone(p?.tool_name ?? "tool", p?.overlay ?? {});
+        if (overlayCue && overlayActive && overlayTabId) {
+          if (overlayCue.cursor) {
+            chrome.runtime.sendMessage({
+              type: "ATLAS_CURSOR",
+              tabId: overlayTabId,
+              x: overlayCue.cursor.x,
+              y: overlayCue.cursor.y
+            }).catch(() => {});
+          }
+          if (overlayCue.click) {
+            chrome.runtime.sendMessage({
+              type: "ATLAS_CLICK",
+              tabId: overlayTabId,
+              x: overlayCue.click.x,
+              y: overlayCue.click.y
+            }).catch(() => {});
+          }
+          if (overlayCue.highlight) {
+            chrome.runtime.sendMessage({
+              type: "ATLAS_HIGHLIGHT",
+              tabId: overlayTabId,
+              rect: overlayCue.highlight
+            }).catch(() => {});
+          }
+        }
         if (p?.screenshot_b64 && currentAiEl) {
           const content = currentAiEl.querySelector(".msg-content");
           if (content) {
@@ -2151,6 +2388,10 @@ async function pollCurrentRunState(runId) {
     const snapshot = await rpc.call("AgentGetState", null, { run_id: runId });
     if (state !== "running" || currentRunId !== runId) {
       return;
+    }
+    currentRunState = deriveLiveRunState(currentRunState, snapshot);
+    if (currentAiEl) {
+      renderThinkingState(currentAiEl, currentRunState);
     }
     if (finalizeCurrentRun(runId, snapshot)) {
       return;
