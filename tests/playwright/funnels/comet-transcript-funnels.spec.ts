@@ -5,9 +5,16 @@ import path from "node:path";
 import { once } from "node:events";
 import { fileURLToPath } from "node:url";
 
-import { chromium, type Page } from "playwright";
+import type { Page } from "playwright";
 import { WebSocketServer } from "ws";
 import { describe, expect, it } from "vitest";
+
+import {
+  launchManagedPersistentContext,
+  resolveExtensionId,
+  safePageScreenshot,
+  withTimeout
+} from "../helpers/runtime-guards";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const DOC_PATH = path.join(ROOT, "docs", "testing", "funnels", "comet-transcript-funnels.md");
@@ -373,13 +380,13 @@ async function startSidecarStub(): Promise<StartedServer> {
       if (sseConnected) {
         return;
       }
-      await sseConnectionPromise;
+      await withTimeout("sidecar SSE connection", sseConnectionPromise, 8_000);
     },
     waitForRpcConnection: async () => {
       if (rpcConnected) {
         return;
       }
-      await rpcConnectionPromise;
+      await withTimeout("sidecar RPC connection", rpcConnectionPromise, 8_000);
     },
     waitForAgentRuns,
     getActions: () => actionLog.slice(),
@@ -401,19 +408,6 @@ async function startSidecarStub(): Promise<StartedServer> {
       });
     }
   };
-}
-
-async function resolveExtensionId(context: Awaited<ReturnType<typeof chromium.launchPersistentContext>>): Promise<string> {
-  let [serviceWorker] = context.serviceWorkers();
-  if (!serviceWorker) {
-    serviceWorker = await context.waitForEvent("serviceworker");
-  }
-
-  const extensionId = serviceWorker.url().split("/")[2];
-  if (!extensionId) {
-    throw new Error("Unable to resolve extension id");
-  }
-  return extensionId;
 }
 
 async function seedUnlockedProviders(panelPage: Page): Promise<void> {
@@ -480,10 +474,11 @@ describe("Comet transcript browser funnels", () => {
     const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-funnels-profile-"));
     const screenshotDir = mkdtempSync(path.join(tmpdir(), "new-browser-funnels-shots-"));
 
-    let context: Awaited<ReturnType<typeof chromium.launchPersistentContext>> | null = null;
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
     try {
       try {
-        context = await chromium.launchPersistentContext(profileDir, {
+        context = await launchManagedPersistentContext(profileDir, {
           channel: "chromium",
           headless: true,
           args: [
@@ -496,18 +491,18 @@ describe("Comet transcript browser funnels", () => {
         throw new Error(`Unable to launch Playwright Chromium. Run 'npx playwright install chromium'. ${message}`);
       }
 
-      const extensionId = await resolveExtensionId(context);
+      const extensionId = await resolveExtensionId(context, 10_000);
       const fixturePage = await context.newPage();
-      const panelPage = await context.newPage();
+      panelPage = await context.newPage();
 
-      await panelPage.goto(`chrome-extension://${extensionId}/panel.html`);
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
       await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
       await sidecarStub.waitForRpcConnection();
       await sidecarStub.waitForEventStream();
 
       for (const funnel of FUNNELS) {
         await seedUnlockedProviders(panelPage);
-        await fixturePage.goto(`${fixtureServer.origin}${funnel.pagePath}`);
+        await withTimeout(`fixture goto ${funnel.id}`, fixturePage.goto(`${fixtureServer.origin}${funnel.pagePath}`), 10_000);
         await panelPage.getByLabel("Ask anything").fill(funnel.prompt);
         await panelPage.getByRole("button", { name: "Send" }).click();
         try {
@@ -530,6 +525,9 @@ describe("Comet transcript browser funnels", () => {
         await panelPage.screenshot({ path: screenshotPath });
         expect(existsSync(screenshotPath), `Missing screenshot for ${funnel.id}`).toBe(true);
       }
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "comet-transcript-failure.png"));
+      throw error;
     } finally {
       if (context) {
         await context.close();

@@ -5,9 +5,16 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { chromium } from "playwright";
+import type { Page } from "playwright";
 import { WebSocketServer } from "ws";
 import { describe, expect, it } from "vitest";
+
+import {
+  launchManagedPersistentContext,
+  resolveExtensionId,
+  safePageScreenshot,
+  withTimeout
+} from "../helpers/runtime-guards";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const EXTENSION_PATH = path.join(ROOT, "extension");
@@ -31,19 +38,6 @@ function prepareTestExtension(sidecarOrigin: string): string {
 
   writeFileSync(panelPath, patchedSource, "utf8");
   return tempExtensionDir;
-}
-
-async function resolveExtensionId(context: Awaited<ReturnType<typeof chromium.launchPersistentContext>>): Promise<string> {
-  let [serviceWorker] = context.serviceWorkers();
-  if (!serviceWorker) {
-    serviceWorker = await context.waitForEvent("serviceworker");
-  }
-
-  const extensionId = serviceWorker.url().split("/")[2];
-  if (!extensionId) {
-    throw new Error("Unable to resolve extension id");
-  }
-  return extensionId;
 }
 
 async function startFixtureServer(): Promise<{ origin: string; close: () => Promise<void> }> {
@@ -260,13 +254,13 @@ async function startSidecarStub(): Promise<SidecarStub> {
       if (sseConnected) {
         return;
       }
-      await sseConnectionPromise;
+      await withTimeout("sidecar SSE connection", sseConnectionPromise, 8_000);
     },
     waitForRpcConnection: async () => {
       if (rpcConnected) {
         return;
       }
-      await rpcConnectionPromise;
+      await withTimeout("sidecar RPC connection", rpcConnectionPromise, 8_000);
     },
     waitForAgentRuns,
     getLastAgentRunParams: () => lastAgentRunParams,
@@ -300,10 +294,11 @@ describe("Panel image attachments", () => {
     const testExtensionDir = prepareTestExtension(sidecarStub.origin);
     const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-attachments-profile-"));
 
-    let context: Awaited<ReturnType<typeof chromium.launchPersistentContext>> | null = null;
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
     try {
       try {
-        context = await chromium.launchPersistentContext(profileDir, {
+        context = await launchManagedPersistentContext(profileDir, {
           channel: "chromium",
           headless: false,
           args: [
@@ -316,12 +311,12 @@ describe("Panel image attachments", () => {
         throw new Error(`Unable to launch Playwright Chromium. Run 'npx playwright install chromium'. ${message}`);
       }
 
-      const extensionId = await resolveExtensionId(context);
+      const extensionId = await resolveExtensionId(context, 10_000);
       const webPage = await context.newPage();
-      await webPage.goto(fixtureServer.origin, { waitUntil: "domcontentloaded" });
+      await withTimeout("fixture goto", webPage.goto(fixtureServer.origin, { waitUntil: "domcontentloaded" }), 10_000);
 
-      const panelPage = await context.newPage();
-      await panelPage.goto(`chrome-extension://${extensionId}/panel.html`);
+      panelPage = await context.newPage();
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
       await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
 
       await sidecarStub.waitForRpcConnection();
@@ -343,6 +338,9 @@ describe("Panel image attachments", () => {
       expect((params?.images as unknown[]).length).toBeGreaterThan(0);
       expect(typeof (params?.images as string[])[0]).toBe("string");
       expect(((params?.images as string[])[0] ?? "").startsWith("data:image/png;base64,")).toBe(true);
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-attachments-failure.png"));
+      throw error;
     } finally {
       if (context) {
         await context.close();
@@ -362,10 +360,11 @@ describe("Panel image attachments", () => {
     const testExtensionDir = prepareTestExtension(sidecarStub.origin);
     const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-history-profile-"));
 
-    let context: Awaited<ReturnType<typeof chromium.launchPersistentContext>> | null = null;
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
     try {
       try {
-        context = await chromium.launchPersistentContext(profileDir, {
+        context = await launchManagedPersistentContext(profileDir, {
           channel: "chromium",
           headless: false,
           args: [
@@ -378,12 +377,12 @@ describe("Panel image attachments", () => {
         throw new Error(`Unable to launch Playwright Chromium. Run 'npx playwright install chromium'. ${message}`);
       }
 
-      const extensionId = await resolveExtensionId(context);
+      const extensionId = await resolveExtensionId(context, 10_000);
       const webPage = await context.newPage();
-      await webPage.goto(fixtureServer.origin, { waitUntil: "domcontentloaded" });
+      await withTimeout("fixture goto", webPage.goto(fixtureServer.origin, { waitUntil: "domcontentloaded" }), 10_000);
 
-      const panelPage = await context.newPage();
-      await panelPage.goto(`chrome-extension://${extensionId}/panel.html`);
+      panelPage = await context.newPage();
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
       await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
 
       await sidecarStub.waitForRpcConnection();
@@ -404,6 +403,9 @@ describe("Panel image attachments", () => {
         { role: "user", text: "Can you go to Google?" },
         { role: "assistant", text: "Processed screenshot attachment." }
       ]);
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-history-failure.png"));
+      throw error;
     } finally {
       if (context) {
         await context.close();

@@ -7,21 +7,18 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } 
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
+import type { Page } from "playwright";
 import { describe, expect, it } from "vitest";
+
+import {
+  launchManagedPersistentContext,
+  resolveExtensionId,
+  safePageScreenshot,
+  withTimeout
+} from "./helpers/runtime-guards";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const EXTENSION_PATH = path.join(ROOT, "extension");
-
-async function resolveExtensionId(
-  context: Awaited<ReturnType<typeof chromium.launchPersistentContext>>
-): Promise<string> {
-  let [sw] = context.serviceWorkers();
-  if (!sw) sw = await context.waitForEvent("serviceworker");
-  const id = sw.url().split("/")[2];
-  if (!id) throw new Error("Could not resolve extension ID from service worker URL");
-  return id;
-}
 
 describe("Screenshot button QA", () => {
   it("+ → Screenshot captures the visible tab and shows attachment chip + toast", async () => {
@@ -33,10 +30,11 @@ describe("Screenshot button QA", () => {
 
     const profileDir = mkdtempSync(path.join(tmpdir(), "screenshot-qa-profile-"));
 
-    let context: Awaited<ReturnType<typeof chromium.launchPersistentContext>> | null = null;
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panel: Page | null = null;
     try {
       try {
-        context = await chromium.launchPersistentContext(profileDir, {
+        context = await launchManagedPersistentContext(profileDir, {
           channel: "chromium",
           headless: false, // must be headed for captureVisibleTab
           args: [
@@ -49,16 +47,16 @@ describe("Screenshot button QA", () => {
         throw new Error(`Could not launch Chromium. Run 'npx playwright install chromium'. ${msg}`);
       }
 
-      const extensionId = await resolveExtensionId(context);
+      const extensionId = await resolveExtensionId(context, 10_000);
 
       // Open a normal web page first (captureVisibleTab needs an http/https page)
       const webPage = await context.newPage();
-      await webPage.goto("https://example.com");
+      await withTimeout("screenshot QA target goto", webPage.goto("https://example.com"), 10_000);
       await webPage.waitForLoadState("domcontentloaded");
 
       // Open the panel directly
-      const panel = await context.newPage();
-      await panel.goto(`chrome-extension://${extensionId}/panel.html`);
+      panel = await context.newPage();
+      await withTimeout("panel goto", panel.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
 
       // Wait for the composer to be ready
       await panel.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8000 });
@@ -113,6 +111,9 @@ describe("Screenshot button QA", () => {
       expect(chipText).toMatch(/screenshot/i);
       console.log("✓ Screenshot captured successfully, chip label:", chipText);
 
+    } catch (error) {
+      await safePageScreenshot(panel, path.join(ROOT, "output", "screenshot-qa-result.png"));
+      throw error;
     } finally {
       if (context) await context.close().catch(() => {});
       rmSync(profileDir, { recursive: true, force: true });

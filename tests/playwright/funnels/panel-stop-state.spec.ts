@@ -5,9 +5,16 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { chromium } from "playwright";
+import type { Page } from "playwright";
 import { WebSocketServer } from "ws";
 import { describe, expect, it } from "vitest";
+
+import {
+  launchManagedPersistentContext,
+  resolveExtensionId,
+  safePageScreenshot,
+  withTimeout
+} from "../helpers/runtime-guards";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const EXTENSION_PATH = path.join(ROOT, "extension");
@@ -31,19 +38,6 @@ function prepareTestExtension(sidecarOrigin: string): string {
 
   writeFileSync(panelPath, patchedSource, "utf8");
   return tempExtensionDir;
-}
-
-async function resolveExtensionId(context: Awaited<ReturnType<typeof chromium.launchPersistentContext>>): Promise<string> {
-  let [serviceWorker] = context.serviceWorkers();
-  if (!serviceWorker) {
-    serviceWorker = await context.waitForEvent("serviceworker");
-  }
-
-  const extensionId = serviceWorker.url().split("/")[2];
-  if (!extensionId) {
-    throw new Error("Unable to resolve extension id");
-  }
-  return extensionId;
 }
 
 interface SidecarStub {
@@ -277,13 +271,13 @@ async function startSidecarStub(): Promise<SidecarStub> {
       if (sseConnected) {
         return;
       }
-      await sseConnectionPromise;
+      await withTimeout("sidecar SSE connection", sseConnectionPromise, 8_000);
     },
     waitForRpcConnection: async () => {
       if (rpcConnected) {
         return;
       }
-      await rpcConnectionPromise;
+      await withTimeout("sidecar RPC connection", rpcConnectionPromise, 8_000);
     },
     waitForActionCount,
     getActions: () => [...actions],
@@ -315,10 +309,11 @@ describe("Panel stop state", () => {
     const testExtensionDir = prepareTestExtension(sidecarStub.origin);
     const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-stop-profile-"));
 
-    let context: Awaited<ReturnType<typeof chromium.launchPersistentContext>> | null = null;
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
     try {
       try {
-        context = await chromium.launchPersistentContext(profileDir, {
+        context = await launchManagedPersistentContext(profileDir, {
           channel: "chromium",
           headless: true,
           args: [
@@ -331,9 +326,9 @@ describe("Panel stop state", () => {
         throw new Error(`Unable to launch Playwright Chromium. Run 'npx playwright install chromium'. ${message}`);
       }
 
-      const extensionId = await resolveExtensionId(context);
-      const panelPage = await context.newPage();
-      await panelPage.goto(`chrome-extension://${extensionId}/panel.html`);
+      const extensionId = await resolveExtensionId(context, 10_000);
+      panelPage = await context.newPage();
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
       await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
 
       await sidecarStub.waitForRpcConnection();
@@ -354,6 +349,9 @@ describe("Panel stop state", () => {
 
       const assistantText = await panelPage.locator(".thread-msg.assistant .msg-content").last().innerText();
       expect(assistantText).not.toContain("No response");
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-stop-failure.png"));
+      throw error;
     } finally {
       if (context) {
         await context.close();
@@ -371,10 +369,11 @@ describe("Panel stop state", () => {
     const testExtensionDir = prepareTestExtension(sidecarStub.origin);
     const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-pause-profile-"));
 
-    let context: Awaited<ReturnType<typeof chromium.launchPersistentContext>> | null = null;
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
     try {
       try {
-        context = await chromium.launchPersistentContext(profileDir, {
+        context = await launchManagedPersistentContext(profileDir, {
           channel: "chromium",
           headless: true,
           args: [
@@ -388,12 +387,12 @@ describe("Panel stop state", () => {
       }
 
       const targetPage = await context.newPage();
-      await targetPage.goto(`${sidecarStub.origin}/fixture`);
+      await withTimeout("fixture goto", targetPage.goto(`${sidecarStub.origin}/fixture`), 10_000);
       expect(await targetPage.locator("body").innerText()).toContain("Fixture page");
 
-      const extensionId = await resolveExtensionId(context);
-      const panelPage = await context.newPage();
-      await panelPage.goto(`chrome-extension://${extensionId}/panel.html`);
+      const extensionId = await resolveExtensionId(context, 10_000);
+      panelPage = await context.newPage();
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
       await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
 
       await sidecarStub.waitForRpcConnection();
@@ -423,6 +422,9 @@ describe("Panel stop state", () => {
       ).toContain("Resumed after manual takeover");
 
       expect(sidecarStub.getActions().filter((action) => action === "AgentRun")).toHaveLength(1);
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-pause-failure.png"));
+      throw error;
     } finally {
       if (context) {
         await context.close();
