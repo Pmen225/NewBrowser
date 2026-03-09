@@ -49,14 +49,42 @@ function loadJson(filePath) {
   }
 }
 
-export function resolveConfiguredExtensionId() {
-  const fromEnv = process.env.LIVE_EXTENSION_ID?.trim();
+function readManifestSignature(extensionPath) {
+  const manifestPath = path.join(extensionPath, "manifest.json");
+  const manifest = loadJson(manifestPath);
+  if (!manifest || typeof manifest !== "object") {
+    return null;
+  }
+
+  return {
+    name: typeof manifest.name === "string" ? manifest.name.trim() : "",
+    description: typeof manifest.description === "string" ? manifest.description.trim() : "",
+    version: typeof manifest.version === "string" ? manifest.version.trim() : ""
+  };
+}
+
+function manifestSignatureMatches(left, right) {
+  if (!left || !right) {
+    return false;
+  }
+  return left.name !== ""
+    && left.name === right.name
+    && left.description !== ""
+    && left.description === right.description;
+}
+
+export function resolveConfiguredExtensionId({
+  root = ROOT,
+  profileRoot = process.env.LIVE_CHROME_PROFILE_DIR?.trim() || path.join(process.env.HOME || "", ".local", "share", "new-browser", "chrome-profile"),
+  explicitExtensionId = process.env.LIVE_EXTENSION_ID?.trim() || ""
+} = {}) {
+  const fromEnv = explicitExtensionId;
   if (fromEnv) {
     return fromEnv;
   }
 
-  const extensionPath = path.resolve(ROOT, "extension");
-  const profileRoot = process.env.LIVE_CHROME_PROFILE_DIR?.trim() || path.join(process.env.HOME || "", ".local", "share", "new-browser", "chrome-profile");
+  const extensionPath = path.resolve(root, "extension");
+  const extensionManifest = readManifestSignature(extensionPath);
   const candidates = [
     path.join(profileRoot, "Default", "Secure Preferences"),
     path.join(profileRoot, "Default", "Preferences")
@@ -77,6 +105,13 @@ export function resolveConfiguredExtensionId() {
       const installedPath = typeof entry.path === "string" ? path.resolve(entry.path) : "";
       if (installedPath === extensionPath) {
         return extensionId;
+      }
+
+      if (installedPath) {
+        const installedManifest = readManifestSignature(installedPath);
+        if (manifestSignatureMatches(extensionManifest, installedManifest)) {
+          return extensionId;
+        }
       }
     }
   }

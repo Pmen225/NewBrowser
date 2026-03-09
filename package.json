@@ -19,7 +19,8 @@
     "test:integration": "vitest run tests/cdp/target-event-router.spec.ts",
     "test:e2e": "vitest run tests/e2e/*.spec.ts",
     "audit:tools": "tsx scripts/audit-tool-access.mjs",
-    "test:tool-audit": "vitest run tests/agent/tool-schema-audit.spec.ts"
+    "test:tool-audit": "vitest run tests/agent/tool-schema-audit.spec.ts",
+    "benchmark:browser:local": "node scripts/live-local-browser-course.mjs"
   },
   "devDependencies": {
     "@types/node": "^25.3.2",
