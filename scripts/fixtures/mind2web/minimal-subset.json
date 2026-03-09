@@ -1,0 +1,50 @@
+{
+  "benchmark": "mind2web-local-subset",
+  "version": 1,
+  "source": "repo-authored local fixtures using Mind2Web-style task metadata",
+  "tasks": [
+    {
+      "taskId": "mind2web-local-checkboxes-1",
+      "website": "atlas-local-course",
+      "domain": "local.fixture",
+      "confirmedTask": "On this page, make sure checkbox 1 is checked and checkbox 2 is unchecked, then tell me the final state.",
+      "startPath": "/checkboxes",
+      "siteEvalSource": "() => ({ c1: document.querySelectorAll('input[type=\"checkbox\"]')[0]?.checked ?? null, c2: document.querySelectorAll('input[type=\"checkbox\"]')[1]?.checked ?? null })",
+      "expected": {
+        "siteEval": {
+          "c1": true,
+          "c2": false
+        },
+        "assistantIncludes": ["checkbox 1", "checked", "checkbox 2", "unchecked"]
+      }
+    },
+    {
+      "taskId": "mind2web-local-dropdown-1",
+      "website": "atlas-local-course",
+      "domain": "local.fixture",
+      "confirmedTask": "On this page, select Option 2 and tell me which option is selected.",
+      "startPath": "/dropdown",
+      "siteEvalSource": "() => ({ value: document.querySelector('#dropdown')?.value ?? '' })",
+      "expected": {
+        "siteEval": {
+          "value": "2"
+        },
+        "assistantIncludes": ["option 2"]
+      }
+    },
+    {
+      "taskId": "mind2web-local-js-prompt-1",
+      "website": "atlas-local-course",
+      "domain": "local.fixture",
+      "confirmedTask": "On this page, trigger the JS Prompt, enter \"Atlas\", accept it, and tell me the result text.",
+      "startPath": "/javascript_alerts",
+      "siteEvalSource": "() => ({ result: document.querySelector('#result')?.textContent?.trim() ?? '' })",
+      "expected": {
+        "siteEval": {
+          "result": "You entered: Atlas"
+        },
+        "assistantIncludes": ["you entered", "atlas"]
+      }
+    }
+  ]
+}

@@ -20,7 +20,9 @@
     "test:e2e": "vitest run tests/e2e/*.spec.ts",
     "audit:tools": "tsx scripts/audit-tool-access.mjs",
     "test:tool-audit": "vitest run tests/agent/tool-schema-audit.spec.ts",
-    "benchmark:browser:local": "node scripts/live-local-browser-course.mjs"
+    "benchmark:browser:local": "node scripts/live-local-browser-course.mjs",
+    "benchmark:mind2web:prepare": "node scripts/prepare-mind2web-fixtures.mjs",
+    "benchmark:mind2web": "node scripts/run-mind2web-eval.mjs"
   },
   "devDependencies": {
     "@types/node": "^25.3.2",
