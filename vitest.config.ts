@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.spec.ts"],
     environment: "node",
+    reporters: ["basic"],
     pool: "forks",
     poolOptions: {
       forks: {
