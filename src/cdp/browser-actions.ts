@@ -725,20 +725,6 @@ function mapJavaScriptDialog(
   };
 }
 
-function createSyntheticJavaScriptDialog(
-  nextStep?: ComputerStep
-): NonNullable<ComputerBatchResult["javascript_dialog"]> {
-  const defaultPrompt = nextStep?.kind === "dialog" && typeof nextStep.prompt_text === "string"
-    ? nextStep.prompt_text
-    : undefined;
-
-  return {
-    type: defaultPrompt ? "prompt" : "dialog",
-    message: "",
-    ...(typeof defaultPrompt === "string" ? { default_prompt: defaultPrompt } : {})
-  };
-}
-
 async function waitForJavaScriptDialogState(
   runtime: BrowserActionRuntime,
   tabId: string,
@@ -836,9 +822,12 @@ async function dispatchClickWithDialogObservation(
   }
   if (raced.kind === "release_timeout") {
     const dialog = mapJavaScriptDialog(runtime.getJavaScriptDialog?.(tabId));
-    return {
-      javascriptDialog: dialog ?? createSyntheticJavaScriptDialog(nextStep)
-    };
+    if (dialog) {
+      return {
+        javascriptDialog: dialog
+      };
+    }
+    return undefined;
   }
 
   await releasePromise;

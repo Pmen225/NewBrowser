@@ -68,4 +68,19 @@ describe("mind2web fixture preparation", () => {
     const taskSet = loadMind2WebTaskSet(writtenPath);
     expect(taskSet.tasks).toHaveLength(2);
   });
+
+  it("fails with a clear gated-dataset error when no authenticated online source is provided", async () => {
+    const root = mkdtempSync(path.join(tmpdir(), "mind2web-online-gated-"));
+    cleanup.push(root);
+
+    await expect(
+      materializeOnlineMind2WebSubset({
+        root,
+        sourcePath: "",
+        token: ""
+      })
+    ).rejects.toThrow(
+      "Online-Mind2Web is gated. Set ONLINE_MIND2WEB_JSON or HF_TOKEN/HUGGING_FACE_HUB_TOKEN to materialize a local subset."
+    );
+  });
 });

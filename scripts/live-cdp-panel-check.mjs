@@ -529,6 +529,68 @@ async function captureScreenshot(cdp, sessionId, filePath) {
   writeFileSync(filePath, Buffer.from(capture.data, "base64"));
 }
 
+async function ensureMiniWobTaskStarted(cdp, sessionId) {
+  const initialState = await evaluate(
+    cdp,
+    sessionId,
+    `(() => {
+      const cover = document.getElementById("sync-task-cover");
+      const query = document.querySelector("#query")?.textContent?.trim() ?? "";
+      const visible = cover instanceof HTMLElement && getComputedStyle(cover).display !== "none";
+      return {
+        hasCover: cover instanceof HTMLElement,
+        coverVisible: visible,
+        query,
+        checkboxCount: document.querySelectorAll('input[type="checkbox"]').length
+      };
+    })()`
+  );
+
+  if (!initialState?.hasCover || !initialState?.coverVisible) {
+    return {
+      started: initialState?.checkboxCount > 0 || Boolean(initialState?.query),
+      state: initialState
+    };
+  }
+
+  await evaluate(
+    cdp,
+    sessionId,
+    `(() => {
+      const cover = document.getElementById("sync-task-cover");
+      if (!(cover instanceof HTMLElement)) {
+        return false;
+      }
+      cover.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+      cover.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true }));
+      cover.click();
+      return true;
+    })()`
+  );
+
+  const startedState = await waitForFunction(
+    cdp,
+    sessionId,
+    `(() => {
+      const cover = document.getElementById("sync-task-cover");
+      const coverVisible = cover instanceof HTMLElement && getComputedStyle(cover).display !== "none";
+      const query = document.querySelector("#query")?.textContent?.trim() ?? "";
+      const checkboxCount = document.querySelectorAll('input[type="checkbox"]').length;
+      if (coverVisible || (!query && checkboxCount === 0)) {
+        return null;
+      }
+      return { coverVisible, query, checkboxCount };
+    })()`,
+    5_000,
+    100
+  );
+
+  return {
+    started: true,
+    state: startedState
+  };
+}
+
 async function getPanelSnapshot(cdp, sessionId) {
   return evaluate(
     cdp,
@@ -912,6 +974,13 @@ export async function runLivePanelCheck({
     await navigateSession(cdp, site.sessionId, benchmarkWorkspace.siteUrl);
     site.matchUrl = benchmarkWorkspace.siteUrl;
     console.log(`Loaded target page: ${benchmarkWorkspace.siteUrl}`);
+
+    if (/\/miniwob\//i.test(targetUrl)) {
+      const startState = await ensureMiniWobTaskStarted(cdp, site.sessionId);
+      if (startState.started) {
+        console.log(`MiniWoB episode started${startState.state?.query ? `: ${startState.state.query}` : ""}`);
+      }
+    }
 
     panel = await createPageSession(cdp);
     panel.type = "page";

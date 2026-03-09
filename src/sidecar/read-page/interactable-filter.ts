@@ -200,6 +200,44 @@ function buildNode(input: {
   };
 }
 
+function bboxArea(node: InteractableNode): number {
+  return Math.max(0, node.bbox.w) * Math.max(0, node.bbox.h);
+}
+
+function bboxContains(outer: InteractableNode["bbox"], inner: InteractableNode["bbox"]): boolean {
+  return (
+    inner.x >= outer.x &&
+    inner.y >= outer.y &&
+    inner.x + inner.w <= outer.x + outer.w &&
+    inner.y + inner.h <= outer.y + outer.h
+  );
+}
+
+function isOversizedGenericContainer(node: InteractableNode, allNodes: InteractableNode[]): boolean {
+  if (node.source !== "dom_clickable" || node.role !== "generic") {
+    return false;
+  }
+
+  const nodeArea = bboxArea(node);
+  if (nodeArea <= 0) {
+    return false;
+  }
+
+  return allNodes.some((other) => {
+    if (other === node) {
+      return false;
+    }
+    const otherArea = bboxArea(other);
+    if (otherArea <= 0 || nodeArea < otherArea * 4) {
+      return false;
+    }
+    if (!bboxContains(node.bbox, other.bbox)) {
+      return false;
+    }
+    return other.role !== "generic" || other.source !== "dom_clickable";
+  });
+}
+
 export function filterInteractables(input: FilterInteractablesInput): FilterInteractablesResult {
   const nodes: InteractableNode[] = [];
   const backendNodeIdsFromAx = new Set<number>();
@@ -290,7 +328,9 @@ export function filterInteractables(input: FilterInteractablesInput): FilterInte
     );
   }
 
-  nodes.sort((left, right) => {
+  const prunedNodes = nodes.filter((node) => !isOversizedGenericContainer(node, nodes));
+
+  prunedNodes.sort((left, right) => {
     if (left.bbox.y !== right.bbox.y) {
       return left.bbox.y - right.bbox.y;
     }
@@ -301,7 +341,7 @@ export function filterInteractables(input: FilterInteractablesInput): FilterInte
   });
 
   return {
-    nodes,
+    nodes: prunedNodes,
     diagnostics: {
       missing_bbox_backend_node_ids: [...missingBboxBackendNodeIds].sort((a, b) => a - b)
     }

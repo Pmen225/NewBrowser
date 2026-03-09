@@ -1087,6 +1087,10 @@ function buildValidationObservation(action: string, result: JsonObject): string 
   const rawText =
     typeof result.result === "string"
       ? result.result
+      : typeof result.text === "string"
+        ? result.text
+        : typeof result.yaml === "string"
+          ? result.yaml
       : typeof result.markdown === "string"
         ? result.markdown
         : typeof result.message === "string"
@@ -1096,8 +1100,87 @@ function buildValidationObservation(action: string, result: JsonObject): string 
     return undefined;
   }
 
+  const miniWobObservation = parseMiniWobObservation(rawText);
+  if (miniWobObservation) {
+    return formatMiniWobObservation(miniWobObservation);
+  }
+
   const normalized = normalizeText(rawText);
   return normalized.length > 280 ? `${normalized.slice(0, 277)}...` : normalized;
+}
+
+interface MiniWobObservation {
+  query?: string;
+  reward?: number;
+  episodesDone?: number;
+}
+
+function parseMiniWobObservation(rawText: string): MiniWobObservation | null {
+  const rewardMatch = rawText.match(/Last reward:\s*([+-]?\d+(?:\.\d+)?|-)/i);
+  if (!rewardMatch) {
+    return null;
+  }
+
+  const reward = rewardMatch[1] === "-" ? undefined : Number.parseFloat(rewardMatch[1]);
+  const episodesMatch = rawText.match(/Episodes done:\s*(\d+)/i);
+  const query = rawText
+    .split(/\r?\n/)
+    .map((line) => normalizeText(line))
+    .find((line) => {
+      if (!line) {
+        return false;
+      }
+      return !/^(Last reward:|Last 10 average:|Time left:|Episodes done:|START$)/i.test(line);
+    });
+
+  return {
+    query,
+    reward: Number.isFinite(reward) ? reward : undefined,
+    episodesDone: episodesMatch ? Number.parseInt(episodesMatch[1] ?? "", 10) : undefined
+  };
+}
+
+function formatMiniWobObservation(observation: MiniWobObservation): string {
+  const parts = ["MiniWoB state:"];
+  if (observation.query) {
+    parts.push(`query="${observation.query}"`);
+  }
+  if (typeof observation.reward === "number") {
+    parts.push(`reward=${observation.reward}`);
+  }
+  if (typeof observation.episodesDone === "number") {
+    parts.push(`episodes_done=${observation.episodesDone}`);
+  }
+  return parts.join("; ");
+}
+
+function getMiniWobResolutionAnswer(lastValidatedObservation: string | undefined): string | undefined {
+  if (!lastValidatedObservation || !lastValidatedObservation.startsWith("MiniWoB state:")) {
+    return undefined;
+  }
+
+  const rewardMatch = lastValidatedObservation.match(/reward=([+-]?\d+(?:\.\d+)?)/i);
+  if (!rewardMatch) {
+    return undefined;
+  }
+
+  const reward = Number.parseFloat(rewardMatch[1] ?? "");
+  const episodesMatch = lastValidatedObservation.match(/episodes_done=(\d+)/i);
+  const episodesDone = episodesMatch ? Number.parseInt(episodesMatch[1] ?? "", 10) : undefined;
+  if (!Number.isFinite(reward) || !Number.isFinite(episodesDone) || (episodesDone ?? 0) < 1) {
+    return undefined;
+  }
+
+  const queryMatch = lastValidatedObservation.match(/query="([^"]+)"/i);
+  const querySuffix = queryMatch?.[1] ? ` for "${queryMatch[1]}"` : "";
+  if (reward > 0) {
+    return `I completed the MiniWoB task successfully. The latest validated state shows reward ${reward}${querySuffix}.`;
+  }
+  return `I did not complete the MiniWoB task. The latest validated state shows reward ${reward}${querySuffix}.`;
+}
+
+function isMiniWobTask(params: AgentRunParams): boolean {
+  return normalizeText(params.prompt).toLowerCase().includes("miniwob");
 }
 
 function buildEmptyTurnRecoveryPrompt(state: AgentRunState, pendingDialog?: NonNullable<ComputerBatchResult["javascript_dialog"]>): string {
@@ -2831,6 +2914,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
             const inputHash = hashPayload(payload);
             const requestTabId = tool.tabScope === "system" ? "__system__" : tabId;
             const toolSignature = `${action}:${inputHash}`;
+            let validatedMiniWobFailureAnswer: string | undefined;
 
             if (
               needsStructuredInspectionAfterNavigation &&
@@ -3092,6 +3176,14 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                 const availableCitations = state.sources
                   .map((source) => source.id)
                   .filter((id) => /^\[(?:web|screenshot):\d+\]$/.test(id));
+                const miniWobResolutionAnswer = getMiniWobResolutionAnswer(state.lastValidatedObservation);
+                if (miniWobResolutionAnswer) {
+                  completeRun(miniWobResolutionAnswer, {
+                    executed_steps: executedSteps,
+                    completed_via: "loop_guard_miniwob_failure"
+                  });
+                  return;
+                }
                 let forcedFinalAnswer: string | undefined;
                 try {
                   const forcedTurn = await providerRegistry.runTurn(state.params.provider, {
@@ -3278,7 +3370,11 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                   action
                 };
                 pushUniqueSource(state.sources, source);
-                state.lastValidatedObservation = buildValidationObservation(action, result);
+                const validatedObservation = buildValidationObservation(action, result);
+                if (validatedObservation) {
+                  state.lastValidatedObservation = validatedObservation;
+                  validatedMiniWobFailureAnswer = getMiniWobResolutionAnswer(validatedObservation);
+                }
               } else if (action === "computer" && typeof result.screenshot_b64 === "string") {
                 screenshotCitationIndex += 1;
                 source = {
@@ -3356,6 +3452,32 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                   needsPostActionValidation = true;
                   postActionValidationReminderTrips = 0;
                 }
+              }
+
+              if (action === "computer" && isMiniWobTask(state.params) && requestTabId !== "__system__") {
+                try {
+                  const miniWobValidationResult = await options.performAction(
+                    "get_page_text",
+                    requestTabId,
+                    {},
+                    state.abortController.signal
+                  );
+                  const validatedObservation = buildValidationObservation("get_page_text", miniWobValidationResult);
+                  if (validatedObservation) {
+                    state.lastValidatedObservation = validatedObservation;
+                    validatedMiniWobFailureAnswer = getMiniWobResolutionAnswer(validatedObservation);
+                  }
+                } catch {
+                  // Best-effort benchmark validation.
+                }
+              }
+
+              if (validatedMiniWobFailureAnswer) {
+                completeRun(validatedMiniWobFailureAnswer, {
+                  executed_steps: executedSteps,
+                  completed_via: "miniwob_validated_failure"
+                });
+                return;
               }
 
               // Vision mode: auto-screenshot after navigate/form_input so the LLM can verify
@@ -3616,6 +3738,13 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         const availableCitations = state.sources
           .map((source) => source.id)
           .filter((id) => /^\[(?:web|screenshot):\d+\]$/.test(id));
+        const miniWobResolutionAnswer = getMiniWobResolutionAnswer(state.lastValidatedObservation);
+        if (miniWobResolutionAnswer) {
+          completeRun(miniWobResolutionAnswer, {
+            executed_steps: executedSteps
+          });
+          return;
+        }
         const validation = validateFinalAnswerWithAutofix({
           userPrompt: state.params.prompt,
           text: turn.assistantText,

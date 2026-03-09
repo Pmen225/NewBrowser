@@ -898,7 +898,7 @@ describe("browser CDP action wrappers", () => {
     ]);
   });
 
-  it("surfaces a synthetic dialog when mouseReleased never resolves and CDP never reports one", async () => {
+  it("does not invent a dialog when mouseReleased stalls but CDP reports no dialog", async () => {
     const { transport, runtime } = createRuntime();
     runtime.send = ((method, params, sessionId) => {
       if (
@@ -926,14 +926,14 @@ describe("browser CDP action wrappers", () => {
     });
     transport.queueResponse("Input.dispatchMouseEvent", {});
     transport.queueResponse("Input.dispatchMouseEvent", {});
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("no-dialog-png").toString("base64")
+    });
     const result = await executeComputerBatch(
       runtime,
       "tab-dialog-synthetic",
       {
-        steps: [
-          { kind: "click", ref: "f0:403" },
-          { kind: "key", key: "Enter" }
-        ]
+        steps: [{ kind: "click", ref: "f0:403" }]
       },
       new AbortController().signal
     );
@@ -951,10 +951,7 @@ describe("browser CDP action wrappers", () => {
           y: 220
         }
       },
-      javascript_dialog: {
-        type: "dialog",
-        message: ""
-      }
+      screenshot_b64: Buffer.from("no-dialog-png").toString("base64")
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
       "Page.addScriptToEvaluateOnNewDocument",
@@ -963,7 +960,8 @@ describe("browser CDP action wrappers", () => {
       "DOM.scrollIntoViewIfNeeded",
       "Runtime.callFunctionOn",
       "Input.dispatchMouseEvent",
-      "Input.dispatchMouseEvent"
+      "Input.dispatchMouseEvent",
+      "Page.captureScreenshot"
     ]);
   });
 

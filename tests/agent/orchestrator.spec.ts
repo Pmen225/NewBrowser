@@ -2489,6 +2489,240 @@ describe("agent orchestrator", () => {
     ).toBe(false);
   });
 
+  it("does not allow a MiniWoB success claim after a negative validated reward", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "Checking the page state first.",
+        toolCalls: [
+          {
+            id: "read-1",
+            name: "read_page",
+            arguments: {
+              filter: "interactive"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "The task is complete.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async () => ({
+      result: [
+        "Click the button.",
+        "Click Me!",
+        "Last reward: -1.00",
+        "Last 10 average: -1.00",
+        "Time left: 9",
+        "Episodes done: 1"
+      ].join("\n")
+    }));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Complete the MiniWoB task.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("I did not complete the MiniWoB task.");
+      expect(state.final_answer).toContain("reward -1");
+      expect(state.final_answer).not.toContain("The task is complete.");
+      expect(state.task?.last_validated_observation).toContain("MiniWoB state:");
+      expect(state.task?.last_validated_observation).toContain("reward=-1");
+    });
+  });
+
+  it("does not let a later read_page call erase a negative MiniWoB reward observation", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "Check the full page text first.",
+        toolCalls: [
+          {
+            id: "text-1",
+            name: "get_page_text",
+            arguments: {}
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "Now inspect the controls.",
+        toolCalls: [
+          {
+            id: "read-1",
+            name: "read_page",
+            arguments: {
+              filter: "interactive"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "The task succeeded.",
+        toolCalls: []
+      });
+
+    const performAction = vi
+      .fn()
+      .mockResolvedValueOnce({
+        result: [
+          "Select nothing and click Submit.",
+          "Last reward: -1.00",
+          "Episodes done: 5"
+        ].join("\n")
+      })
+      .mockResolvedValueOnce({
+        yaml: "interactables:\n  - frame_id: \"f0\"\n    nodes:\n      - ref_id: \"f0:submit\"\n        role: \"button\"\n        name: \"Submit\"",
+        tree: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Complete the MiniWoB task.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("I did not complete the MiniWoB task.");
+      expect(state.final_answer).toContain("reward -1");
+      expect(state.final_answer).not.toContain("The task succeeded.");
+      expect(state.task?.last_validated_observation).toContain("reward=-1");
+    });
+  });
+
+  it("detects MiniWoB failure state from get_page_text text payloads", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "Read the page text.",
+        toolCalls: [
+          {
+            id: "text-1",
+            name: "get_page_text",
+            arguments: {}
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "The task succeeded.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async () => ({
+      text: [
+        "Select nothing and click Submit.",
+        "Last reward: -1.00",
+        "Episodes done: 5"
+      ].join("\n")
+    }));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Complete the MiniWoB task.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("I did not complete the MiniWoB task.");
+      expect(state.final_answer).toContain("reward -1");
+      expect(state.final_answer).not.toContain("The task succeeded.");
+      expect(state.task?.last_validated_observation).toContain("reward=-1");
+    });
+  });
+
+  it("auto-validates MiniWoB computer actions with page text and completes on success", async () => {
+    const runTurn = vi.fn().mockResolvedValueOnce({
+      assistantText: "Clicking the requested checkbox.",
+      toolCalls: [
+        {
+          id: "computer-1",
+          name: "computer",
+          arguments: {
+            steps: [{ ref: "f0:checkbox", kind: "click" }]
+          }
+        }
+      ]
+    });
+
+    const performAction = vi
+      .fn()
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        text: [
+          "Select FRz1I0Y and click Submit.",
+          "Last reward: 1.00",
+          "Episodes done: 1"
+        ].join("\n")
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Solve the MiniWoB task shown on the current page.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("I completed the MiniWoB task successfully.");
+      expect(state.final_answer).toContain('reward 1');
+      expect(state.task?.last_validated_observation).toContain("reward=1");
+    });
+
+    expect(performAction).toHaveBeenNthCalledWith(
+      2,
+      "get_page_text",
+      "tab-1",
+      {},
+      expect.any(AbortSignal)
+    );
+  });
+
   it("accepts todo_write tool calls in the provider loop", async () => {
     const runTurn = vi
       .fn()
