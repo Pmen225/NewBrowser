@@ -128,7 +128,7 @@ describe("panel.js — DOM structure", () => {
 
   it("resyncs the composer model label when model config changes in storage", () => {
     expect(panelJs).toContain("changes[MODEL_CONFIG_STORAGE_KEY]");
-    expect(panelJs).toContain("loadInitialModelLabel()");
+    expect(panelJs).toContain("syncModelLabelFromStorage()");
   });
 
   it("guards page-dependent prompts when no normal website tab is available", () => {

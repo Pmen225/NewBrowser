@@ -24,8 +24,9 @@ const DEFAULT_NAVIGATION_TIMEOUT_MS = 10_000;
 const DIALOG_OPEN_TIMEOUT_MS = 1_000;
 const DIALOG_CLOSE_TIMEOUT_MS = 1_500;
 
-// Track which CDP sessions have had the stealth + consent script injected
-const _stealthInjectedSessions = new Set<string>();
+// Track injected sessions per runtime so separate dispatcher/runtime instances
+// do not share bootstrap state through reused fake session ids.
+const _stealthInjectedSessionsByRuntime = new WeakMap<BrowserActionRuntime, Set<string>>();
 
 // Stealth script injected via Page.addScriptToEvaluateOnNewDocument:
 // 1. Hides navigator.webdriver (automation detection)
@@ -267,6 +268,8 @@ interface ComputerStepOutcome {
   overlay?: OverlayTelemetry;
 }
 
+type ComputerBatchPreparedSessions = Set<string>;
+
 type ClickResolution =
   | { kind: "release" }
   | { kind: "dialog"; dialog?: NonNullable<ComputerBatchResult["javascript_dialog"]> }
@@ -408,8 +411,11 @@ function routeForRef(runtime: BrowserActionRuntime, tabId: string, refId: string
   }
 }
 
-async function resolveNode(runtime: BrowserActionRuntime, tabId: string, refId: string): Promise<ResolvedNode> {
-  const resolvedRef = routeForRef(runtime, tabId, refId);
+async function resolveNodeFromResolvedRef(
+  runtime: BrowserActionRuntime,
+  resolvedRef: ResolvedRef,
+  refId: string
+): Promise<ResolvedNode> {
   try {
     const response = await runtime.send<{ object?: { objectId?: string } }>(
       "DOM.resolveNode",
@@ -434,6 +440,10 @@ async function resolveNode(runtime: BrowserActionRuntime, tabId: string, refId: 
       ref_id: refId
     });
   }
+}
+
+async function resolveNode(runtime: BrowserActionRuntime, tabId: string, refId: string): Promise<ResolvedNode> {
+  return resolveNodeFromResolvedRef(runtime, routeForRef(runtime, tabId, refId), refId);
 }
 
 async function getCenterPoint(runtime: BrowserActionRuntime, node: ResolvedNode): Promise<Point> {
@@ -843,18 +853,38 @@ async function dispatchClickWithDialogObservation(
   return dialog ? { javascriptDialog: dialog } : undefined;
 }
 
+async function ensureComputerBatchSessionPrepared(
+  runtime: BrowserActionRuntime,
+  preparedSessions: ComputerBatchPreparedSessions,
+  sessionId: string
+): Promise<void> {
+  if (preparedSessions.has(sessionId)) {
+    return;
+  }
+  await ensureStealthAndConsentReady(runtime, sessionId);
+  preparedSessions.add(sessionId);
+}
+
 async function runComputerStep(
   runtime: BrowserActionRuntime,
   tabId: string,
   defaultRoute: SessionRoute,
   step: ComputerStep,
-  nextStep?: ComputerStep
+  nextStep: ComputerStep | undefined,
+  preparedSessions: ComputerBatchPreparedSessions
 ): Promise<ComputerStepOutcome | undefined> {
   if (step.kind === "click") {
     const dialogTimeoutMs = nextStep?.kind === "dialog" ? DIALOG_OPEN_TIMEOUT_MS : 300;
     if (step.ref) {
-      const node = await resolveNode(runtime, tabId, step.ref);
+      const resolvedRef = routeForRef(runtime, tabId, step.ref);
+      if (resolvedRef.route.sessionId === defaultRoute.sessionId) {
+        await ensureComputerBatchSessionPrepared(runtime, preparedSessions, resolvedRef.route.sessionId);
+      }
+      const node = await resolveNodeFromResolvedRef(runtime, resolvedRef, step.ref);
       try {
+        if (node.route.sessionId !== defaultRoute.sessionId) {
+          await ensureComputerBatchSessionPrepared(runtime, preparedSessions, node.route.sessionId);
+        }
         const point = await getClickPoint(runtime, node);
         if ("kind" in point && point.kind === "legacy_synthetic_click") {
           return undefined;
@@ -881,6 +911,7 @@ async function runComputerStep(
     }
 
     try {
+      await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
       const outcome = await dispatchClickWithDialogObservation(
         runtime,
         tabId,
@@ -902,8 +933,15 @@ async function runComputerStep(
 
   if (step.kind === "type") {
     if (step.ref) {
-      const node = await resolveNode(runtime, tabId, step.ref);
+      const resolvedRef = routeForRef(runtime, tabId, step.ref);
+      if (resolvedRef.route.sessionId === defaultRoute.sessionId) {
+        await ensureComputerBatchSessionPrepared(runtime, preparedSessions, resolvedRef.route.sessionId);
+      }
+      const node = await resolveNodeFromResolvedRef(runtime, resolvedRef, step.ref);
       try {
+        if (node.route.sessionId !== defaultRoute.sessionId) {
+          await ensureComputerBatchSessionPrepared(runtime, preparedSessions, node.route.sessionId);
+        }
         await assertTextEntryAllowed(runtime, node, step.ref);
         await runtime.send("DOM.focus", { backendNodeId: node.backendNodeId }, node.route.sessionId);
         await runtime.send("Input.insertText", { text: step.text }, node.route.sessionId);
@@ -916,6 +954,7 @@ async function runComputerStep(
     }
 
     try {
+      await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
       await assertActiveTextEntryAllowed(runtime, defaultRoute.sessionId);
       await runtime.send("Input.insertText", { text: step.text }, defaultRoute.sessionId);
     } catch (error) {
@@ -927,6 +966,9 @@ async function runComputerStep(
 
   if (step.kind === "key") {
     try {
+      if (!step.key.includes("+")) {
+        await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
+      }
       await dispatchKeySequence(runtime, defaultRoute.sessionId, step.key);
     } catch (error) {
       throw toBrowserActionError(error, "ACTION_TARGET_INVALID", true, {
@@ -941,10 +983,18 @@ async function runComputerStep(
       let route = defaultRoute;
       let point: Point = { x: 0, y: 0 };
       if (step.ref) {
-        const node = await resolveNode(runtime, tabId, step.ref);
+        const resolvedRef = routeForRef(runtime, tabId, step.ref);
+        if (resolvedRef.route.sessionId === defaultRoute.sessionId) {
+          await ensureComputerBatchSessionPrepared(runtime, preparedSessions, resolvedRef.route.sessionId);
+        }
+        const node = await resolveNodeFromResolvedRef(runtime, resolvedRef, step.ref);
+        if (node.route.sessionId !== defaultRoute.sessionId) {
+          await ensureComputerBatchSessionPrepared(runtime, preparedSessions, node.route.sessionId);
+        }
         route = node.route;
         point = await getCenterPoint(runtime, node);
       } else if (typeof step.x === "number" && typeof step.y === "number") {
+        await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
         point = {
           x: step.x,
           y: step.y
@@ -971,11 +1021,13 @@ async function runComputerStep(
   }
 
   if (step.kind === "screenshot") {
+    await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
     return undefined;
   }
 
   if (step.kind === "dialog") {
     try {
+      await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
       await waitForJavaScriptDialogState(runtime, tabId, "open", DIALOG_OPEN_TIMEOUT_MS, 25);
       await runtime.send(
         "Page.handleJavaScriptDialog",
@@ -1001,8 +1053,19 @@ async function runComputerStep(
     return undefined;
   }
 
-  const fromNode = step.from_ref ? await resolveNode(runtime, tabId, step.from_ref) : undefined;
-  const toNode = step.to_ref ? await resolveNode(runtime, tabId, step.to_ref) : undefined;
+  const fromResolvedRef = step.from_ref ? routeForRef(runtime, tabId, step.from_ref) : undefined;
+  const toResolvedRef = step.to_ref ? routeForRef(runtime, tabId, step.to_ref) : undefined;
+  if (fromResolvedRef?.route.sessionId === defaultRoute.sessionId) {
+    await ensureComputerBatchSessionPrepared(runtime, preparedSessions, fromResolvedRef.route.sessionId);
+  }
+  if (!fromResolvedRef && toResolvedRef?.route.sessionId === defaultRoute.sessionId) {
+    await ensureComputerBatchSessionPrepared(runtime, preparedSessions, toResolvedRef.route.sessionId);
+  }
+  if (!fromResolvedRef && !toResolvedRef) {
+    await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
+  }
+  const fromNode = fromResolvedRef ? await resolveNodeFromResolvedRef(runtime, fromResolvedRef, step.from_ref as string) : undefined;
+  const toNode = toResolvedRef ? await resolveNodeFromResolvedRef(runtime, toResolvedRef, step.to_ref as string) : undefined;
   const fromPoint = fromNode
     ? await getCenterPoint(runtime, fromNode)
     : { x: step.from_x as number, y: step.from_y as number };
@@ -1020,6 +1083,9 @@ async function runComputerStep(
   }
 
   try {
+    if (route.sessionId !== defaultRoute.sessionId) {
+      await ensureComputerBatchSessionPrepared(runtime, preparedSessions, route.sessionId);
+    }
     await runtime.send(
       "Input.dispatchMouseEvent",
       {
@@ -1212,10 +1278,16 @@ async function validateFileUploadPath(filePath: string, refId: string): Promise<
 }
 
 async function installStealthAndConsentScript(runtime: BrowserActionRuntime, sessionId: string): Promise<void> {
-  if (_stealthInjectedSessions.has(sessionId)) {
+  let injectedSessions = _stealthInjectedSessionsByRuntime.get(runtime);
+  if (!injectedSessions) {
+    injectedSessions = new Set<string>();
+    _stealthInjectedSessionsByRuntime.set(runtime, injectedSessions);
+  }
+
+  if (injectedSessions.has(sessionId)) {
     return;
   }
-  _stealthInjectedSessions.add(sessionId);
+  injectedSessions.add(sessionId);
   try {
     await runtime.send("Page.addScriptToEvaluateOnNewDocument", { source: STEALTH_SCRIPT }, sessionId);
   } catch {
@@ -1260,7 +1332,7 @@ export async function executeComputerBatch(
 ): Promise<ComputerBatchResult> {
   throwIfAborted(signal);
   const route = getSessionRoute(runtime, tabId);
-  await ensureStealthAndConsentReady(runtime, route.sessionId);
+  const preparedSessions: ComputerBatchPreparedSessions = new Set();
   const results: ComputerBatchResult["steps"] = [];
   let completedSteps = 0;
   let observedJavaScriptDialog: ComputerBatchResult["javascript_dialog"] | undefined;
@@ -1271,7 +1343,7 @@ export async function executeComputerBatch(
 
     try {
       throwIfAborted(signal);
-      const outcome = await runComputerStep(runtime, tabId, route, step, params.steps[index + 1]);
+      const outcome = await runComputerStep(runtime, tabId, route, step, params.steps[index + 1], preparedSessions);
       results.push({ index, ok: true });
       completedSteps += 1;
       if (outcome?.overlay) {
@@ -1564,15 +1636,22 @@ export async function executeFormInput(
 ): Promise<FormInputResult> {
   throwIfAborted(signal);
   const route = getSessionRoute(runtime, tabId);
-  await ensureStealthAndConsentReady(runtime, route.sessionId);
   let updated = 0;
   const applied: NonNullable<FormInputResult["applied"]> = [];
+  const preparedSessions: ComputerBatchPreparedSessions = new Set();
 
   for (const field of params.fields) {
     throwIfAborted(signal);
-    const node = await resolveNode(runtime, tabId, field.ref);
+    const resolvedRef = routeForRef(runtime, tabId, field.ref);
+    if (resolvedRef.route.sessionId === route.sessionId) {
+      await ensureComputerBatchSessionPrepared(runtime, preparedSessions, resolvedRef.route.sessionId);
+    }
+    const node = await resolveNodeFromResolvedRef(runtime, resolvedRef, field.ref);
 
     try {
+      if (node.route.sessionId !== route.sessionId) {
+        await ensureComputerBatchSessionPrepared(runtime, preparedSessions, node.route.sessionId);
+      }
       if (field.kind === "text") {
         await assertTextEntryAllowed(runtime, node, field.ref);
       }
