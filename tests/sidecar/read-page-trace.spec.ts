@@ -7,17 +7,11 @@ import { describe, expect, it } from "vitest";
 import { recordReadPageTraceArtifacts } from "../../sidecar/src/observability/read-page-trace";
 import { createTraceLogger } from "../../sidecar/src/observability/trace-logger";
 import type { ReadPageRequest, ReadPageResponse } from "../../src/sidecar/read-page/types";
+import { parseJsonl } from "../helpers/jsonl";
 
 interface TraceLine {
   event: string;
   result?: Record<string, unknown>;
-}
-
-function parseJsonl(raw: string): TraceLine[] {
-  return raw
-    .split("\n")
-    .filter((line) => line.trim().length > 0)
-    .map((line) => JSON.parse(line) as TraceLine);
 }
 
 describe("recordReadPageTraceArtifacts", () => {

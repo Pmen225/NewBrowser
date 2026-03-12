@@ -1,0 +1,23 @@
+# [QA] runtime-failure: smoke and funnel suites deadlock under run budget
+
+- Task names:
+  - qa:smoke
+  - panel-stop-state funnel
+  - panel-image-attachments funnel
+- Run IDs:
+  - fix-agent-20260310-smoke-timeout
+  - fix-agent-20260310-panel-stop-timeout
+  - fix-agent-20260310-panel-image-attachments-timeout
+- Expected outcome: each suite reaches assertion output and exits deterministically.
+- Observed outcome: all 3 commands timed out and were SIGTERM-killed (no assertion verdicts).
+- Failure classification: completion_deadlock
+- Likely subsystem: runtime lifecycle / capability primitive layer
+- New/Recurring/Regression: recurring (matches prior automation memory where suites failed to complete)
+- Smallest structural fix class required: add deterministic launch/test lifecycle telemetry and fail-fast liveness checkpoints.
+- Screenshots: none generated in these timeout runs
+- Trace/artifacts:
+  - `output/playwright/automation-fix-agent/qa-smoke.json`
+  - `output/playwright/automation-fix-agent/panel-stop-state.json`
+  - `output/playwright/automation-fix-agent/panel-image-attachments.json`
+  - `output/playwright/automation-fix-agent/summary.json`
+  - `output/qa-artifacts/manifest.json`

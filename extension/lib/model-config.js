@@ -613,8 +613,8 @@ export function chooseBrowserControlBenchmarkWinner(results, { safeDefaultModelI
 export function buildTaskCapabilityRequest({ prompt = "", activeMode = "ask", hasImageInput = false } = {}) {
   const normalizedPrompt = typeof prompt === "string" ? prompt.toLowerCase() : "";
   const active = typeof activeMode === "string" ? activeMode.toLowerCase() : "ask";
-  const browserActionVerb = /\b(click|select|choose|check|uncheck|upload|fill|type|enter|remove|enable|disable|scroll|trigger|accept|dismiss|submit|drag|drop|set)\b/;
-  const browserActionTarget = /\b(page|site|tab|form|checkbox|dropdown|input|field|button|link|prompt|alert|file)\b/;
+  const browserActionVerb = /\b(click|select|choose|check|uncheck|upload|fill|type|enter|remove|enable|disable|scroll|trigger|accept|dismiss|submit|drag|drop|set|log(?:\s|-)?in|sign(?:\s|-)?in|log(?:\s|-)?out|sign(?:\s|-)?out|authenticate)\b/;
+  const browserActionTarget = /\b(page|site|tab|form|checkbox|dropdown|input|field|button|link|prompt|alert|file|account|credentials|username|password)\b/;
   const browserLocality = /\bon this (page|site)\b/;
   const inferredBrowserControl = browserActionVerb.test(normalizedPrompt)
     && (browserLocality.test(normalizedPrompt) || browserActionTarget.test(normalizedPrompt));

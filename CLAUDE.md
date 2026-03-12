@@ -20,6 +20,10 @@
 
 8. **No confirmation requests** for small reversible changes. Just do it.
 
+9. **Test like the user, not like a lab demo.** Default to the real product flow in a visible browser or other directly observable runtime path. Do not treat mocked, stubbed, seeded, special-case, or harness-shaped setups as primary proof when the real workflow can be exercised.
+
+10. **No made-to-pass validation.** If a setup removes the real-world conditions the user would face, it does not count as acceptance testing. Use the same entry points, screens, controls, and blockers the user would actually encounter unless the task is explicitly about a narrow isolated test.
+
 ## Quality is non-negotiable
 
 Efficiency rules apply to *process*, not *output*. Code must be correct, complete, and secure. Never cut corners on the actual work — only on the overhead around it.

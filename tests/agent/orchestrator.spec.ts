@@ -118,6 +118,60 @@ describe("agent orchestrator", () => {
     ).toBe(true);
   });
 
+  it("auto-completes a simple click-driven navigation when the landing page is confirmed", async () => {
+    const runTurn = vi.fn().mockResolvedValueOnce({
+      assistantText: "I'll open Wikipedia.",
+      toolCalls: [
+        {
+          id: "computer-1",
+          name: "computer",
+          arguments: {
+            steps: [{ kind: "click", ref: "f0:wikipedia" }]
+          }
+        }
+      ]
+    });
+
+    const performAction = vi.fn(async () => ({
+      completed_steps: 1,
+      steps: [{ index: 0, ok: true }],
+      url: "https://www.wikipedia.org/",
+      title: "Wikipedia"
+    }));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "go to wikipedia",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      api_key: "sk-test"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>Opened Wikipedia.</answer>");
+    });
+
+    expect(runTurn).toHaveBeenCalledTimes(1);
+    expect(performAction).toHaveBeenCalledTimes(1);
+    expect(performAction).toHaveBeenCalledWith(
+      "computer",
+      "tab-1",
+      {
+        steps: [{ kind: "click", ref: "f0:wikipedia" }]
+      },
+      expect.any(AbortSignal)
+    );
+  });
+
   it("replays prior chat turns before the current user prompt", async () => {
     const runTurn = vi.fn().mockResolvedValue({
       assistantText: "I remember the earlier request.",
@@ -453,6 +507,52 @@ describe("agent orchestrator", () => {
           message.role === "user" &&
           typeof message.content === "string" &&
           message.content.includes("Browser admin pages were explicitly allowed")
+      )
+    ).toBe(true);
+  });
+
+  it("retries once when the model falsely refuses an allowed admin-portal action", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText:
+          "I cannot activate or deactivate roles or manage permissions. My capabilities are limited to browsing the web and retrieving information.",
+        toolCalls: []
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I have activated the visible roles except Security Reader.",
+        toolCalls: []
+      });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction: vi.fn(async () => ({})),
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Activate all visible roles except Security Reader in the Azure admin portal.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key",
+      allow_browser_admin_pages: true
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>I have activated the visible roles except Security Reader.</answer>");
+    });
+
+    const retryMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "user" &&
+          typeof message.content === "string" &&
+          message.content.includes("including visible controls on the requested admin portal")
       )
     ).toBe(true);
   });
@@ -1138,7 +1238,7 @@ describe("agent orchestrator", () => {
     const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
     expect(
       systemMessages.some((message: { content?: string }) =>
-        typeof message.content === "string" && message.content.includes("Do not say those pages are inaccessible.")
+        typeof message.content === "string" && message.content.includes("Do not claim you are limited to read-only browsing")
       )
     ).toBe(true);
   });
@@ -1173,7 +1273,7 @@ describe("agent orchestrator", () => {
     const systemMessages = (runTurn.mock.calls[0]?.[1]?.messages ?? []).filter((message: { role?: string }) => message.role === "system");
     expect(
       systemMessages.some((message: { content?: string }) =>
-        typeof message.content === "string" && message.content.includes("browser admin pages for this run")
+        typeof message.content === "string" && message.content.includes("browser admin work for this run")
       )
     ).toBe(true);
   });
@@ -1784,6 +1884,102 @@ describe("agent orchestrator", () => {
           message.content.includes("CURRENT_SITE_INSPECTION_REQUIRED")
       )
     ).toBe(true);
+  });
+
+  it("blocks search-engine detours for site-local workflow tasks on the active website", async () => {
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        assistantText: "I will search for that page first.",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "navigate",
+            arguments: {
+              mode: "to",
+              url: "https://www.google.com/search?q=Add%2FRemove%20Elements"
+            }
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        assistantText: "I should stay on the current website instead of using Google search.",
+        toolCalls: []
+      });
+
+    const performAction = vi.fn(async () => ({}));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      resolveTabContext: () => ({
+        url: "https://the-internet.herokuapp.com/",
+        title: "The Internet"
+      }),
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Go to Add/Remove Elements, click Add Element once, then tell me whether a Delete button appeared.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>I should stay on the current website instead of using Google search.</answer>");
+    });
+
+    expect(performAction).not.toHaveBeenCalled();
+    const retryMessages = runTurn.mock.calls[1]?.[1]?.messages ?? [];
+    expect(
+      retryMessages.some(
+        (message: { role?: string; content?: string }) =>
+          message.role === "tool" &&
+          typeof message.content === "string" &&
+          message.content.includes("ACTIVE_SITE_WORKFLOW_SCOPE_REQUIRED")
+      )
+    ).toBe(true);
+  });
+
+  it("suppresses tabs_create for site-local workflow tasks on the active website", async () => {
+    const runTurn = vi.fn().mockResolvedValue({
+      assistantText: "I will work from the current site.",
+      toolCalls: []
+    });
+    const performAction = vi.fn(async () => ({}));
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      resolveTabContext: () => ({
+        url: "https://the-internet.herokuapp.com/",
+        title: "The Internet"
+      }),
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Go to Add/Remove Elements, click Add Element once, then tell me whether a Delete button appeared.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toBe("<answer>I will work from the current site.</answer>");
+    });
+
+    const firstTurn = runTurn.mock.calls[0]?.[1];
+    expect(firstTurn?.tools.some((tool: { name?: string }) => tool.name === "tabs_create")).toBe(false);
   });
 
   it("blocks blind interactive actions for non-interactive current-website validation tasks", async () => {
@@ -2489,6 +2685,258 @@ describe("agent orchestrator", () => {
     ).toBe(false);
   });
 
+  it("allows dialog resolution as the immediate recovery step after a click opens a JavaScript dialog", async () => {
+    const performAction = vi
+      .fn()
+      .mockResolvedValueOnce({
+        completed_steps: 1,
+        steps: [{ index: 0, ok: true }],
+        javascript_dialog: {
+          type: "prompt",
+          message: "I am a JS prompt",
+          default_prompt: ""
+        }
+      })
+      .mockResolvedValueOnce({
+        completed_steps: 1,
+        steps: [{ index: 0, ok: true }]
+      })
+      .mockResolvedValueOnce({
+        text: "You entered: Atlas"
+      });
+    const runTurn = vi.fn(async () => {
+      const callIndex = runTurn.mock.calls.length;
+      if (callIndex === 1) {
+        return {
+          assistantText: "I'll click the JS prompt button.",
+          toolCalls: [
+            {
+              id: "computer-1",
+              name: "computer",
+              arguments: {
+                steps: [
+                  {
+                    kind: "click",
+                    ref: "f0:prompt-button"
+                  }
+                ]
+              }
+            }
+          ]
+        };
+      }
+
+      if (callIndex === 2) {
+        return {
+          assistantText: "I'll accept the open prompt with Atlas.",
+          toolCalls: [
+            {
+              id: "computer-2",
+              name: "computer",
+              arguments: {
+                steps: [
+                  {
+                    kind: "dialog",
+                    accept: true,
+                    prompt_text: "Atlas"
+                  }
+                ]
+              }
+            }
+          ]
+        };
+      }
+
+      if (callIndex === 3) {
+        if (performAction.mock.calls.length !== 2) {
+          throw new Error("dialog recovery step was blocked before validation could continue");
+        }
+        return {
+          assistantText: "I'll verify the result text now.",
+          toolCalls: [
+            {
+              id: "text-1",
+              name: "get_page_text",
+              arguments: {}
+            }
+          ]
+        };
+      }
+
+      return {
+        assistantText: "The result text is You entered: Atlas.[web:1]",
+        toolCalls: []
+      };
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Click for JS Prompt, enter Atlas, accept it, and tell me the result text.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("You entered: Atlas");
+      expect(state.task?.last_validated_observation).toContain("You entered: Atlas");
+    });
+
+    expect(performAction).toHaveBeenCalledTimes(3);
+    expect(performAction).toHaveBeenNthCalledWith(
+      2,
+      "computer",
+      "tab-1",
+      {
+        steps: [
+          {
+            kind: "dialog",
+            accept: true,
+            prompt_text: "Atlas"
+          }
+        ]
+      },
+      expect.any(AbortSignal)
+    );
+
+    const secondTurn = runTurn.mock.calls[1]?.[1];
+    expect(
+      secondTurn.messages.some(
+        (message: { role?: string; tool_name?: string; content?: string }) =>
+          message.role === "tool" &&
+          message.tool_name === "computer" &&
+          typeof message.content === "string" &&
+          message.content.includes("ACTION_VALIDATION_REQUIRED")
+      )
+    ).toBe(false);
+  });
+
+  it("allows a click followed immediately by dialog handling in one computer tool call", async () => {
+    const performAction = vi
+      .fn()
+      .mockResolvedValueOnce({
+        completed_steps: 2,
+        steps: [
+          { index: 0, ok: true },
+          { index: 1, ok: true }
+        ]
+      })
+      .mockResolvedValueOnce({
+        text: "You entered: Atlas"
+      });
+    const runTurn = vi.fn(async () => {
+      const callIndex = runTurn.mock.calls.length;
+      if (callIndex === 1) {
+        return {
+          assistantText: "I'll trigger the prompt and accept it in one interaction.",
+          toolCalls: [
+            {
+              id: "computer-1",
+              name: "computer",
+              arguments: {
+                steps: [
+                  {
+                    kind: "click",
+                    ref: "f0:prompt-button"
+                  },
+                  {
+                    kind: "dialog",
+                    accept: true,
+                    prompt_text: "Atlas"
+                  }
+                ]
+              }
+            }
+          ]
+        };
+      }
+
+      if (callIndex === 2) {
+        if (performAction.mock.calls.length !== 1) {
+          throw new Error("click plus dialog batch was rejected before execution");
+        }
+        return {
+          assistantText: "I'll verify the result text now.",
+          toolCalls: [
+            {
+              id: "text-1",
+              name: "get_page_text",
+              arguments: {}
+            }
+          ]
+        };
+      }
+
+      return {
+        assistantText: "The result text is You entered: Atlas.[web:1]",
+        toolCalls: []
+      };
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Click for JS Prompt, enter Atlas, accept it, and tell me the result text.",
+      provider: "google",
+      model: "models/gemini-2.5-flash",
+      api_key: "test-key"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("completed");
+      expect(state.final_answer).toContain("You entered: Atlas");
+      expect(state.task?.last_validated_observation).toContain("You entered: Atlas");
+    });
+
+    expect(performAction).toHaveBeenCalledTimes(2);
+    expect(performAction).toHaveBeenNthCalledWith(
+      1,
+      "computer",
+      "tab-1",
+      {
+        steps: [
+          {
+            kind: "click",
+            ref: "f0:prompt-button"
+          },
+          {
+            kind: "dialog",
+            accept: true,
+            prompt_text: "Atlas"
+          }
+        ]
+      },
+      expect.any(AbortSignal)
+    );
+
+    const secondTurn = runTurn.mock.calls[1]?.[1];
+    expect(
+      secondTurn.messages.some(
+        (message: { role?: string; tool_name?: string; content?: string }) =>
+          message.role === "tool" &&
+          message.tool_name === "computer" &&
+          typeof message.content === "string" &&
+          message.content.includes("ACTION_VALIDATION_REQUIRED")
+      )
+    ).toBe(false);
+  });
+
   it("does not allow a MiniWoB success claim after a negative validated reward", async () => {
     const runTurn = vi
       .fn()
@@ -3134,6 +3582,49 @@ describe("agent orchestrator", () => {
     await vi.waitFor(async () => {
       const state = await orchestrator.getState({ run_id: started.run_id });
       expect(state.status).toBe("stopped");
+    });
+  });
+
+  it("surfaces request-aborted tool failures as interrupted instead of failed", async () => {
+    const runTurn = vi.fn().mockResolvedValueOnce({
+      assistantText: "I'll click the page control now.",
+      toolCalls: [
+        {
+          id: "computer-1",
+          name: "computer",
+          arguments: {
+            steps: [{ kind: "click", ref: "f0:launch" }]
+          }
+        }
+      ]
+    });
+
+    const performAction = vi.fn(async () => {
+      throw Object.assign(new Error("Request was aborted"), {
+        code: "REQUEST_ABORTED",
+        retryable: true
+      });
+    });
+
+    const orchestrator = await createOrchestrator({
+      resolveDefaultTabId: () => "tab-1",
+      performAction,
+      providerRegistry: {
+        runTurn
+      } as ProviderRegistry
+    });
+
+    const started = await orchestrator.run({
+      prompt: "Click the launch button.",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      api_key: "sk-test"
+    });
+
+    await vi.waitFor(async () => {
+      const state = await orchestrator.getState({ run_id: started.run_id });
+      expect(state.status).toBe("interrupted");
+      expect(state.error_message).toBe("Request was aborted");
     });
   });
 });

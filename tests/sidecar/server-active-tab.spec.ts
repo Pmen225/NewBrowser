@@ -11,6 +11,12 @@ describe("sidecar active tab routing", () => {
     expect(serverSource).toContain("onActiveTabChanged: (tabId: string) => {");
     expect(serverSource).toContain("activeTabId = tabId;");
     expect(serverSource).toContain("lastPageTabId = tabId;");
-    expect(serverSource).toContain("resolveDefaultTabId: () => activeTabId ?? lastPageTabId ?? defaultTabId,");
+    expect(serverSource).toContain("resolveDefaultTabId: () => getRuntimeTabState().activeTabId,");
+  });
+
+  it("sanitises exported runtime tab state against the live registry", () => {
+    expect(serverSource).toContain("const getRuntimeTabState = () =>");
+    expect(serverSource).toContain("resolveRuntimeTabState({");
+    expect(serverSource).toContain("active_tab_id: runtimeTabState.activeTabId,");
   });
 });

@@ -34,22 +34,60 @@ function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
+const GENERIC_ROLE_TERMS = new Set([
+  "button",
+  "link",
+  "input",
+  "textbox",
+  "text",
+  "field",
+  "checkbox",
+  "radio",
+  "dropdown",
+  "select",
+  "menu",
+  "tab"
+]);
+
 function scoreNode(node: InteractableNode, terms: string[]): number {
-  const haystack = normalize(`${node.ref_id} ${node.role} ${node.name ?? ""}`);
+  const refText = normalize(node.ref_id);
+  const roleText = normalize(node.role);
+  const nameText = normalize(node.name ?? "");
+  const significantTerms = terms.filter((term) => !GENERIC_ROLE_TERMS.has(term));
+  const hasSignificantLabelMatch =
+    significantTerms.length === 0 ||
+    significantTerms.some((term) => nameText.includes(term) || refText.includes(term));
+  if (!hasSignificantLabelMatch) {
+    return 0;
+  }
+
   let score = 0;
   for (const term of terms) {
     if (!term) {
       continue;
     }
 
-    if (haystack.includes(term)) {
+    const nameMatched = nameText.includes(term);
+    const refMatched = refText.includes(term);
+    const roleMatched = roleText.includes(term);
+
+    if (nameMatched) {
+      score += 2;
+      continue;
+    }
+
+    if (refMatched) {
       score += 1;
-      if (node.name && normalize(node.name).includes(term)) {
-        score += 1;
-      }
-      if (normalize(node.role).includes(term)) {
-        score += 0.5;
-      }
+      continue;
+    }
+
+    if (roleMatched && (significantTerms.length === 0 || !GENERIC_ROLE_TERMS.has(term))) {
+      score += 0.5;
+      continue;
+    }
+
+    if (roleMatched && hasSignificantLabelMatch) {
+      score += 0.25;
     }
   }
 

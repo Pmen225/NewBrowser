@@ -32,6 +32,8 @@ describe("options settings layout", () => {
       "thinking-level-select",
       "function-calling-toggle",
       "browser-search-toggle",
+      "web-browsing-reset-btn",
+      "web-browsing-reset-status",
       "code-execution-toggle",
       "narration-toggle",
       "transcription-toggle",
@@ -54,6 +56,7 @@ describe("options settings layout", () => {
       "browser-admin-toggle",
       "local-shell-toggle",
       "extension-management-toggle",
+      "developer-mode-toggle",
       "clear-chats-btn",
       "chat-list",
       "shortcuts-add-btn",
@@ -73,7 +76,9 @@ describe("options settings layout", () => {
       "web-browsing",
       "personalization",
       "data-controls",
-      "agent-mode"
+      "dev",
+      "agent-mode-runtime",
+      "agent-mode-commands"
     ];
 
     for (const id of requiredIds) {
@@ -81,27 +86,49 @@ describe("options settings layout", () => {
     }
   });
 
-  it("uses atlas-style page categories instead of internal implementation buckets", () => {
+  it("uses the reorganised page categories with a hidden developer tab", () => {
     expect(html).toContain('data-page="general"');
     expect(html).toContain('data-page="web-browsing"');
     expect(html).toContain('data-page="personalization"');
     expect(html).toContain('data-page="data-controls"');
-    expect(html).toContain('data-page="agent-mode"');
+    expect(html).toContain('data-page="dev"');
     expect(html).toContain(">General<");
     expect(html).toContain(">Web Browsing<");
-    expect(html).toContain(">Personalization<");
+    expect(html).toContain(">Personalisation<");
     expect(html).toContain(">Data Controls<");
-    expect(html).toContain(">Agent Mode<");
+    expect(html).toContain(">Dev<");
+    expect(html).toContain('id="developer-mode-toggle"');
+    expect(html).toContain("Developer mode");
   });
 
-  it("keeps agent mode scoped to agent behavior and command controls", () => {
-    const agentModeStart = html.indexOf('id="agent-mode"');
-    const agentModeEnd = html.indexOf("</section>\n    </section>", agentModeStart);
-    const agentModeSlice = html.slice(agentModeStart, agentModeEnd + 10);
-    expect(agentModeSlice).toContain("Agent behavior");
-    expect(agentModeSlice).toContain("Commands");
-    expect(agentModeSlice).not.toContain("Provider access");
-    expect(agentModeSlice).not.toContain("Recent chats");
+  it("keeps user-facing browsing controls out of the dev section", () => {
+    const webBrowsingStart = html.indexOf('id="web-browsing"');
+    const webBrowsingEnd = html.indexOf("</section>", webBrowsingStart);
+    const webBrowsingSlice = html.slice(webBrowsingStart, webBrowsingEnd + 10);
+    expect(webBrowsingSlice).toContain("Web search");
+    expect(webBrowsingSlice).toContain("Reset to defaults");
+    expect(webBrowsingSlice).not.toContain("Browser admin pages");
+    expect(webBrowsingSlice).not.toContain("Extension management");
+  });
+
+  it("wires a reset-to-defaults path for web browsing controls", () => {
+    expect(script).toContain("webBrowsingResetBtn");
+    expect(script).toContain("webBrowsingResetStatus");
+    expect(script).toContain("resetWebBrowsingModelConfig");
+    expect(script).toContain("Web Browsing settings reset to defaults.");
+  });
+
+  it("scopes advanced controls under the dev section", () => {
+    const devStart = html.indexOf('id="dev"');
+    const devEnd = html.indexOf("</section>\n\n      <section id=\"agent-mode-runtime\"", devStart);
+    const devSlice = html.slice(devStart, devEnd + 10);
+    expect(devSlice).toContain("Browser admin pages");
+    expect(devSlice).toContain("Extension management");
+    expect(devSlice).toContain("Local workspace access");
+    expect(devSlice).toContain("Agent behaviour and permissions");
+    expect(devSlice).toContain("Commands");
+    expect(devSlice).not.toContain("Provider access");
+    expect(devSlice).not.toContain("Recent chats");
   });
 
   it("includes an appearance theme control and atlas-style page header", () => {

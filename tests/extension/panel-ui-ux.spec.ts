@@ -8,7 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".
 describe("assistant panel shell contract", () => {
   it("keeps panel.html as a bootstrap shell and renders the live surface from panel.js", async () => {
     const html = readFileSync(path.join(ROOT, "extension", "panel.html"), "utf8");
-    const { buildPanelShellMarkup } = await import("../../extension/panel.js");
+    const { buildPanelShellMarkup } = await import("../../extension/lib/panel-shell.js");
     const shell = buildPanelShellMarkup();
 
     expect(html).toContain('<main id="root" aria-label="Assistant panel"></main>');
@@ -20,17 +20,18 @@ describe("assistant panel shell contract", () => {
     expect(shell).toContain('id="empty-reconnect-btn"');
     expect(shell).toContain("Reconnect to sidecar");
     expect(shell).not.toContain('id="settings-btn"');
-    expect(shell).not.toContain('aria-label="Settings"');
+    expect(shell).not.toContain('aria-label="Open settings"');
     expect(shell).toContain('id="assistant-main-view"');
-    expect(shell).toContain('id="settings-view"');
-    expect(shell).toContain('id="settings-frame"');
-    expect(shell).toContain('id="btn-settings-back"');
+    expect(shell).not.toContain('id="settings-view"');
+    expect(shell).not.toContain('id="settings-root"');
+    expect(shell).not.toContain('id="btn-settings-back"');
     expect(shell).toContain('id="prompt-input"');
     expect(shell).toContain('placeholder="Ask anything..."');
     expect(shell).toContain('aria-label="Ask anything"');
     expect(shell).not.toContain('id="btn-mission"');
     expect(shell).not.toContain('Mission control');
     expect(shell).toContain('id="btn-plus"');
+    expect(shell).toContain('id="btn-new-chat" title="Open menu" aria-label="Open menu"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="13" cy="8" r="1.3"/></svg>');
     expect(shell).toContain('id="btn-model"');
     expect(shell).toContain('id="btn-mic"');
     expect(shell).toContain('id="btn-send"');
@@ -41,6 +42,7 @@ describe("assistant panel shell contract", () => {
   it("keeps the panel script and styles aligned with the current runtime shell", () => {
     const css = readFileSync(path.join(ROOT, "extension", "styles.css"), "utf8");
     const script = readFileSync(path.join(ROOT, "extension", "panel.js"), "utf8");
+    const shellModule = readFileSync(path.join(ROOT, "extension", "lib", "panel-shell.js"), "utf8");
 
     expect(css).toContain(".assistant-shell");
     expect(css).toContain(".empty-reconnect-btn");
@@ -61,15 +63,22 @@ describe("assistant panel shell contract", () => {
     expect(css).toContain("#prompt-input {\n  flex: 0 0 auto;\n  min-width: 0;\n  border: none;\n  background: transparent;\n  outline: none;\n  font: inherit;\n  font-size: 13.5px;\n  color: var(--text);\n  resize: none;\n  min-height: 22px;\n  max-height: 160px;\n  line-height: 1.55;");
     expect(css).toContain("width: 28px; height: 28px;");
 
-    expect(script).toContain('const FULL_PROMPT_PLACEHOLDER = "Ask anything...";');
-    expect(script).toContain('const PROMPT_ARIA_LABEL = "Ask anything";');
+    expect(shellModule).toContain('export const FULL_PROMPT_PLACEHOLDER = "Ask anything...";');
+    expect(shellModule).toContain('export const PROMPT_ARIA_LABEL = "Ask anything";');
+    expect(script).toContain('from "./lib/panel-shell.js"');
     expect(script).toContain("function buildPanelShellMarkup()");
-    expect(script).toContain('async function openSettingsPage(section = "general")');
-    expect(script).toContain('function setPanelMode(');
-    expect(script).toContain('function closeSettingsPage(');
+    expect(script).toContain('async function openExtensionSettingsPage(section = "general")');
+    expect(script).toContain('chrome.runtime.getURL(`options.html#${targetSection}`)');
+    expect(script).toContain("chrome.tabs.create({");
+    expect(script).not.toContain('async function ensureSettingsSurfaceReady(');
+    expect(script).not.toContain('async function openSettingsPage(section = "general")');
+    expect(script).not.toContain('function setPanelMode(');
+    expect(script).not.toContain('function closeSettingsPage(');
     expect(script).toContain('const header = document.querySelector(".panel-header");');
     expect(script).toContain('if (header) header.hidden = false;');
     expect(script).not.toContain('chrome.runtime.openOptionsPage()');
+    expect(script).not.toContain('id="settings-frame"');
+    expect(script).not.toContain('fetch(chrome.runtime.getURL("options.html"))');
     expect(script).toContain("function reconnectToSidecar()");
     expect(script).toContain('emptyReconnectButton?.addEventListener("click"');
     expect(script).toContain('id="kebab-settings"');

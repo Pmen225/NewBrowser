@@ -248,10 +248,20 @@ Default runtime values:
 For extension inspection only:
 
 ```bash
-npm run launch:browser
+npm run launch:browser:only
 ```
 
 This launches Chromium with the extension loaded and then exits. It does not start the sidecar, so the assistant will not be fully functional.
+
+## Launching the working assistant browser
+
+For a browser session with the assistant actually connected:
+
+```bash
+npm run launch:browser
+```
+
+This now maps to the same full-stack startup path as `npm start`.
 
 ## Testing and checks
 

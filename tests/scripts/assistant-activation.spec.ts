@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   findAssistantServiceWorkerTarget,
+  isAssistantServiceWorkerMissingError,
   openAssistantSidePanel,
   waitForSidecarHealth
 } from "../../scripts/lib/assistant-activation.js";
@@ -36,6 +37,11 @@ describe("assistant activation", () => {
       url: "chrome-extension://abc/background.js",
       targetId: "sw-1"
     });
+  });
+
+  it("classifies the missing service-worker target error", () => {
+    expect(isAssistantServiceWorkerMissingError(new Error("Assistant extension service worker target was not found."))).toBe(true);
+    expect(isAssistantServiceWorkerMissingError(new Error("other failure"))).toBe(false);
   });
 
   it("falls back to opening the panel page when sidePanel.open requires a user gesture", async () => {

@@ -24,7 +24,7 @@ describe("panel overlay motion", () => {
     });
   });
 
-  it("keeps navigate and reading phases visibly active even before target geometry is known", () => {
+  it("keeps navigate and reading phases visibly active without faking a giant highlight box", () => {
     expect(
       deriveOverlayCueForToolStart("navigate", {
         url: "https://example.com"
@@ -40,12 +40,13 @@ describe("panel overlay motion", () => {
       cursor: {
         x: 0.5,
         y: 0.18
-      },
-      highlight: {
-        x: 0.08,
-        y: 0.16,
-        w: 0.84,
-        h: 0.64
+      }
+    });
+
+    expect(deriveOverlayCueForToolStart("get_page_text", {})).toEqual({
+      cursor: {
+        x: 0.5,
+        y: 0.18
       }
     });
   });

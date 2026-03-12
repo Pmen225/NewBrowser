@@ -37,6 +37,23 @@ describe("transport parsers", () => {
     expect(parseSetActiveTabParams({ chrome_tab_id: 42, target_id: "" })).toBeNull();
   });
 
+  it("parses SetActiveTab without chrome_tab_id when explicit target metadata is present", () => {
+    expect(
+      parseSetActiveTabParams({
+        target_id: "target-1",
+        url: "http://127.0.0.1:4317/upload",
+        title: "Upload"
+      })
+    ).toEqual({
+      chrome_tab_id: undefined,
+      target_id: "target-1",
+      url: "http://127.0.0.1:4317/upload",
+      title: "Upload"
+    });
+
+    expect(parseSetActiveTabParams({ url: "http://127.0.0.1:4317/upload" })).toBeNull();
+  });
+
   it("parses GetRuntimeState with empty object only", () => {
     expect(parseGetRuntimeStateParams({})).toEqual({});
     expect(parseGetRuntimeStateParams({ extra: true })).toBeNull();

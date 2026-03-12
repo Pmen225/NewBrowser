@@ -165,6 +165,98 @@ describe("browser action dispatcher", () => {
     expect(navigationReady).toBe(true);
   });
 
+  it("provides navigation waits for click-only computer batches", async () => {
+    const { runtime, transport } = createRuntime();
+    const dispatcher = createBrowserActionDispatcher({ runtime });
+
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 0,
+      entries: [{ id: 1, url: "https://example.com/start" }]
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 1,
+      entries: [
+        { id: 1, url: "https://example.com/start" },
+        { id: 2, url: "https://example.com/next" }
+      ]
+    });
+
+    const hooks = dispatcher.getReliabilityHooks?.(
+      "ComputerBatch",
+      "tab-1",
+      {
+        steps: [{ kind: "click", ref: "f0:201" }]
+      }
+    );
+
+    expect(hooks).toBeDefined();
+
+    await hooks?.beforeAttempt?.({
+      action: "ComputerBatch",
+      tab_id: "tab-1",
+      params: {
+        steps: [{ kind: "click", ref: "f0:201" }]
+      },
+      attempt: 1,
+      signal: new AbortController().signal,
+      policy: {
+        max_attempts: 3,
+        wait_timeout_ms: 100,
+        network_idle_quiet_ms: 25,
+        selector_poll_ms: 10
+      }
+    });
+
+    const waits = await hooks?.waitFor?.({
+      action: "ComputerBatch",
+      tab_id: "tab-1",
+      params: {
+        steps: [{ kind: "click", ref: "f0:201" }]
+      },
+      attempt: 1,
+      signal: new AbortController().signal,
+      policy: {
+        max_attempts: 3,
+        wait_timeout_ms: 100,
+        network_idle_quiet_ms: 25,
+        selector_poll_ms: 10
+      },
+      result: {
+        completed_steps: 1,
+        steps: [{ index: 0, ok: true }]
+      }
+    });
+
+    expect(waits).toEqual([
+      {
+        kind: "navigation",
+        expected_url: undefined
+      },
+      {
+        kind: "network_idle",
+        quiet_ms: 25
+      }
+    ]);
+
+    const navigationReady = await hooks?.waitForNavigation?.();
+    expect(navigationReady).toBe(true);
+  });
+
+  it("does not add click-navigation waits when a computer batch does not end on a click", () => {
+    const { runtime } = createRuntime();
+    const dispatcher = createBrowserActionDispatcher({ runtime });
+
+    const hooks = dispatcher.getReliabilityHooks?.(
+      "ComputerBatch",
+      "tab-1",
+      {
+        steps: [{ kind: "key", key: "Enter" }]
+      }
+    );
+
+    expect(hooks).toBeUndefined();
+  });
+
   it("treats http-to-https redirects as a satisfied navigation target", async () => {
     const { runtime, transport } = createRuntime();
     const dispatcher = createBrowserActionDispatcher({ runtime });

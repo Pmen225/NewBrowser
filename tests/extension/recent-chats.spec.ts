@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   appendSessionMessage,
+  clearActiveSession,
   ensureActiveSession,
   normalizeChatSessionsStore,
   pruneChatSessions,
@@ -120,5 +121,32 @@ describe("recent chats store", () => {
         ts: "2026-03-02T10:01:00.000Z"
       }
     ]);
+  });
+
+  it("clears the active session without deleting chat history", () => {
+    const store = {
+      activeSessionId: "session-1",
+      sessions: [
+        {
+          id: "session-1",
+          title: "Find oldest YouTube video",
+          createdAt: "2026-03-02T10:00:00.000Z",
+          updatedAt: "2026-03-02T10:02:00.000Z",
+          messages: [
+            {
+              id: "message-1",
+              role: "user",
+              text: "Find the oldest video on YouTube",
+              ts: "2026-03-02T10:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    };
+
+    expect(clearActiveSession(store)).toEqual({
+      activeSessionId: null,
+      sessions: store.sessions
+    });
   });
 });

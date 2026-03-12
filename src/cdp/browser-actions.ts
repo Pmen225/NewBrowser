@@ -23,6 +23,9 @@ import type { FrameTreeSnapshot, JavaScriptDialogRecord, SessionRoute, TabRecord
 const DEFAULT_NAVIGATION_TIMEOUT_MS = 10_000;
 const DIALOG_OPEN_TIMEOUT_MS = 1_000;
 const DIALOG_CLOSE_TIMEOUT_MS = 1_500;
+const CLICK_NAVIGATION_DETECTION_TIMEOUT_MS = 1_000;
+const CLICK_NAVIGATION_SETTLE_TIMEOUT_MS = 1_500;
+const CLICK_NAVIGATION_POLL_MS = 50;
 
 // Track injected sessions per runtime so separate dispatcher/runtime instances
 // do not share bootstrap state through reused fake session ids.
@@ -266,6 +269,11 @@ interface SensitiveInputInspection {
 interface ComputerStepOutcome {
   javascriptDialog?: NonNullable<ComputerBatchResult["javascript_dialog"]>;
   overlay?: OverlayTelemetry;
+}
+
+interface NavigationHistorySnapshot {
+  currentIndex: number;
+  url?: string;
 }
 
 type ComputerBatchPreparedSessions = Set<string>;
@@ -641,14 +649,20 @@ function parseSensitiveInputInspection(value: unknown): SensitiveInputInspection
   };
 }
 
-async function assertTextEntryAllowed(runtime: BrowserActionRuntime, node: ResolvedNode, refId: string): Promise<void> {
+async function assertTextEntryAllowed(
+  runtime: BrowserActionRuntime,
+  node: ResolvedNode,
+  refId: string,
+  intendedValue?: string
+): Promise<void> {
   try {
     const response = await runtime.send<{ result?: { value?: unknown } }>(
       "Runtime.callFunctionOn",
       {
         objectId: node.objectId,
         functionDeclaration:
-          "function() { const el = this; if (!(el instanceof Element)) return { blocked: false }; if (el instanceof HTMLInputElement) { const type = String(el.type || '').toLowerCase(); const autocomplete = String(el.autocomplete || '').toLowerCase(); const blocked = type === 'password' || autocomplete.includes('current-password') || autocomplete.includes('new-password'); return { blocked, reason: blocked ? 'password_input' : undefined }; } return { blocked: false }; }",
+          "function(intendedValue) { const el = this; if (!(el instanceof Element)) return { blocked: false }; if (el instanceof HTMLInputElement) { const type = String(el.type || '').toLowerCase(); const autocomplete = String(el.autocomplete || '').toLowerCase(); const blocked = type === 'password' || autocomplete.includes('current-password') || autocomplete.includes('new-password'); if (!blocked) return { blocked: false }; const literal = typeof intendedValue === 'string' ? intendedValue.trim() : ''; if (literal.length >= 3) { const visibleText = String(document.body?.innerText || '').replace(/\\s+/g, ' ').trim(); if (visibleText.includes(literal)) { return { blocked: false, reason: 'public_password_literal' }; } } return { blocked: true, reason: 'password_input' }; } return { blocked: false }; }",
+        arguments: [{ value: intendedValue }],
         returnByValue: true,
         awaitPromise: true
       },
@@ -674,13 +688,17 @@ async function assertTextEntryAllowed(runtime: BrowserActionRuntime, node: Resol
   }
 }
 
-async function assertActiveTextEntryAllowed(runtime: BrowserActionRuntime, sessionId: string): Promise<void> {
+async function assertActiveTextEntryAllowed(
+  runtime: BrowserActionRuntime,
+  sessionId: string,
+  intendedValue?: string
+): Promise<void> {
   try {
     const response = await runtime.send<{ result?: { value?: unknown } }>(
       "Runtime.evaluate",
       {
         expression:
-          "(() => { const el = document.activeElement; if (!(el instanceof Element)) return { blocked: false }; if (el instanceof HTMLInputElement) { const type = String(el.type || '').toLowerCase(); const autocomplete = String(el.autocomplete || '').toLowerCase(); const blocked = type === 'password' || autocomplete.includes('current-password') || autocomplete.includes('new-password'); return { blocked, reason: blocked ? 'password_input' : undefined }; } return { blocked: false }; })()",
+          `(() => { const intendedValue = ${JSON.stringify(intendedValue ?? "")}; const el = document.activeElement; if (!(el instanceof Element)) return { blocked: false }; if (el instanceof HTMLInputElement) { const type = String(el.type || '').toLowerCase(); const autocomplete = String(el.autocomplete || '').toLowerCase(); const blocked = type === 'password' || autocomplete.includes('current-password') || autocomplete.includes('new-password'); if (!blocked) return { blocked: false }; const literal = typeof intendedValue === 'string' ? intendedValue.trim() : ''; if (literal.length >= 3) { const visibleText = String(document.body?.innerText || '').replace(/\\s+/g, ' ').trim(); if (visibleText.includes(literal)) { return { blocked: false, reason: 'public_password_literal' }; } } return { blocked: true, reason: 'password_input' }; } return { blocked: false }; })()`,
         returnByValue: true,
         awaitPromise: true
       },
@@ -931,7 +949,7 @@ async function runComputerStep(
         if (node.route.sessionId !== defaultRoute.sessionId) {
           await ensureComputerBatchSessionPrepared(runtime, preparedSessions, node.route.sessionId);
         }
-        await assertTextEntryAllowed(runtime, node, step.ref);
+        await assertTextEntryAllowed(runtime, node, step.ref, step.text);
         await runtime.send("DOM.focus", { backendNodeId: node.backendNodeId }, node.route.sessionId);
         await runtime.send("Input.insertText", { text: step.text }, node.route.sessionId);
       } catch (error) {
@@ -944,7 +962,7 @@ async function runComputerStep(
 
     try {
       await ensureComputerBatchSessionPrepared(runtime, preparedSessions, defaultRoute.sessionId);
-      await assertActiveTextEntryAllowed(runtime, defaultRoute.sessionId);
+      await assertActiveTextEntryAllowed(runtime, defaultRoute.sessionId, step.text);
       await runtime.send("Input.insertText", { text: step.text }, defaultRoute.sessionId);
     } catch (error) {
       throw toBrowserActionError(error, "ACTION_TARGET_INVALID", true);
@@ -1158,6 +1176,48 @@ function normalizeComparableUrl(raw: string): string {
   }
 }
 
+async function getCurrentPageIdentity(
+  runtime: BrowserActionRuntime,
+  tabId: string,
+  sessionId: string
+): Promise<{ url?: string; title?: string }> {
+  let url: string | undefined;
+  let title: string | undefined;
+
+  try {
+    const history = await runtime.send<{
+      currentIndex: number;
+      entries: Array<{ id: number; url: string }>;
+    }>("Page.getNavigationHistory", {}, sessionId);
+    const current = history.entries[history.currentIndex];
+    if (typeof current?.url === "string" && current.url.trim().length > 0) {
+      url = current.url;
+    }
+  } catch {}
+
+  try {
+    const tab = runtime.getTab(tabId);
+    const targetId = tab?.targetId;
+    if (targetId) {
+      const { targetInfos } = await runtime.send<{
+        targetInfos: Array<{ targetId: string; url: string; title: string; type: string }>;
+      }>("Target.getTargets", {});
+      const currentTarget = targetInfos.find((entry) => entry.targetId === targetId);
+      if (typeof currentTarget?.title === "string" && currentTarget.title.trim().length > 0) {
+        title = currentTarget.title;
+      }
+      if (!url && typeof currentTarget?.url === "string" && currentTarget.url.trim().length > 0) {
+        url = currentTarget.url;
+      }
+    }
+  } catch {}
+
+  return {
+    ...(url ? { url } : {}),
+    ...(title ? { title } : {})
+  };
+}
+
 async function navigationReachedExpectedUrl(
   runtime: BrowserActionRuntime,
   sessionId: string,
@@ -1177,6 +1237,91 @@ async function navigationReachedExpectedUrl(
   } catch {
     return false;
   }
+}
+
+async function getNavigationHistorySnapshot(
+  runtime: BrowserActionRuntime,
+  sessionId: string
+): Promise<NavigationHistorySnapshot | undefined> {
+  try {
+    const history = await runtime.send<{
+      currentIndex: number;
+      entries: Array<{ id: number; url: string }>;
+    }>("Page.getNavigationHistory", {}, sessionId);
+    const current = history.entries[history.currentIndex];
+    return {
+      currentIndex: history.currentIndex,
+      ...(typeof current?.url === "string" && current.url.trim().length > 0 ? { url: current.url } : {})
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function didHistorySnapshotChange(
+  before: NavigationHistorySnapshot | undefined,
+  after: NavigationHistorySnapshot | undefined
+): boolean {
+  if (!before || !after) {
+    return false;
+  }
+
+  if (before.currentIndex !== after.currentIndex) {
+    return true;
+  }
+
+  const beforeUrl = typeof before.url === "string" ? normalizeComparableUrl(before.url) : "";
+  const afterUrl = typeof after.url === "string" ? normalizeComparableUrl(after.url) : "";
+  return beforeUrl.length > 0 && afterUrl.length > 0 && beforeUrl !== afterUrl;
+}
+
+async function waitForHistorySnapshotChangeAfterClick(
+  runtime: BrowserActionRuntime,
+  sessionId: string,
+  before: NavigationHistorySnapshot | undefined,
+  signal: AbortSignal,
+  timeoutMs = CLICK_NAVIGATION_DETECTION_TIMEOUT_MS,
+  pollMs = CLICK_NAVIGATION_POLL_MS
+): Promise<NavigationHistorySnapshot | undefined> {
+  if (!before) {
+    return undefined;
+  }
+
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() <= deadline) {
+    throwIfAborted(signal);
+    const current = await getNavigationHistorySnapshot(runtime, sessionId);
+    if (didHistorySnapshotChange(before, current)) {
+      return current;
+    }
+    await new Promise((resolve) => setTimeout(resolve, pollMs));
+  }
+
+  return undefined;
+}
+
+async function settleNavigationTriggeredByFinalClick(
+  runtime: BrowserActionRuntime,
+  sessionId: string,
+  signal: AbortSignal,
+  preClickHistory: NavigationHistorySnapshot | undefined
+): Promise<boolean> {
+  const changedHistory = await waitForHistorySnapshotChangeAfterClick(runtime, sessionId, preClickHistory, signal);
+  if (!changedHistory) {
+    return false;
+  }
+
+  if (typeof changedHistory.url === "string" && changedHistory.url.trim().length > 0) {
+    await waitForNavigationOrObservedUrl(
+      runtime,
+      sessionId,
+      CLICK_NAVIGATION_SETTLE_TIMEOUT_MS,
+      signal,
+      changedHistory.url
+    );
+  }
+
+  return true;
 }
 
 async function waitForNavigationOrObservedUrl(
@@ -1326,12 +1471,16 @@ export async function executeComputerBatch(
   let completedSteps = 0;
   let observedJavaScriptDialog: ComputerBatchResult["javascript_dialog"] | undefined;
   let overlayTelemetry: OverlayTelemetry | undefined;
+  let preFinalClickHistory: NavigationHistorySnapshot | undefined;
 
   for (let index = 0; index < params.steps.length; index += 1) {
     const step = params.steps[index];
 
     try {
       throwIfAborted(signal);
+      if (index === params.steps.length - 1 && step.kind === "click") {
+        preFinalClickHistory = await getNavigationHistorySnapshot(runtime, route.sessionId);
+      }
       const outcome = await runComputerStep(runtime, tabId, route, step, params.steps[index + 1], preparedSessions);
       results.push({ index, ok: true });
       completedSteps += 1;
@@ -1370,6 +1519,10 @@ export async function executeComputerBatch(
 
   const lastCompletedWasClick =
     completedSteps > 0 && params.steps[completedSteps - 1]?.kind === "click";
+  const settledAfterFinalClick =
+    !observedJavaScriptDialog &&
+    lastCompletedWasClick &&
+    (await settleNavigationTriggeredByFinalClick(runtime, route.sessionId, signal, preFinalClickHistory));
 
   let screenshotB64: string | undefined;
   const shouldCaptureScreenshot =
@@ -1381,7 +1534,7 @@ export async function executeComputerBatch(
     // Comet-like: reuse previous screenshot if last batch ended with a click and < 1000 ms ago (LR = 1000)
     const cached = _lastBatchScreenshot.get(tabId);
     const now = Date.now();
-    if (cached?.lastWasClick && now - cached.takenAtMs < 1000) {
+    if (!settledAfterFinalClick && cached?.lastWasClick && now - cached.takenAtMs < 1000) {
       screenshotB64 = cached.b64;
     } else {
       screenshotB64 = await captureBatchScreenshot(runtime, route.sessionId);
@@ -1389,9 +1542,18 @@ export async function executeComputerBatch(
     }
   }
 
+  const shouldReadPageIdentity =
+    !observedJavaScriptDialog &&
+    completedSteps > 0 &&
+    lastCompletedWasClick;
+  const pageIdentity = shouldReadPageIdentity
+    ? await getCurrentPageIdentity(runtime, tabId, route.sessionId)
+    : {};
+
   return {
     steps: results,
     completed_steps: completedSteps,
+    ...pageIdentity,
     ...(screenshotB64 ? { screenshot_b64: screenshotB64 } : {}),
     ...(overlayTelemetry ? { overlay: overlayTelemetry } : {}),
     ...(observedJavaScriptDialog ? { javascript_dialog: observedJavaScriptDialog } : {})
@@ -1543,9 +1705,11 @@ export async function executeNavigate(
       throwIfAborted(signal);
 
       await runConsentPreflight(runtime, route.sessionId);
+      const pageIdentity = await getCurrentPageIdentity(runtime, tabId, route.sessionId);
 
       return {
-        url: resolvedUrl,
+        url: pageIdentity.url ?? resolvedUrl,
+        ...(typeof pageIdentity.title === "string" ? { title: pageIdentity.title } : {}),
         frame_id: result.frameId,
         loader_id: result.loaderId
       };
@@ -1612,8 +1776,10 @@ export async function executeNavigate(
     });
   }
 
+  const pageIdentity = await getCurrentPageIdentity(runtime, tabId, route.sessionId);
   return {
-    url: nextEntry.url
+    url: pageIdentity.url ?? nextEntry.url,
+    ...(typeof pageIdentity.title === "string" ? { title: pageIdentity.title } : {})
   };
 }
 
@@ -1642,7 +1808,7 @@ export async function executeFormInput(
         await ensureComputerBatchSessionPrepared(runtime, preparedSessions, node.route.sessionId);
       }
       if (field.kind === "text") {
-        await assertTextEntryAllowed(runtime, node, field.ref);
+        await assertTextEntryAllowed(runtime, node, field.ref, typeof field.value === "string" ? field.value : undefined);
       }
 
       let result: { result?: { value?: unknown } };
@@ -1674,7 +1840,7 @@ export async function executeFormInput(
           {
             objectId: node.objectId,
             functionDeclaration:
-              "function(kind, rawValue) { const el = this; if (!(el instanceof Element)) return false; if (kind === 'checkbox') { if (!(el instanceof HTMLInputElement)) return false; el.checked = Boolean(rawValue); } else if (kind === 'select') { if (!(el instanceof HTMLSelectElement)) return false; const incoming = String(rawValue); const options = Array.from(el.options); const matched = options.find((option) => option.value === incoming || option.text === incoming); if (!matched) return false; el.value = matched.value; } else { if (el instanceof HTMLSelectElement) { const incoming = String(rawValue); const options = Array.from(el.options); const matched = options.find((option) => option.value === incoming || option.text === incoming); if (!matched) return false; el.value = matched.value; } else { if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return false; el.value = String(rawValue); } } el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return true; }",
+              "function(kind, rawValue) { const el = this; if (!(el instanceof Element)) return false; const setNativeValue = (target, value) => { const prototype = target instanceof HTMLInputElement ? HTMLInputElement.prototype : target instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : target instanceof HTMLSelectElement ? HTMLSelectElement.prototype : null; const descriptor = prototype ? Object.getOwnPropertyDescriptor(prototype, 'value') : null; if (descriptor && typeof descriptor.set === 'function') { descriptor.set.call(target, value); return; } target.value = value; }; const setNativeChecked = (target, value) => { const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked'); if (descriptor && typeof descriptor.set === 'function') { descriptor.set.call(target, value); return; } target.checked = value; }; if (kind === 'checkbox') { if (!(el instanceof HTMLInputElement)) return false; setNativeChecked(el, Boolean(rawValue)); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return true; } if (kind === 'select' || el instanceof HTMLSelectElement) { if (!(el instanceof HTMLSelectElement)) return false; const incoming = String(rawValue); const options = Array.from(el.options); const matched = options.find((option) => option.value === incoming || option.text === incoming); if (!matched) return false; setNativeValue(el, matched.value); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return true; } if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return false; const nextValue = String(rawValue); setNativeValue(el, nextValue); el.dispatchEvent(new InputEvent('input', { bubbles: true, data: nextValue, inputType: 'insertText' })); el.dispatchEvent(new Event('change', { bubbles: true })); return true; }",
             arguments: [{ value: field.kind }, { value: field.value }],
             returnByValue: true,
             awaitPromise: true

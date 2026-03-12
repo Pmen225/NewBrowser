@@ -54,6 +54,9 @@ export function controlButtonState(state) {
   if (controlState === 'pausing') {
     return { label: 'Take control', primary: false, status: 'Pausing…' };
   }
+  if (controlState === 'resuming') {
+    return { label: 'Resume', primary: false, status: 'Resuming…' };
+  }
   if (controlState === 'stopping') {
     return { label: 'Take control', primary: false, status: 'Stopping agent' };
   }

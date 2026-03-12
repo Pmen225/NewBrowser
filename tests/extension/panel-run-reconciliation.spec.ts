@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   deriveLiveRunState,
+  deriveRunControlModel,
   deriveTaskStatusMeta,
-  deriveTerminalRunSnapshot
+  deriveThinkingPresentation,
+  deriveTerminalRunSnapshot,
+  sanitizeAssistantResponseText
 } from "../../extension/panel.js";
 
 describe("panel run reconciliation", () => {
@@ -20,6 +23,7 @@ describe("panel run reconciliation", () => {
       rawText: "The file was uploaded.",
       errorMessage: "",
       isStopped: false,
+      isInterrupted: false,
       draftArtifact: undefined,
       sources: [{ id: "[web:1]", origin: "web", action: "get_page_text" }]
     });
@@ -37,6 +41,25 @@ describe("panel run reconciliation", () => {
       rawText: "",
       errorMessage: "MODEL_EMPTY_TURN",
       isStopped: false,
+      isInterrupted: false,
+      draftArtifact: undefined,
+      sources: []
+    });
+  });
+
+  it("derives an interrupted terminal snapshot without treating it as a hard stop", () => {
+    expect(
+      deriveTerminalRunSnapshot({
+        run_id: "run-2b",
+        status: "interrupted",
+        error_message: "Request was aborted"
+      })
+    ).toEqual({
+      status: "interrupted",
+      rawText: "",
+      errorMessage: "Request was aborted",
+      isStopped: false,
+      isInterrupted: true,
       draftArtifact: undefined,
       sources: []
     });
@@ -50,6 +73,34 @@ describe("panel run reconciliation", () => {
         final_answer: "Still thinking"
       })
     ).toBeNull();
+  });
+
+  it("strips navigation bookkeeping and leaked tab json from terminal answers", () => {
+    expect(
+      deriveTerminalRunSnapshot({
+        run_id: "run-4",
+        status: "completed",
+        final_answer: `<answer>The current tab has been updated to:
+{"tabId":"BD9227C9376D6A75912CEBB00E3EBA5C","title":"Wikipedia","url":"https://www.wikipedia.org/"}
+The query text was "go to wikipedia". I have navigated to Wikipedia. The task is complete.</answer>`
+      })
+    ).toEqual({
+      status: "completed",
+      rawText: "I have navigated to Wikipedia.",
+      errorMessage: "",
+      isStopped: false,
+      isInterrupted: false,
+      draftArtifact: undefined,
+      sources: []
+    });
+  });
+
+  it("sanitizes assistant response boilerplate for restored chat text", () => {
+    expect(
+      sanitizeAssistantResponseText(`The current tab has been updated to:
+{"tabId":"tab-1","title":"Wikipedia","url":"https://www.wikipedia.org/"}
+The query text was "go to wikipedia". I have navigated to Wikipedia. The task is complete.`)
+    ).toBe("I have navigated to Wikipedia.");
   });
 
   it("merges task metadata from live AgentGetState payloads", () => {
@@ -96,8 +147,8 @@ describe("panel run reconciliation", () => {
         childError: null
       })
     ).toMatchObject({
-      description: "Delegating a hidden worker while keeping this page live.",
-      chips: ["Primary", "Panel", "1 hidden worker", "Delegating"]
+      description: "Working on this page while a background worker checks a subtask.",
+      chips: ["1 worker", "Delegating"]
     });
 
     expect(
@@ -111,7 +162,68 @@ describe("panel run reconciliation", () => {
         childError: null
       })
     ).toMatchObject({
+      description: "A background worker returned an update.",
+      chips: ["1 worker", "Update ready"],
       summary: "Checked the delegated path and returned the result."
+    });
+  });
+
+  it("derives panel-visible counterpart controls for running and paused runs", () => {
+    expect(deriveRunControlModel("active", "running")).toMatchObject({
+      actions: [
+        { id: "pause", label: "Take control" },
+        { id: "stop", label: "Stop" }
+      ]
+    });
+
+    expect(deriveRunControlModel("paused", "paused")).toMatchObject({
+      actions: [
+        { id: "resume", label: "Resume" },
+        { id: "stop", label: "Stop" }
+      ]
+    });
+  });
+
+  it("switches to a finishing presentation once every tool step is completed", () => {
+    expect(
+      deriveThinkingPresentation(
+        {
+          status: "running",
+          steps: [
+            { callId: "tool-1", toolName: "navigate", label: "Navigate", status: "completed" },
+            { callId: "tool-2", toolName: "computer", label: "Interact on page", status: "completed" }
+          ]
+        },
+        "active"
+      )
+    ).toMatchObject({
+      headline: "Finishing",
+      summary: "Preparing the final response.",
+      meta: ["Done", "2 steps done"],
+      actions: [{ id: "stop", label: "Stop", kind: "secondary" }]
+    });
+  });
+
+  it("keeps the live working controls while a tool step is still running", () => {
+    expect(
+      deriveThinkingPresentation(
+        {
+          status: "running",
+          steps: [
+            { callId: "tool-1", toolName: "navigate", label: "Navigate", status: "completed" },
+            { callId: "tool-2", toolName: "computer", label: "Interact on page", status: "running" }
+          ]
+        },
+        "active"
+      )
+    ).toMatchObject({
+      headline: "Working",
+      summary: "Interact on page",
+      meta: ["Live", "1 step done"],
+      actions: [
+        { id: "pause", label: "Take control", kind: "primary" },
+        { id: "stop", label: "Stop", kind: "secondary" }
+      ]
     });
   });
 });

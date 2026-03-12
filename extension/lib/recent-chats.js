@@ -177,6 +177,14 @@ export function appendSessionMessage(store, sessionId, message, options = {}) {
   };
 }
 
+export function clearActiveSession(store) {
+  const normalizedStore = normalizeChatSessionsStore(store);
+  return {
+    ...normalizedStore,
+    activeSessionId: null
+  };
+}
+
 export function pruneChatSessions(store, { maxSessions = 15, maxMessagesPerSession = 200 } = {}) {
   const normalizedStore = normalizeChatSessionsStore(store);
   const limitedSessions = normalizedStore.sessions

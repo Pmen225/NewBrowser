@@ -128,4 +128,52 @@ describe("createFindDispatcher", () => {
       ]
     });
   });
+
+  it("does not match a generic role-only term when the requested label is absent", async () => {
+    const dispatcher = createFindDispatcher({
+      getClientForTab(tabId) {
+        return tabId === "tab-1" ? createMockCdp() : undefined;
+      }
+    });
+
+    await expect(
+      dispatcher.dispatch(
+        "find",
+        "tab-1",
+        {
+          query: "Delete button"
+        },
+        new AbortController().signal
+      )
+    ).resolves.toEqual({
+      matches: []
+    });
+  });
+
+  it("still supports generic role-only queries when no label is provided", async () => {
+    const dispatcher = createFindDispatcher({
+      getClientForTab(tabId) {
+        return tabId === "tab-1" ? createMockCdp() : undefined;
+      }
+    });
+
+    await expect(
+      dispatcher.dispatch(
+        "find",
+        "tab-1",
+        {
+          query: "button"
+        },
+        new AbortController().signal
+      )
+    ).resolves.toMatchObject({
+      matches: [
+        {
+          ref: "f0:101",
+          text: "Submit",
+          role: "button"
+        }
+      ]
+    });
+  });
 });

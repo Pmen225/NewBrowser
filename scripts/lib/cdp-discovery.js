@@ -2,6 +2,8 @@ import { execFile as execFileCallback } from "node:child_process";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
+const DEFAULT_CDP_PORT_CANDIDATES = Object.freeze([9555, 9444, 9333, 9222]);
+
 function execFile(file, args) {
   return new Promise((resolvePromise, rejectPromise) => {
     execFileCallback(file, args, (error, stdout, stderr) => {
@@ -12,6 +14,50 @@ function execFile(file, args) {
       resolvePromise({ stdout, stderr });
     });
   });
+}
+
+export function classifyCdpDiscoveryFailure(error) {
+  if (typeof error?.classification === "string" && error.classification.trim()) {
+    return {
+      classification: error.classification.trim(),
+      code: typeof error?.code === "string" ? error.code : "UNKNOWN",
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+
+  const code = typeof error?.code === "string" ? error.code : "UNKNOWN";
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (code === "EPERM" || code === "EACCES") {
+    return {
+      classification: "process_inspection_permission_failure",
+      code,
+      message
+    };
+  }
+
+  if (code === "ENOENT") {
+    return {
+      classification: "process_inspection_binary_missing",
+      code,
+      message
+    };
+  }
+
+  return {
+    classification: "process_inspection_failure",
+    code,
+    message
+  };
+}
+
+export function formatCdpDiscoveryFailure(error) {
+  const verdict = classifyCdpDiscoveryFailure(error);
+  return `classification=${verdict.classification}; code=${verdict.code}; message=${verdict.message}`;
+}
+
+export function isProcessInspectionPermissionFailure(error) {
+  return classifyCdpDiscoveryFailure(error).classification === "process_inspection_permission_failure";
 }
 
 export function defaultChromeProfileRoot() {
@@ -35,7 +81,17 @@ export function parseRemoteDebuggingPort(command, { profileRoot = defaultChromeP
 }
 
 export async function listChromeCommands({ execFileImpl = execFile } = {}) {
-  const { stdout } = await execFileImpl("ps", ["axww", "-o", "command="]);
+  let stdout;
+  try {
+    ({ stdout } = await execFileImpl("ps", ["axww", "-o", "command="]));
+  } catch (error) {
+    const verdict = classifyCdpDiscoveryFailure(error);
+    const wrapped = new Error(`Unable to inspect running Chromium processes via ps. ${verdict.message}`);
+    wrapped.code = verdict.code;
+    wrapped.classification = verdict.classification;
+    throw wrapped;
+  }
+
   return String(stdout)
     .split("\n")
     .map((line) => line.trim())
@@ -79,12 +135,64 @@ export async function fetchCdpWebSocketUrl({
   }
 }
 
+function resolveCandidatePorts({
+  portCandidates = DEFAULT_CDP_PORT_CANDIDATES,
+  envPort = process.env.CHROME_CDP_PORT
+} = {}) {
+  const resolved = [];
+  const seen = new Set();
+
+  const pushPort = (value) => {
+    const parsed = Number.parseInt(String(value ?? ""), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0 || seen.has(parsed)) {
+      return;
+    }
+    seen.add(parsed);
+    resolved.push(parsed);
+  };
+
+  pushPort(envPort);
+  for (const candidate of portCandidates) {
+    pushPort(candidate);
+  }
+  return resolved;
+}
+
+export async function resolveCdpWsUrlFromCandidatePorts({
+  host = "127.0.0.1",
+  fetchImpl = globalThis.fetch,
+  portCandidates = DEFAULT_CDP_PORT_CANDIDATES
+} = {}) {
+  for (const port of resolveCandidatePorts({ portCandidates })) {
+    const wsUrl = await fetchCdpWebSocketUrl({
+      host,
+      port,
+      fetchImpl
+    });
+    if (wsUrl) {
+      return wsUrl;
+    }
+  }
+
+  return undefined;
+}
+
 export async function resolveRunningChromeCdpWsUrl({
   profileRoot = defaultChromeProfileRoot(),
   host = "127.0.0.1",
+  portCandidates = DEFAULT_CDP_PORT_CANDIDATES,
   execFileImpl = execFile,
   fetchImpl = globalThis.fetch
 } = {}) {
+  const direct = await resolveCdpWsUrlFromCandidatePorts({
+    host,
+    fetchImpl,
+    portCandidates
+  });
+  if (direct) {
+    return direct;
+  }
+
   const port = await findRunningChromeCdpPort({
     profileRoot,
     execFileImpl

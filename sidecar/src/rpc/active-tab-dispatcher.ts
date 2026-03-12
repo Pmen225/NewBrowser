@@ -127,7 +127,7 @@ export function createActiveTabDispatcher(options: ActiveTabDispatcherOptions): 
 
       const targets = await options.transport.send<{ targetInfos?: TargetInfoLike[] }>("Target.getTargets", {});
       const targetInfos = targets.targetInfos ?? [];
-      const cachedTargetId = chromeTabToTargetId.get(parsed.chrome_tab_id);
+      const cachedTargetId = typeof parsed.chrome_tab_id === "number" ? chromeTabToTargetId.get(parsed.chrome_tab_id) : undefined;
 
       const matched = findMatchingTarget(targetInfos, {
         targetId: parsed.target_id,
@@ -142,13 +142,17 @@ export function createActiveTabDispatcher(options: ActiveTabDispatcherOptions): 
         };
       }
 
-      chromeTabToTargetId.set(parsed.chrome_tab_id, matched.targetId);
+      if (typeof parsed.chrome_tab_id === "number") {
+        chromeTabToTargetId.set(parsed.chrome_tab_id, matched.targetId);
+      }
 
       const existing = options.sessionRegistry.listTabs().find((tab) => tab.targetId === matched.targetId);
       const resolvedTabId = existing?.tabId;
 
       if (resolvedTabId) {
-        options.sessionRegistry.bindChromeTabId?.(resolvedTabId, parsed.chrome_tab_id);
+        if (typeof parsed.chrome_tab_id === "number") {
+          options.sessionRegistry.bindChromeTabId?.(resolvedTabId, parsed.chrome_tab_id);
+        }
         notifyIfChanged(resolvedTabId);
         return {
           tab_id: resolvedTabId,
@@ -157,7 +161,9 @@ export function createActiveTabDispatcher(options: ActiveTabDispatcherOptions): 
       }
 
       const attached = await options.sessionRegistry.attachTab(matched.targetId);
-      options.sessionRegistry.bindChromeTabId?.(attached.tabId, parsed.chrome_tab_id);
+      if (typeof parsed.chrome_tab_id === "number") {
+        options.sessionRegistry.bindChromeTabId?.(attached.tabId, parsed.chrome_tab_id);
+      }
       await options.sessionRegistry.enableDomains(attached.tabId);
       await options.sessionRegistry.refreshFrameTree(attached.tabId);
       notifyIfChanged(attached.tabId);

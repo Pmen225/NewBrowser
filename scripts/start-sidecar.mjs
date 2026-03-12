@@ -1,22 +1,35 @@
 import { execFile as execFileCallback, spawn } from "node:child_process";
-import { access, constants, mkdir, mkdtemp } from "node:fs/promises";
+import { access, constants, mkdir } from "node:fs/promises";
 import { closeSync, openSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { hardenAssistantProfile } from "./lib/assistant-profile-lock.js";
-import { defaultChromeProfileRoot, resolveRunningChromeCdpWsUrl } from "./lib/cdp-discovery.js";
+import {
+  defaultChromeProfileRoot,
+  isProcessInspectionPermissionFailure,
+  resolveRunningChromeCdpWsUrl
+} from "./lib/cdp-discovery.js";
+import sidecarRuntime from "./lib/sidecar-runtime.cjs";
 import {
   activateChromiumDesktop,
-  openAssistantSidePanel,
-  waitForSidecarHealth
+  isAssistantServiceWorkerMissingError,
+  openAssistantSidePanel
 } from "./lib/assistant-activation.js";
+import {
+  cleanupPreparedSidecarLaunchCommand,
+  prepareSidecarLaunchCommand
+} from "./lib/sidecar-launch.js";
 
 const DEFAULT_POLL_INTERVAL_MS = 250;
 const DEFAULT_STARTUP_TIMEOUT_MS = 20_000;
 const DEFAULT_PORT_CANDIDATES = [9555, 9444, 9333, 9222];
 const DEFAULT_HEALTH_TIMEOUT_MS = 30_000;
-const DEFAULT_ATTACHED_TAB_TIMEOUT_MS = 10_000;
+const {
+  waitForManagedSidecarRuntimeReadiness,
+  waitForSidecarRuntimeReadiness
+} = sidecarRuntime;
 
 function parseNumber(value, fallback) {
   if (!value) {
@@ -106,10 +119,17 @@ async function resolveExistingCdpWebSocketUrl() {
   try {
     const response = await fetch(versionUrl);
     if (!response.ok) {
-      return resolveRunningChromeCdpWsUrl({
-        profileRoot: defaultChromeProfileRoot(),
-        host
-      });
+      try {
+        return await resolveRunningChromeCdpWsUrl({
+          profileRoot: defaultChromeProfileRoot(),
+          host
+        });
+      } catch (error) {
+        if (isProcessInspectionPermissionFailure(error)) {
+          return undefined;
+        }
+        throw error;
+      }
     }
     const payload = await response.json();
     if (typeof payload.webSocketDebuggerUrl === "string") {
@@ -120,10 +140,17 @@ async function resolveExistingCdpWebSocketUrl() {
       host
     });
   } catch {
-    return resolveRunningChromeCdpWsUrl({
-      profileRoot: defaultChromeProfileRoot(),
-      host
-    });
+    try {
+      return await resolveRunningChromeCdpWsUrl({
+        profileRoot: defaultChromeProfileRoot(),
+        host
+      });
+    } catch (error) {
+      if (isProcessInspectionPermissionFailure(error)) {
+        return undefined;
+      }
+      throw error;
+    }
   }
 }
 
@@ -168,36 +195,19 @@ async function pollForCdpReady(port, timeoutMs) {
   throw new Error(`Timed out waiting for a Chrome CDP endpoint on port ${port}`);
 }
 
-async function waitForAttachedPageTabs(healthUrl, timeoutMs = DEFAULT_ATTACHED_TAB_TIMEOUT_MS) {
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() <= deadline) {
-    try {
-      const response = await fetch(healthUrl);
-      if (response.ok) {
-        const payload = await response.json();
-        if (Array.isArray(payload?.tabs) && payload.tabs.length > 0) {
-          return payload;
-        }
-      }
-    } catch {
-      // Server may still be stabilizing.
-    }
-
-    await new Promise((resolveSleep) => setTimeout(resolveSleep, DEFAULT_POLL_INTERVAL_MS));
-  }
-
-  throw new Error(`Assistant sidecar did not attach a browser tab at ${healthUrl}`);
-}
-
-function spawnServer(cdpWsUrl) {
-  return spawn(process.platform === "win32" ? "npx.cmd" : "npx", ["--yes", "tsx", "sidecar/src/server.ts"], {
+async function spawnServer(cdpWsUrl) {
+  const launch = await prepareSidecarLaunchCommand({ root: process.cwd() });
+  const serverProcess = spawn(launch.command, launch.args, {
     stdio: "inherit",
     env: {
       ...process.env,
       CHROME_CDP_WS_URL: cdpWsUrl
     }
   });
+  serverProcess.once("close", () => {
+    cleanupPreparedSidecarLaunchCommand(launch);
+  });
+  return serverProcess;
 }
 
 async function stopServer(serverProcess) {
@@ -223,9 +233,17 @@ async function launchBrowser() {
   const portCandidates = explicitPort ? [parseNumber(explicitPort, 9222)] : DEFAULT_PORT_CANDIDATES;
   const persistentDir = explicitUserDataDir || defaultChromeProfileRoot();
 
-  const existingWsUrl = await resolveRunningChromeCdpWsUrl({
-    profileRoot: persistentDir
-  });
+  let existingWsUrl;
+  try {
+    existingWsUrl = await resolveRunningChromeCdpWsUrl({
+      profileRoot: persistentDir,
+      portCandidates: portCandidates
+    });
+  } catch (error) {
+    if (!isProcessInspectionPermissionFailure(error)) {
+      throw error;
+    }
+  }
   if (existingWsUrl) {
     return { browserProcess: undefined, cdpWsUrl: existingWsUrl };
   }
@@ -295,7 +313,28 @@ async function launchBrowser() {
   throw new Error("Failed to launch browser");
 }
 
-async function main() {
+export async function maybeOpenAssistantPanel({
+  cdpWsUrl,
+  openAssistantSidePanelImpl = openAssistantSidePanel,
+  activateChromiumDesktopImpl = activateChromiumDesktop,
+  warn = console.warn
+}) {
+  try {
+    await openAssistantSidePanelImpl({
+      browserWsUrl: cdpWsUrl
+    });
+  } catch (error) {
+    if (!isAssistantServiceWorkerMissingError(error)) {
+      throw error;
+    }
+    warn("Assistant side panel auto-open was skipped because the extension service worker target was not found.");
+    warn("The sidecar is running; open the Assistant panel manually once the extension is loaded.");
+  }
+
+  await activateChromiumDesktopImpl().catch(() => {});
+}
+
+export async function main() {
   let browserProcess;
   let serverProcess;
   try {
@@ -307,46 +346,38 @@ async function main() {
     }
 
     const healthUrl = `http://${process.env.SIDECAR_HOST?.trim() || "127.0.0.1"}:${parseNumber(process.env.SIDECAR_PORT, 3210)}/health`;
-    let sidecarHealthy = false;
+    let sidecarReady = false;
+    let readinessError;
 
     try {
-      await waitForSidecarHealth({
+      await waitForSidecarRuntimeReadiness({
         healthUrl,
         timeoutMs: 750,
         pollMs: 150
       });
-      sidecarHealthy = true;
-    } catch {
-      sidecarHealthy = false;
+      sidecarReady = true;
+    } catch (error) {
+      readinessError = error;
+      sidecarReady = false;
     }
 
-    if (!sidecarHealthy) {
-      serverProcess = spawnServer(cdpWsUrl);
-      await waitForSidecarHealth({
-        healthUrl,
-        timeoutMs: DEFAULT_HEALTH_TIMEOUT_MS
-      });
-    }
-
-    try {
-      await waitForAttachedPageTabs(healthUrl);
-    } catch {
-      if (!serverProcess) {
-        throw new Error(`Assistant sidecar is healthy but has no attached browser tabs at ${healthUrl}`);
+    if (!sidecarReady) {
+      if (readinessError?.reachable === true) {
+        throw new Error(
+          `Assistant sidecar responded at ${healthUrl} but is not runtime-ready (${readinessError.lastReason ?? "unknown"}). Restart the existing sidecar before retrying.`
+        );
       }
-      await stopServer(serverProcess);
-      serverProcess = spawnServer(cdpWsUrl);
-      await waitForSidecarHealth({
+      serverProcess = await spawnServer(cdpWsUrl);
+      await waitForManagedSidecarRuntimeReadiness({
+        serverProcess,
         healthUrl,
         timeoutMs: DEFAULT_HEALTH_TIMEOUT_MS
       });
-      await waitForAttachedPageTabs(healthUrl);
     }
 
-    await openAssistantSidePanel({
-      browserWsUrl: cdpWsUrl
+    await maybeOpenAssistantPanel({
+      cdpWsUrl
     });
-    await activateChromiumDesktop().catch(() => {});
 
     const shutdown = (signal) => {
       if (browserProcess && !browserProcess.killed) {
@@ -402,4 +433,6 @@ async function main() {
   }
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

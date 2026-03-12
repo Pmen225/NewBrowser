@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { writeFile } from "node:fs/promises";
 import { access, constants, mkdir } from "node:fs/promises";
 import { createServer as createNetServer } from "node:net";
 import { resolve } from "node:path";
@@ -34,6 +35,7 @@ import { createSystemDispatcher } from "./rpc/system-dispatcher";
 import { createTodoDispatcher } from "./rpc/todo-dispatcher";
 import { createExecutionTargetResolver } from "./rpc/execution-target";
 import { executeWithReliability } from "./rpc/reliability";
+import { resolveRuntimeTabState } from "./runtime-tab-state";
 import {
   createBlockedDomainsGuard,
   createActionPolicyGuard,
@@ -121,10 +123,34 @@ function parseBrowserPolicy(raw: string | undefined): BrowserDiscoveryPolicy {
 }
 
 const debugStartup = process.env.SIDECAR_DEBUG_STARTUP === "1";
+const startupStatePath = process.env.SIDECAR_STARTUP_STATE_PATH?.trim() || "";
 
 function startupLog(message: string): void {
   if (debugStartup) {
     console.log(`[startup] ${message}`);
+  }
+}
+
+async function writeStartupState(phase: string, detail?: string): Promise<void> {
+  if (!startupStatePath) {
+    return;
+  }
+
+  try {
+    await writeFile(
+      startupStatePath,
+      JSON.stringify(
+        {
+          phase,
+          detail: typeof detail === "string" && detail.trim().length > 0 ? detail : undefined,
+          ts: new Date().toISOString()
+        },
+        null,
+        2
+      )
+    );
+  } catch {
+    // Ignore startup-state telemetry write failures.
   }
 }
 
@@ -606,6 +632,7 @@ async function handleHttpRpcRequest(
 }
 
 async function start(): Promise<void> {
+  await writeStartupState("boot");
   const defaultAgentMaxSteps = parseAgentMaxSteps(process.env.AGENT_MAX_STEPS);
   let launchedBrowser: BrowserLaunchResult | undefined;
   const browserPolicy = parseBrowserPolicy(process.env.NEW_BROWSER_BROWSER_POLICY ?? process.env.COMET_BROWSER_POLICY);
@@ -616,6 +643,7 @@ async function start(): Promise<void> {
   let extensionDetectedViaTargets = false;
   let extensionDetectionSource = "none";
   let cdpWsUrl = await resolveCdpWebSocketUrl();
+  await writeStartupState("cdp_ws_resolved", cdpWsUrl ? "cdp_detected" : "no_cdp");
   const extensionPath = await resolveExtensionPath();
   const profileRoot = resolveDefaultChromeProfileRoot();
 
@@ -635,6 +663,7 @@ async function start(): Promise<void> {
       });
       cdpWsUrl = launchedBrowser.cdpWsUrl;
       extensionLoaded = launchedBrowser.extensionLoaded;
+      await writeStartupState("browser_launched", cdpWsUrl);
     } catch (error) {
       if (strictBrowserLaunch) {
         throw error;
@@ -666,6 +695,7 @@ async function start(): Promise<void> {
     rootDir: config.traceDir
   });
   const promptSpecs = await loadPromptSpecs();
+  await writeStartupState("prompt_specs_loaded");
   const sseHub = createSseHub({
     heartbeatMs: 20_000,
     sanitizeEnvelope: (envelope) => {
@@ -684,6 +714,7 @@ async function start(): Promise<void> {
   });
 
   let transport: ChromeCdpTransport | undefined;
+  let frameRegistry: FrameRegistry | undefined;
   let sessionRegistry: SessionRegistry | undefined;
   let targetRouter: TargetEventRouter | undefined;
   let defaultTabId: string | undefined;
@@ -692,14 +723,23 @@ async function start(): Promise<void> {
   let executionTargetResolver: ReturnType<typeof createExecutionTargetResolver> | undefined;
 
   const coreDispatchers = [createPingDispatcher(), createSearchWebDispatcher(), createTodoDispatcher()];
+  const getRuntimeTabState = () =>
+    resolveRuntimeTabState({
+      activeTabId,
+      lastPageTabId,
+      defaultTabId,
+      tabs: sessionRegistry?.listTabs() ?? []
+    });
 
   if (config.cdpWsUrl) {
     startupLog(`Connecting transport to ${config.cdpWsUrl}`);
+    await writeStartupState("transport_connecting", config.cdpWsUrl);
     transport = new ChromeCdpTransport({
       wsUrl: config.cdpWsUrl
     });
     await transport.connect();
     startupLog("Transport connected");
+    await writeStartupState("transport_connected");
     const extensionPresence = await detectExtensionPresence(transport, {
       extensionPath,
       profileRoot
@@ -709,19 +749,22 @@ async function start(): Promise<void> {
     extensionDetectedViaTargets = extensionPresence.targetDetected;
     extensionDetectionSource = extensionPresence.detectionSource;
     startupLog(`Extension loaded: ${String(extensionLoaded)} (${extensionDetectionSource})`);
+    await writeStartupState("extension_detected", `${String(extensionLoaded)}:${extensionDetectionSource}`);
     config.extensionLoaded = extensionLoaded;
     if (!extensionLoaded) {
       console.warn("New Browser extension was not detected through targets or profile state.");
     }
 
-    const frameRegistry = new FrameRegistry();
+    frameRegistry = new FrameRegistry();
     sessionRegistry = new SessionRegistry(transport, frameRegistry);
     targetRouter = new TargetEventRouter(transport, sessionRegistry, frameRegistry);
     targetRouter.start();
     startupLog("Target router started");
+    await writeStartupState("target_router_started");
 
     defaultTabId = await attachInitialTab(transport, sessionRegistry);
     startupLog(`Initial tab attached: ${defaultTabId ?? "none"}`);
+    await writeStartupState("initial_tab_attached", defaultTabId ?? "none");
     activeTabId = defaultTabId;
     lastPageTabId = undefined;
 
@@ -729,9 +772,9 @@ async function start(): Promise<void> {
     executionTargetResolver = createExecutionTargetResolver({
       transport,
       sessionRegistry,
-      getActiveTabId: () => activeTabId,
-      getDefaultTabId: () => defaultTabId,
-      getLastPageTabId: () => lastPageTabId,
+      getActiveTabId: () => getRuntimeTabState().activeTabId,
+      getDefaultTabId: () => getRuntimeTabState().defaultTabId,
+      getLastPageTabId: () => getRuntimeTabState().lastPageTabId,
       onResolvedPageTab: (tabId: string) => {
         lastPageTabId = tabId;
       }
@@ -804,7 +847,16 @@ async function start(): Promise<void> {
     promptSpecs,
     providerRegistry,
     defaultMaxSteps: defaultAgentMaxSteps,
-    resolveDefaultTabId: () => activeTabId ?? lastPageTabId ?? defaultTabId,
+    resolveDefaultTabId: () => getRuntimeTabState().activeTabId,
+    resolveTabContext: (tabId: string) => {
+      const frames = frameRegistry?.listByTab(tabId) ?? [];
+      const mainFrame = frames.find((frame) => frame.isMainFrame) ?? frames[0];
+      return mainFrame
+        ? {
+            url: mainFrame.url
+          }
+        : undefined;
+    },
     performAction: async (action: string, tabId: string, params: Record<string, unknown>, signal: AbortSignal) => {
       let effectiveTabId = tabId;
 
@@ -814,7 +866,7 @@ async function start(): Promise<void> {
 
         if (resolved.kind === "page") {
           lastPageTabId = resolved.tabId;
-          if (resolved.recovered || !activeTabId) {
+          if (resolved.recovered || !getRuntimeTabState().activeTabId) {
             activeTabId = resolved.tabId;
           }
         }
@@ -889,23 +941,29 @@ async function start(): Promise<void> {
     }
   });
   startupLog("Orchestrator created");
+  await writeStartupState("orchestrator_created");
 
   const systemDispatcher = createSystemDispatcher({
-    getRuntimeState: () => ({
-      mode: config.cdpWsUrl ? "cdp" : "ping_only",
-      default_tab_id: defaultTabId,
-      active_tab_id: activeTabId ?? defaultTabId,
-      tabs:
+    getRuntimeState: () => {
+      const tabs =
         sessionRegistry?.listTabs().map((tab) => ({
           tab_id: tab.tabId,
           target_id: tab.targetId
-        })) ?? [],
-      browser_policy: config.browserPolicy,
-      extension_loaded: config.extensionLoaded,
-      extension_id: extensionId,
-      extension_detection_source: extensionDetectionSource,
-      extension_detected_via_targets: extensionDetectedViaTargets
-    }),
+        })) ?? [];
+      const runtimeTabState = getRuntimeTabState();
+
+      return {
+        mode: config.cdpWsUrl ? "cdp" : "ping_only",
+        default_tab_id: runtimeTabState.defaultTabId,
+        active_tab_id: runtimeTabState.activeTabId,
+        tabs,
+        browser_policy: config.browserPolicy,
+        extension_loaded: config.extensionLoaded,
+        extension_id: extensionId,
+        extension_detection_source: extensionDetectionSource,
+        extension_detected_via_targets: extensionDetectedViaTargets
+      };
+    },
     providerRegistry,
     providerState,
     orchestrator,
@@ -948,11 +1006,18 @@ async function start(): Promise<void> {
     }
 
     if (url === "/health") {
+      const tabs =
+        sessionRegistry?.listTabs().map((tab) => ({
+          tab_id: tab.tabId,
+          target_id: tab.targetId
+        })) ?? [];
+      const runtimeTabState = getRuntimeTabState();
+
       jsonResponse(response, 200, {
         ok: true,
         mode: config.cdpWsUrl ? "cdp" : "ping_only",
-        default_tab_id: defaultTabId,
-        active_tab_id: activeTabId ?? defaultTabId,
+        default_tab_id: runtimeTabState.defaultTabId,
+        active_tab_id: runtimeTabState.activeTabId,
         browser_policy: config.browserPolicy,
         extension_loaded: config.extensionLoaded,
         extension_id: extensionId,
@@ -961,10 +1026,7 @@ async function start(): Promise<void> {
         rpc_path: config.rpcPath,
         events_path: config.eventsPath,
         traces_dir: resolve(config.traceDir),
-        tabs: sessionRegistry?.listTabs().map((tab) => ({
-          tab_id: tab.tabId,
-          target_id: tab.targetId
-        })) ?? []
+        tabs
       });
       return;
     }
@@ -987,6 +1049,7 @@ async function start(): Promise<void> {
     httpServer.listen(config.port, config.host, () => resolve());
   });
   startupLog(`HTTP server listening on ${config.host}:${config.port}`);
+  await writeStartupState("http_listening", `${config.host}:${config.port}`);
 
   sseHub.publish({
     event: "status",
@@ -996,8 +1059,8 @@ async function start(): Promise<void> {
       payload: {
         server: "started",
         mode: config.cdpWsUrl ? "cdp" : "ping_only",
-        default_tab_id: defaultTabId,
-        active_tab_id: activeTabId ?? defaultTabId,
+        default_tab_id: getRuntimeTabState().defaultTabId,
+        active_tab_id: getRuntimeTabState().activeTabId,
         browser_policy: config.browserPolicy,
         extension_loaded: config.extensionLoaded
       }
@@ -1047,9 +1110,12 @@ async function start(): Promise<void> {
   process.on("SIGTERM", () => {
     void shutdown("SIGTERM");
   });
+
+  await writeStartupState("ready");
 }
 
 void start().catch((error) => {
+  void writeStartupState("failed", error instanceof Error ? error.message : String(error));
   console.error("Failed to start sidecar server:");
   console.error(error);
   process.exit(1);

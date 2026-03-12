@@ -266,6 +266,14 @@ describe("extension model config", () => {
       requiresBrowserControl: false,
       requiresFunctionCalling: false
     }));
+
+    expect(buildTaskCapabilityRequest({
+      prompt: "Log in using username tomsmith and password SuperSecretPassword!, then tell me the success message."
+    })).toEqual(expect.objectContaining({
+      requiresBrowserControl: true,
+      requiresFunctionCalling: true,
+      requiresBrowserSearch: false
+    }));
   });
 
   it("prefers the benchmark-proven Google model for browser-control auto selection", () => {

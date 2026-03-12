@@ -143,6 +143,8 @@ export interface OverlayTelemetry {
 export interface ComputerBatchResult {
   steps: ComputerBatchStepResult[];
   completed_steps: number;
+  url?: string;
+  title?: string;
   screenshot_b64?: string;
   overlay?: OverlayTelemetry;
   javascript_dialog?: {
@@ -161,6 +163,7 @@ export interface NavigateParams {
 
 export interface NavigateResult {
   url: string;
+  title?: string;
   frame_id?: string;
   loader_id?: string;
 }
@@ -247,7 +250,7 @@ export interface ExtensionOperationResult {
 }
 
 export interface SetActiveTabParams {
-  chrome_tab_id: number;
+  chrome_tab_id?: number;
   target_id?: string;
   url?: string;
   title?: string;
@@ -529,7 +532,7 @@ export interface AgentStepTrace {
   details?: JsonObject;
 }
 
-export type AgentLifecycleStatus = "running" | "pausing" | "paused" | "completed" | "failed" | "stopped";
+export type AgentLifecycleStatus = "running" | "pausing" | "paused" | "completed" | "failed" | "stopped" | "interrupted";
 
 export interface AgentTaskState {
   task_id: string;
@@ -1312,7 +1315,10 @@ export function parseSetActiveTabParams(value: unknown): SetActiveTabParams | nu
     return null;
   }
 
-  if (!isFiniteNumber(value.chrome_tab_id)) {
+  const hasChromeTabId = isFiniteNumber(value.chrome_tab_id);
+  const hasTargetId = isNonEmptyString(value.target_id);
+
+  if (!hasChromeTabId && !hasTargetId) {
     return null;
   }
 
@@ -1329,7 +1335,7 @@ export function parseSetActiveTabParams(value: unknown): SetActiveTabParams | nu
   }
 
   return {
-    chrome_tab_id: value.chrome_tab_id,
+    chrome_tab_id: hasChromeTabId ? value.chrome_tab_id : undefined,
     target_id: value.target_id,
     url: value.url,
     title: value.title

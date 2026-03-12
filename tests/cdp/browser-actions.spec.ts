@@ -171,7 +171,6 @@ describe("browser CDP action wrappers", () => {
     transport.queueResponse("Page.captureScreenshot", {
       data: Buffer.from("fake-png").toString("base64")
     });
-
     const result = await executeComputerBatch(
       runtime,
       "tab-click-sequence",
@@ -231,6 +230,217 @@ describe("browser CDP action wrappers", () => {
       "Input.dispatchKeyEvent",
       "Page.captureScreenshot"
     ]);
+  });
+
+  it("captures landing url and title when a batch ends on a click", async () => {
+    const { transport, runtime } = createRuntime();
+
+    transport.queueResponse("DOM.resolveNode", { object: { objectId: "obj-click-end" } });
+    transport.queueResponse("DOM.scrollIntoViewIfNeeded", {});
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: {
+          x: 120,
+          y: 48
+        }
+      }
+    });
+    transport.queueResponse("Input.dispatchMouseEvent", {});
+    transport.queueResponse("Input.dispatchMouseEvent", {});
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("click-png").toString("base64")
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 0,
+      entries: [{ id: 1, url: "https://www.wikipedia.org/" }]
+    });
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "target-tab-click-end",
+          url: "https://www.wikipedia.org/",
+          title: "Wikipedia",
+          type: "page"
+        }
+      ]
+    });
+
+    const result = await executeComputerBatch(
+      runtime,
+      "tab-click-end",
+      {
+        steps: [{ kind: "click", ref: "f0:211" }]
+      },
+      new AbortController().signal
+    );
+
+    expect(result).toEqual({
+      steps: [{ index: 0, ok: true }],
+      completed_steps: 1,
+      url: "https://www.wikipedia.org/",
+      title: "Wikipedia",
+      screenshot_b64: Buffer.from("click-png").toString("base64"),
+      overlay: {
+        cursor: {
+          x: 120,
+          y: 48
+        },
+        click: {
+          x: 120,
+          y: 48
+        }
+      }
+    });
+  });
+
+  it("waits for click-triggered navigation before returning page identity", async () => {
+    const { transport, runtime } = createRuntime();
+    const waitForLoadEvent = vi.fn(async () => undefined);
+    runtime.waitForLoadEvent = waitForLoadEvent;
+
+    transport.queueResponse("DOM.resolveNode", { object: { objectId: "obj-click-nav" } });
+    transport.queueResponse("DOM.scrollIntoViewIfNeeded", {});
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: {
+          x: 96,
+          y: 44
+        }
+      }
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 0,
+      entries: [{ id: 1, url: "https://the-internet.herokuapp.com/login" }]
+    });
+    transport.queueResponse("Input.dispatchMouseEvent", {});
+    transport.queueResponse("Input.dispatchMouseEvent", {});
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 1,
+      entries: [
+        { id: 1, url: "https://the-internet.herokuapp.com/login" },
+        { id: 2, url: "https://the-internet.herokuapp.com/secure" }
+      ]
+    });
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("click-nav-png").toString("base64")
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 1,
+      entries: [
+        { id: 1, url: "https://the-internet.herokuapp.com/login" },
+        { id: 2, url: "https://the-internet.herokuapp.com/secure" }
+      ]
+    });
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "target-tab-click-nav",
+          url: "https://the-internet.herokuapp.com/secure",
+          title: "Secure Area",
+          type: "page"
+        }
+      ]
+    });
+
+    const result = await executeComputerBatch(
+      runtime,
+      "tab-click-nav",
+      {
+        steps: [{ kind: "click", ref: "f0:212" }]
+      },
+      new AbortController().signal
+    );
+
+    expect(waitForLoadEvent).toHaveBeenCalledWith("session-main", expect.any(Number), expect.any(AbortSignal));
+    expect(result).toEqual({
+      steps: [{ index: 0, ok: true }],
+      completed_steps: 1,
+      url: "https://the-internet.herokuapp.com/secure",
+      title: "Secure Area",
+      screenshot_b64: Buffer.from("click-nav-png").toString("base64"),
+      overlay: {
+        cursor: {
+          x: 96,
+          y: 44
+        },
+        click: {
+          x: 96,
+          y: 44
+        }
+      }
+    });
+  });
+
+  it("accepts settled click navigation when load waiting times out after the URL changes", async () => {
+    const { transport, runtime } = createRuntime();
+    runtime.waitForLoadEvent = vi.fn(async () => {
+      throw new Error("Timed out waiting for navigation");
+    });
+
+    transport.queueResponse("DOM.resolveNode", { object: { objectId: "obj-click-nav-timeout" } });
+    transport.queueResponse("DOM.scrollIntoViewIfNeeded", {});
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: {
+          x: 140,
+          y: 52
+        }
+      }
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 0,
+      entries: [{ id: 1, url: "https://the-internet.herokuapp.com/login" }]
+    });
+    transport.queueResponse("Input.dispatchMouseEvent", {});
+    transport.queueResponse("Input.dispatchMouseEvent", {});
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 1,
+      entries: [
+        { id: 1, url: "https://the-internet.herokuapp.com/login" },
+        { id: 2, url: "https://the-internet.herokuapp.com/secure" }
+      ]
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 1,
+      entries: [
+        { id: 1, url: "https://the-internet.herokuapp.com/login" },
+        { id: 2, url: "https://the-internet.herokuapp.com/secure" }
+      ]
+    });
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("click-nav-timeout-png").toString("base64")
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 1,
+      entries: [
+        { id: 1, url: "https://the-internet.herokuapp.com/login" },
+        { id: 2, url: "https://the-internet.herokuapp.com/secure" }
+      ]
+    });
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "target-tab-click-timeout",
+          url: "https://the-internet.herokuapp.com/secure",
+          title: "Secure Area",
+          type: "page"
+        }
+      ]
+    });
+
+    const result = await executeComputerBatch(
+      runtime,
+      "tab-click-timeout",
+      {
+        steps: [{ kind: "click", ref: "f0:213" }]
+      },
+      new AbortController().signal
+    );
+
+    expect(result).toMatchObject({
+      url: "https://the-internet.herokuapp.com/secure",
+      title: "Secure Area"
+    });
   });
 
   it("supports explicit screenshot steps in ComputerBatch", async () => {
@@ -348,6 +558,11 @@ describe("browser CDP action wrappers", () => {
     });
     expect(transport.sendCalls).toEqual([
       {
+        method: "Page.getNavigationHistory",
+        params: {},
+        sessionId: "session-main"
+      },
+      {
         method: "Page.addScriptToEvaluateOnNewDocument",
         params: expect.objectContaining({ source: expect.stringContaining("__atlasConsentSweep") }),
         sessionId: "session-main"
@@ -404,6 +619,16 @@ describe("browser CDP action wrappers", () => {
         method: "Page.captureScreenshot",
         params: { format: "png" },
         sessionId: "session-main"
+      },
+      {
+        method: "Page.getNavigationHistory",
+        params: {},
+        sessionId: "session-main"
+      },
+      {
+        method: "Target.getTargets",
+        params: {},
+        sessionId: undefined
       }
     ]);
   });
@@ -550,6 +775,7 @@ describe("browser CDP action wrappers", () => {
       }
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.getNavigationHistory",
       "Page.addScriptToEvaluateOnNewDocument",
       "Runtime.evaluate",
       "DOM.resolveNode",
@@ -954,6 +1180,7 @@ describe("browser CDP action wrappers", () => {
       screenshot_b64: Buffer.from("no-dialog-png").toString("base64")
     });
     expect(transport.sendCalls.map((call) => call.method)).toEqual([
+      "Page.getNavigationHistory",
       "Page.addScriptToEvaluateOnNewDocument",
       "Runtime.evaluate",
       "DOM.resolveNode",
@@ -961,7 +1188,9 @@ describe("browser CDP action wrappers", () => {
       "Runtime.callFunctionOn",
       "Input.dispatchMouseEvent",
       "Input.dispatchMouseEvent",
-      "Page.captureScreenshot"
+      "Page.captureScreenshot",
+      "Page.getNavigationHistory",
+      "Target.getTargets"
     ]);
   });
 
@@ -1316,6 +1545,14 @@ describe("browser CDP action wrappers", () => {
         }
       ]
     });
+
+    const writeCall = transport.sendCalls.find(
+      (call) =>
+        call.method === "Runtime.callFunctionOn" &&
+        typeof call.params?.functionDeclaration === "string" &&
+        call.params.functionDeclaration.includes("setNativeValue")
+    );
+    expect(writeCall?.params?.functionDeclaration).toContain("Object.getOwnPropertyDescriptor");
   });
 
   it("sets file inputs through DOM.setFileInputFiles", async () => {
@@ -1514,6 +1751,111 @@ describe("browser CDP action wrappers", () => {
     ).rejects.toMatchObject({
       code: "SENSITIVE_INPUT_BLOCKED",
       retryable: false
+    });
+  });
+
+  it("allows typing into a password field when the exact demo password is already visible on the page", async () => {
+    const { transport, runtime } = createRuntime();
+
+    transport.queueResponse("DOM.resolveNode", { object: { objectId: "obj-password-visible" } });
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: {
+          blocked: false,
+          reason: "public_password_literal"
+        }
+      }
+    });
+    transport.queueResponse("DOM.focus", {});
+    transport.queueResponse("Input.insertText", {});
+    transport.queueResponse("Page.captureScreenshot", {
+      data: Buffer.from("visible-password-png").toString("base64")
+    });
+    transport.queueResponse("Page.getNavigationHistory", {
+      currentIndex: 0,
+      entries: [{ id: 1, url: "https://www.saucedemo.com/" }]
+    });
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "target-tab-1",
+          url: "https://www.saucedemo.com/",
+          title: "Swag Labs",
+          type: "page"
+        }
+      ]
+    });
+
+    const result = await executeComputerBatch(
+      runtime,
+      "tab-1",
+      {
+        steps: [
+          {
+            kind: "type",
+            ref: "f0:702",
+            text: "secret_sauce"
+          }
+        ]
+      },
+      new AbortController().signal
+    );
+
+    expect(result).toEqual({
+      steps: [{ index: 0, ok: true }],
+      completed_steps: 1,
+      screenshot_b64: Buffer.from("visible-password-png").toString("base64")
+    });
+  });
+
+  it("allows FormInput for a password field when the exact demo password is already visible on the page", async () => {
+    const { transport, runtime } = createRuntime();
+
+    transport.queueResponse("DOM.resolveNode", { object: { objectId: "obj-password-form-visible" } });
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: {
+          blocked: false,
+          reason: "public_password_literal"
+        }
+      }
+    });
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: true
+      }
+    });
+    transport.queueResponse("Runtime.callFunctionOn", {
+      result: {
+        value: "secret_sauce"
+      }
+    });
+
+    const result = await executeFormInput(
+      runtime,
+      "tab-1",
+      {
+        fields: [
+          {
+            ref: "f0:703",
+            kind: "text",
+            value: "secret_sauce"
+          }
+        ]
+      },
+      new AbortController().signal
+    );
+
+    expect(result).toEqual({
+      updated: 1,
+      applied: [
+        {
+          ref: "f0:703",
+          kind: "text",
+          requested_value: "secret_sauce",
+          confirmed_value: "secret_sauce"
+        }
+      ]
     });
   });
 

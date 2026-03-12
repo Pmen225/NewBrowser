@@ -1,0 +1,525 @@
+version: 1
+generated_from:
+  - README.md
+  - docs/testing/browser-agent-automation.md
+  - docs/testing/funnels/comet-transcript-funnels.md
+  - docs/testing/observation-only-targets.md
+  - scripts/run-qa-smoke.mjs
+  - scripts/live-local-browser-course.mjs
+  - scripts/live-gemini-browser-course.mjs
+  - tests/playwright/funnels/panel-image-attachments.spec.ts
+  - tests/playwright/funnels/panel-stop-state.spec.ts
+
+coverage_states:
+  active: Repo-backed coverage with executable tasks and evidence expectations.
+  planned_observation_only: Canonical awareness target; agents may only open, navigate, read, summarize, and locate controls.
+
+sites:
+  - id: assistant-panel
+    name: Assistant Panel
+    base_url: chrome-extension://<resolved-extension-id>/panel.html
+    coverage_state: active
+    interaction_mode: mixed_safe_runtime
+    priority: P0
+    auth_required: false
+    notes: >
+      Canonical product surface for smoke, attachment, history, stop, pause/resume,
+      idle-return, and interruption handling. Some tasks require a companion HTTP page
+      or local fixture server; those details live on each task.
+    task_ids:
+      - panel-screenshot-smoke
+      - panel-screenshot-agentrun
+      - panel-history-followup
+      - panel-stop-run
+      - panel-pause-resume
+      - panel-navigation-idle
+      - panel-interrupted-neutral
+
+  - id: local-browser-course
+    name: Local Browser Course
+    base_url: http://127.0.0.1:<ephemeral>
+    coverage_state: active
+    interaction_mode: benchmark_runtime
+    priority: P0
+    auth_required: false
+    notes: >
+      Repo-native browser-control crash course served by scripts/lib/local-browser-course.js.
+      The port is assigned at runtime. This is the cleanest benchmark surface because it
+      removes third-party drift while preserving real browser interactions.
+    task_ids:
+      - local-course-checkboxes
+      - local-course-dropdown
+      - local-course-dynamic-controls
+      - local-course-javascript-prompt
+      - local-course-inputs
+      - local-course-file-upload
+
+  - id: the-internet-browser-course
+    name: The Internet Browser Course
+    base_url: https://the-internet.herokuapp.com
+    coverage_state: active
+    interaction_mode: benchmark_runtime
+    priority: P1
+    auth_required: false
+    notes: >
+      Public benchmark target still used by the live Google browser-control benchmark
+      and model approval flow. Task coverage mirrors the local browser course but runs
+      against the public site in scripts/live-gemini-browser-course.mjs.
+    task_ids:
+      - heroku-course-checkboxes
+      - heroku-course-dropdown
+      - heroku-course-dynamic-controls
+      - heroku-course-javascript-prompt
+      - heroku-course-inputs
+      - heroku-course-file-upload
+
+  - id: comet-funnels-fixture
+    name: Comet Transcript Fixtures
+    base_url: http://127.0.0.1:<ephemeral>
+    coverage_state: active
+    interaction_mode: regression_runtime
+    priority: P1
+    auth_required: false
+    notes: >
+      Local fixture pages used by the transcript funnel regression suite. These are not
+      public sites; they exist to exercise real panel UX and prompt/result handling with
+      stable expectations and screenshot evidence.
+    task_ids:
+      - funnel-email-triage
+      - funnel-unsubscribe-spam
+      - funnel-conversion-audit
+      - funnel-tab-recovery
+
+  - id: microsoft-365-admin-centers
+    name: Microsoft 365 Admin Centers
+    base_url: https://admin.microsoft.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      High-risk work surface. Observation only. Includes the general Microsoft 365 admin estate.
+      No save, role activation, permission change, or tenant modification actions.
+    task_ids:
+      - obs-microsoft-365-admin-centers
+
+  - id: sharepoint-admin-center
+    name: SharePoint Admin Center
+    base_url: https://<tenant>-admin.sharepoint.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      High-risk work surface. Use for navigation and summarization only.
+    task_ids:
+      - obs-sharepoint-admin-center
+
+  - id: azure-portal
+    name: Azure Portal
+    base_url: https://portal.azure.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      High-risk work surface. No role activation, resource changes, or policy changes.
+    task_ids:
+      - obs-azure-portal
+
+  - id: servicedesk-health-foundation
+    name: ServiceDesk Health Foundation
+    base_url: https://servicedesk.health.org.uk/home
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      Work service desk surface. Navigation and summarization only. No ticket changes or closures.
+    task_ids:
+      - obs-servicedesk-health-foundation
+
+  - id: kocho-n-able
+    name: Kocho N-able
+    base_url: https://kocho.n-able.com/login
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      Work admin/login surface. No operational changes.
+    task_ids:
+      - obs-kocho-n-able
+
+  - id: n-able-n-central
+    name: N-able N-Central
+    base_url: https://<n-central-host>/login
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      Environment-specific RMM/admin surface. Observation only.
+    task_ids:
+      - obs-n-able-n-central
+
+  - id: mimecast-admin
+    name: Mimecast Admin
+    base_url: https://login-uk.mimecast.com/admin#/home
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      High-risk email admin surface. No policy or message-handling changes.
+    task_ids:
+      - obs-mimecast-admin
+
+  - id: outlook-web
+    name: Outlook Web
+    base_url: https://outlook.cloud.microsoft.mcas.ms/mail/
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      Read-only mail surface. Includes mail, calendar, and related Microsoft cloud URLs supplied by the user.
+      No send, draft, delete, move, or calendar updates.
+    task_ids:
+      - obs-outlook-web
+
+  - id: microsoft-365-chat
+    name: Microsoft 365 Chat
+    base_url: https://m365.cloud.microsoft.mcas.ms/chat/
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      Read-only chat surface. No sending or editing messages.
+    task_ids:
+      - obs-microsoft-365-chat
+
+  - id: microsoft-teams-web
+    name: Microsoft Teams Web
+    base_url: https://teams.microsoft.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      Read-only collaboration surface. No message sends, meetings, or settings changes.
+    task_ids:
+      - obs-microsoft-teams-web
+
+  - id: excel-online
+    name: Excel Online
+    base_url: https://www.office.com/launch/excel
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Read-only document surface. No cell edits, file changes, or sharing changes.
+    task_ids:
+      - obs-excel-online
+
+  - id: word-online
+    name: Word Online
+    base_url: https://www.office.com/launch/word
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Read-only document surface. No edits, comments, or sharing changes.
+    task_ids:
+      - obs-word-online
+
+  - id: gmail
+    name: Gmail
+    base_url: https://mail.google.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Read-only mail surface. No send, archive, delete, or label changes.
+    task_ids:
+      - obs-gmail
+
+  - id: notion
+    name: Notion
+    base_url: https://www.notion.so
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Read-only workspace surface. No page edits or database changes.
+    task_ids:
+      - obs-notion
+
+  - id: github
+    name: GitHub
+    base_url: https://github.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: false
+    notes: >
+      Read-only unless a future workflow says otherwise. No issue, PR, repo, or settings mutations.
+    task_ids:
+      - obs-github
+
+  - id: google-ai-studio
+    name: Google AI Studio
+    base_url: https://aistudio.google.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Observation only. No model, prompt, or asset changes.
+    task_ids:
+      - obs-google-ai-studio
+
+  - id: notebooklm
+    name: NotebookLM
+    base_url: https://notebooklm.google.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Observation only. No notebook edits or source changes.
+    task_ids:
+      - obs-notebooklm
+
+  - id: chatgpt
+    name: ChatGPT
+    base_url: https://chatgpt.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: false
+    notes: >
+      Observation only. No prompt sending by default under this task class.
+    task_ids:
+      - obs-chatgpt
+
+  - id: perplexity
+    name: Perplexity
+    base_url: https://www.perplexity.ai
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: false
+    notes: >
+      Observation only. No query submission by default under this task class.
+    task_ids:
+      - obs-perplexity
+
+  - id: grok
+    name: Grok
+    base_url: https://grok.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: false
+    notes: >
+      Observation only. No message sending by default under this task class.
+    task_ids:
+      - obs-grok
+
+  - id: reddit
+    name: Reddit
+    base_url: https://www.reddit.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: false
+    notes: >
+      Observation only. No posting, commenting, or voting.
+    task_ids:
+      - obs-reddit
+
+  - id: youtube
+    name: YouTube
+    base_url: https://www.youtube.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: false
+    notes: >
+      Observation only. No uploads, comments, or account changes.
+    task_ids:
+      - obs-youtube
+
+  - id: twitter-x
+    name: Twitter X
+    base_url: https://x.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: false
+    notes: >
+      Observation only. No posting, liking, DMs, or account changes.
+    task_ids:
+      - obs-twitter-x
+
+  - id: google-search
+    name: Google Search
+    base_url: https://www.google.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: false
+    notes: >
+      Observation only. No query submission by default under this task class.
+    task_ids:
+      - obs-google-search
+
+  - id: pluralsight
+    name: Pluralsight
+    base_url: https://www.pluralsight.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P2
+    auth_required: true
+    notes: >
+      Observation only. No enrollment or account changes.
+    task_ids:
+      - obs-pluralsight
+
+  - id: wix
+    name: Wix
+    base_url: https://www.wix.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Read-only web management surface. No edits or publishing.
+    task_ids:
+      - obs-wix
+
+  - id: canva
+    name: Canva
+    base_url: https://www.canva.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Read-only design surface. No edits, exports, or shares.
+    task_ids:
+      - obs-canva
+
+  - id: google-ads
+    name: Google Ads
+    base_url: https://ads.google.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      High-risk marketing/admin surface. No campaign, budget, or asset changes.
+    task_ids:
+      - obs-google-ads
+
+  - id: microsoft-ads
+    name: Microsoft Ads Bing Ads
+    base_url: https://ads.microsoft.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P0
+    auth_required: true
+    notes: >
+      High-risk marketing/admin surface. No campaign, budget, or asset changes.
+    task_ids:
+      - obs-microsoft-ads
+
+  - id: marketing-web-tools
+    name: Marketing Web Tools
+    base_url: https://<marketing-tool>
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Generic bucket for user-important marketing tools and managed websites. No edits or publishing.
+    task_ids:
+      - obs-marketing-web-tools
+
+  - id: n8n
+    name: n8n
+    base_url: https://n8n.io
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: true
+    notes: >
+      Automation surface. No workflow edits, executions, or credential changes.
+    task_ids:
+      - obs-n8n
+
+  - id: linkedin
+    name: LinkedIn
+    base_url: https://www.linkedin.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: false
+    notes: >
+      Observation-only job and network surface. No applications, messages, or profile edits.
+    task_ids:
+      - obs-linkedin
+
+  - id: indeed-uk
+    name: Indeed UK
+    base_url: https://uk.indeed.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: false
+    notes: >
+      Observation-only job surface. No applications or profile changes.
+    task_ids:
+      - obs-indeed-uk
+
+  - id: totaljobs
+    name: Totaljobs
+    base_url: https://www.totaljobs.com
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: false
+    notes: >
+      Observation-only job surface. No applications or profile changes.
+    task_ids:
+      - obs-totaljobs
+
+  - id: reed
+    name: Reed
+    base_url: https://www.reed.co.uk
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: false
+    notes: >
+      Observation-only job surface. No applications or profile changes.
+    task_ids:
+      - obs-reed
+
+  - id: cv-library
+    name: CV-Library
+    base_url: https://www.cv-library.co.uk
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    priority: P1
+    auth_required: false
+    notes: >
+      Observation-only job surface. No applications or profile changes.
+    task_ids:
+      - obs-cv-library

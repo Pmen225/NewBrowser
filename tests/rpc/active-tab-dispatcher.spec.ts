@@ -190,6 +190,41 @@ describe("active tab dispatcher", () => {
     expect(result).toEqual({ tab_id: "", status: "not_found" });
   });
 
+  it("allows target-only sync when chrome_tab_id is unavailable", async () => {
+    const transport = new FakeTransport();
+    const registry = createMockSessionRegistry();
+
+    transport.queueResponse("Target.getTargets", {
+      targetInfos: [
+        {
+          targetId: "target-loopback",
+          type: "page",
+          url: "http://127.0.0.1:4317/upload"
+        }
+      ]
+    });
+
+    const dispatcher = createActiveTabDispatcher({
+      transport,
+      sessionRegistry: registry
+    });
+
+    const result = await dispatcher.dispatch(
+      "SetActiveTab",
+      "__system__",
+      {
+        target_id: "target-loopback",
+        url: "http://127.0.0.1:4317/upload",
+        title: "Upload"
+      },
+      new AbortController().signal
+    );
+
+    expect(result).toEqual({ tab_id: "tab-1", status: "ok" });
+    expect(registry.bindChromeTabId).not.toHaveBeenCalled();
+    expect(registry.attachTab).toHaveBeenCalledWith("target-loopback");
+  });
+
   it("notifies active tab change callback only when tab id changes", async () => {
     const transport = new FakeTransport();
     const registry = createMockSessionRegistry();

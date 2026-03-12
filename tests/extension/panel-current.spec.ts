@@ -9,12 +9,20 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const panelJs  = readFileSync(path.join(ROOT, "extension", "panel.js"),   "utf8");
+const panelHtml = readFileSync(path.join(ROOT, "extension", "panel.html"), "utf8");
 const css      = readFileSync(path.join(ROOT, "extension", "styles.css"), "utf8");
 const bgJs     = readFileSync(path.join(ROOT, "extension", "background.js"), "utf8");
 const manifest = JSON.parse(readFileSync(path.join(ROOT, "extension", "manifest.json"), "utf8"));
 
 // ─── panel.js structural checks ─────────────────────────────────────────────
 describe("panel.js — DOM structure", () => {
+  it("keeps the panel shell on system typography without remote font bootstrapping", () => {
+    expect(panelHtml).not.toContain("r2cdn.perplexity.ai");
+    expect(panelHtml).not.toContain("rel=\"preload\"");
+    expect(css).not.toContain("@font-face");
+    expect(css).toContain("font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;");
+  });
+
   it("builds UI via buildUI() into #root", () => {
     expect(panelJs).toContain("function buildUI(root)");
     expect(panelJs).toContain("function buildPanelShellMarkup()");
@@ -60,7 +68,7 @@ describe("panel.js — DOM structure", () => {
   it("renders missing provider setup as a recovery card instead of a giant warning glyph", () => {
     expect(panelJs).toContain("function buildProviderSetupCard(provider)");
     expect(panelJs).toContain("setAiContent(currentAiEl, buildProviderSetupCard(provider));");
-    expect(panelJs).toContain('data-open-settings-section="general"');
+    expect(panelJs).toContain('data-open-settings-page="general"');
     expect(panelJs).toContain("Open General");
     expect(css).toContain(".inline-state-card");
     expect(css).toContain(".inline-state-action");
@@ -111,7 +119,7 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("async function openCommandsSettingsPage()");
     expect(panelJs).toContain('data-shortcut-settings="true"');
     expect(panelJs).toContain("Edit commands");
-    expect(panelJs).toContain('openSettingsPage("agent-mode")');
+    expect(panelJs).toContain('openExtensionSettingsPage("agent-mode-commands")');
   });
 
   it("keeps recent chats on the shared compact palette contract", () => {
@@ -120,7 +128,7 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain('<span class="pi-icon">');
     expect(panelJs).toContain('data-recents-manage="true"');
     expect(panelJs).toContain("Manage chats");
-    expect(panelJs).toContain('openSettingsPage("data-controls")');
+    expect(panelJs).toContain('openExtensionSettingsPage("data-controls")');
     expect(css).toContain('.composer-overlay[data-kind="recents"]');
     expect(css).toContain('--palette-width-compact: 248px;');
     expect(css).toContain('width: var(--palette-width-compact);');
@@ -135,6 +143,14 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain('isPageContextPrompt(resolvedPromptText)');
     expect(panelJs).toContain('hasAccessibleWebTab(activeTabForPrompt)');
     expect(panelJs).toContain('Atlas cannot use this page. Switch to a normal website tab.');
+  });
+
+  it("prefixes active-page context into page-dependent AgentRun prompts", () => {
+    expect(panelJs).toContain("buildActivePagePromptPrefix");
+    expect(panelJs).toContain("const promptPrefixes = [];");
+    expect(panelJs).toContain("const activePagePromptPrefix = buildActivePagePromptPrefix(activeTabForPrompt);");
+    expect(panelJs).toContain("promptPrefixes.push(activePagePromptPrefix);");
+    expect(panelJs).toContain('fullPrompt = `${promptPrefixes.join("\\n\\n")}\\n\\n${resolvedPromptText}`;');
   });
 
   it("normalizes raw Chrome permission errors before showing error toasts", () => {
@@ -206,6 +222,11 @@ describe("panel.js — DOM structure", () => {
     expect(panelJs).toContain("ATLAS_GET_INSERT_CONTEXT");
     expect(panelJs).toContain("ATLAS_INSERT_DRAFT");
     expect(panelJs).toContain("Refocus page fields");
+  });
+
+  it("keeps the thinking card copy inside the status row instead of appending it twice", () => {
+    expect(panelJs).toContain("statusRow.appendChild(copy);");
+    expect(panelJs).not.toContain("thinking.appendChild(copy);");
   });
 });
 
@@ -374,6 +395,15 @@ describe("new chat transition", () => {
     expect(panelJs).toContain("currentAiEl = null");
     expect(panelJs).toContain('streamBuffer = ""');
     expect(panelJs).toContain("currentRunState = null");
+  });
+
+  it("newChat persists a cleared active session so the next prompt starts clean", () => {
+    expect(panelJs).toContain("sessionStore = clearActiveSession(sessionStore);");
+    expect(panelJs).toContain("chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore })");
+  });
+
+  it("restores assistant chats through the shared response sanitizer", () => {
+    expect(panelJs).toContain("sanitizeAssistantResponseText(msg.text)");
   });
 });
 

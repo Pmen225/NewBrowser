@@ -11,7 +11,11 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { hardenAssistantProfile } from "./lib/assistant-profile-lock.js";
-import { defaultChromeProfileRoot, resolveRunningChromeCdpWsUrl } from "./lib/cdp-discovery.js";
+import {
+  defaultChromeProfileRoot,
+  isProcessInspectionPermissionFailure,
+  resolveRunningChromeCdpWsUrl
+} from "./lib/cdp-discovery.js";
 
 const DEFAULT_PORT_CANDIDATES = [9555, 9444, 9333, 9222];
 const DEFAULT_STARTUP_TIMEOUT_MS = 20_000;
@@ -113,9 +117,18 @@ async function main() {
   }).catch(() => {});
 
   const port = process.env.CHROME_CDP_PORT ? parseInt(process.env.CHROME_CDP_PORT, 10) : DEFAULT_PORT_CANDIDATES[0];
-  const existingWsUrl = await resolveRunningChromeCdpWsUrl({
-    profileRoot: userDataDir
-  });
+  let existingWsUrl;
+  try {
+    existingWsUrl = await resolveRunningChromeCdpWsUrl({
+      profileRoot: userDataDir,
+      portCandidates: [port, ...DEFAULT_PORT_CANDIDATES]
+    });
+  } catch (error) {
+    if (!isProcessInspectionPermissionFailure(error)) {
+      throw error;
+    }
+    console.warn("CDP process inspection is not permitted in this environment; continuing with fresh browser launch.");
+  }
   if (existingWsUrl) {
     console.log("Browser already running for this profile.");
     console.log("CDP websocket:", existingWsUrl);
@@ -141,6 +154,7 @@ async function main() {
     extensionPath
   }).catch(() => {});
   console.log("Browser launched (extension:", extensionPath, "). It will stay open after this script exits.");
+  console.log("Assistant sidecar was not started. Use `npm run launch:browser` or `npm start` for a working assistant session.");
   console.log("CDP port:", port);
 }
 

@@ -1,4 +1,8 @@
-import { defaultChromeProfileRoot, resolveRunningChromeCdpWsUrl } from "./cdp-discovery.js";
+import {
+  defaultChromeProfileRoot,
+  formatCdpDiscoveryFailure,
+  resolveRunningChromeCdpWsUrl
+} from "./cdp-discovery.js";
 
 export function normalizeGoogleModelId(modelId) {
   const trimmed = typeof modelId === "string" ? modelId.trim() : "";
@@ -70,23 +74,42 @@ export async function resolveLiveCdpWsUrl({
   explicitWsUrl = process.env.LIVE_CDP_WS_URL?.trim() || process.env.LIVE_CDP_URL?.trim() || process.env.CHROME_CDP_WS_URL?.trim() || "",
   host = process.env.CHROME_CDP_HOST?.trim() || "127.0.0.1",
   port = Number.parseInt(process.env.CHROME_CDP_PORT ?? "9555", 10) || 9555,
+  portCandidates = [port, 9444, 9333, 9222],
   profileRoot = defaultChromeProfileRoot(),
-  fetchImpl = globalThis.fetch
+  fetchImpl = globalThis.fetch,
+  resolveRunningChromeWsUrlImpl = resolveRunningChromeCdpWsUrl
 } = {}) {
+  const uniquePorts = Array.from(new Set(
+    (Array.isArray(portCandidates) ? portCandidates : [portCandidates])
+      .map((candidate) => Number.parseInt(String(candidate), 10))
+      .filter((candidate) => Number.isInteger(candidate) && candidate > 0)
+  ));
+
+  for (const candidatePort of uniquePorts) {
+    const direct = await fetchCdpWsUrlFromPort({ host, port: candidatePort, fetchImpl });
+    if (direct) {
+      return direct;
+    }
+  }
+
   if (explicitWsUrl) {
     return explicitWsUrl;
   }
 
-  const direct = await fetchCdpWsUrlFromPort({ host, port, fetchImpl });
-  if (direct) {
-    return direct;
+  let discovered;
+  try {
+    discovered = await resolveRunningChromeWsUrlImpl({
+      profileRoot,
+      host,
+      fetchImpl
+    });
+  } catch (error) {
+    const detail = formatCdpDiscoveryFailure(error);
+    throw new Error(
+      `Unable to resolve live CDP websocket URL. Process discovery failed (${detail}). `
+      + `Checked http://${host}:${port}/json/version and running Chromium profile at ${profileRoot}.`
+    );
   }
-
-  const discovered = await resolveRunningChromeCdpWsUrl({
-    profileRoot,
-    host,
-    fetchImpl
-  });
   if (discovered) {
     return discovered;
   }

@@ -17,8 +17,9 @@
   const CONTROLLED_TAB_TITLE_PREFIX = "AI · ";
   const CONTROL_STATUS_TEXT = {
     active: "Browser control active",
-    paused: "Paused — you have control",
+    paused: "Paused",
     pausing: "Pausing…",
+    resuming: "Resuming…",
     stopping: "Stopping agent",
   };
 
@@ -65,7 +66,7 @@
         rgba(10, 12, 18, 0.18);
     }
     #atlas-dim.atlas-paused {
-      background: rgba(10, 12, 18, 0.08);
+      background: rgba(10, 12, 18, 0.03);
     }
 
     #atlas-glow {
@@ -241,6 +242,22 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
+    #atlas-bar.atlas-passive {
+      top: 16px;
+      bottom: auto;
+      width: min(360px, calc(100vw - 24px));
+      transform: translateX(-50%) translateY(-10px);
+      pointer-events: none;
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.18),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    #atlas-bar.atlas-passive.atlas-in {
+      transform: translateX(-50%) translateY(0);
+    }
+    #atlas-bar.atlas-passive.atlas-out {
+      transform: translateX(-50%) translateY(-8px);
+    }
     #atlas-bar.atlas-out {
       opacity: 0;
       transform: translateX(-50%) translateY(14px);
@@ -306,11 +323,28 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    #atlas-bar-hint {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.56);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
     #atlas-bar-actions {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
+    }
+    #atlas-bar.atlas-passive #atlas-bar-row2 {
+      padding-top: 0;
+    }
+    #atlas-bar.atlas-passive #atlas-bar-favicon,
+    #atlas-bar.atlas-passive #atlas-bar-actions {
+      display: none;
+    }
+    #atlas-bar.atlas-passive #atlas-bar-hostname {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.62);
     }
     .atlas-btn {
       display: inline-flex;
@@ -378,6 +412,9 @@
       }
       #atlas-bar-hostname {
         color: rgba(12, 24, 42, 0.82);
+      }
+      #atlas-bar-hint {
+        color: rgba(12, 24, 42, 0.56);
       }
       .atlas-btn {
         color: rgba(12, 24, 42, 0.82);
@@ -466,6 +503,7 @@
     <div id="atlas-bar-row2">
       <img id="atlas-bar-favicon" alt="" />
       <span id="atlas-bar-hostname"></span>
+      <span id="atlas-bar-hint"></span>
       <div id="atlas-bar-actions">
         <button id="atlas-take-control" class="atlas-btn atlas-btn-primary" type="button">Take control</button>
         <button id="atlas-stop" class="atlas-btn atlas-btn-stop" type="button">Stop</button>
@@ -478,6 +516,7 @@
   const statusText = bar.querySelector("#atlas-bar-status");
   const faviconEl = bar.querySelector("#atlas-bar-favicon");
   const hostnameEl = bar.querySelector("#atlas-bar-hostname");
+  const hintEl = bar.querySelector("#atlas-bar-hint");
   const takeControlButton = bar.querySelector("#atlas-take-control");
   const stopButton = bar.querySelector("#atlas-stop");
 
@@ -880,37 +919,50 @@
 
   function applyControlState(nextState) {
     controlState = String(nextState || "active").toLowerCase();
-    paused = controlState === "pausing" || controlState === "paused" || controlState === "stopping";
+    paused = controlState === "pausing" || controlState === "paused" || controlState === "resuming" || controlState === "stopping";
 
     const isActive = controlState === "active";
     const isPaused = controlState === "paused";
     const isPausing = controlState === "pausing";
+    const isResuming = controlState === "resuming";
     const isStopping = controlState === "stopping";
 
-    takeControlButton.disabled = isPausing || isStopping;
+    takeControlButton.disabled = isPausing || isResuming || isStopping;
     stopButton.disabled = isStopping;
     takeControlButton.textContent = isPaused ? "Resume" : "Take control";
     takeControlButton.classList.toggle("atlas-btn-primary", isActive);
     statusDot.classList.toggle("paused", !isActive);
+    bar.classList.toggle("atlas-passive", !isActive);
 
     if (isPaused) {
       statusText.textContent = CONTROL_STATUS_TEXT.paused;
+      hintEl.textContent = "Resume in Assistant";
     } else if (isPausing) {
       statusText.textContent = CONTROL_STATUS_TEXT.pausing;
+      hintEl.textContent = "Returning control";
+    } else if (isResuming) {
+      statusText.textContent = CONTROL_STATUS_TEXT.resuming;
+      hintEl.textContent = "Assistant is resuming";
     } else if (isStopping) {
       statusText.textContent = CONTROL_STATUS_TEXT.stopping;
+      hintEl.textContent = "Assistant is stopping";
     } else {
       statusText.textContent = CONTROL_STATUS_TEXT.active;
+      hintEl.textContent = "";
     }
 
     dim.classList.toggle("atlas-paused", paused);
     if (paused) {
+      desat.classList.remove("atlas-in");
+      glow.classList.remove("atlas-in");
       dots.classList.remove("atlas-in");
       hideCursor();
       showStroke(null);
       return;
     }
 
+    desat.classList.add("atlas-in");
+    glow.classList.add("atlas-in");
     dots.classList.add("atlas-in");
     showCursor();
     enableControlledTabTitle();

@@ -117,6 +117,10 @@ function getRuntimeEvaluationPayload(evaluation) {
   return { value, exceptionText };
 }
 
+export function isAssistantServiceWorkerMissingError(error) {
+  return error instanceof Error && /Assistant extension service worker target was not found/i.test(error.message);
+}
+
 export async function openAssistantSidePanel({
   browserWsUrl,
   extensionTargetUrl,

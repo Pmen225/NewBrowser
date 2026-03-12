@@ -906,6 +906,7 @@ body[data-embedded="panel"] .settings-card-subsection-header {
 }
 
 body[data-embedded="panel"] .settings-card-subsection-header,
+body[data-embedded="panel"] .settings-item--inline,
 body[data-embedded="panel"] .settings-field--inline,
 body[data-embedded="panel"] .settings-form-actions {
   flex-direction: column;

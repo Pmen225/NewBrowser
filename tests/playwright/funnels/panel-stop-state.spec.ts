@@ -1,6 +1,5 @@
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { once } from "node:events";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +8,7 @@ import type { Page } from "playwright";
 import { WebSocketServer } from "ws";
 import { describe, expect, it } from "vitest";
 
+import { listenWithLoopbackGuard } from "../../../scripts/lib/loopback-bind.js";
 import {
   launchManagedPersistentContext,
   resolveExtensionId,
@@ -18,6 +18,7 @@ import {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const EXTENSION_PATH = path.join(ROOT, "extension");
+const ARTIFACT_DIR = path.join(ROOT, "output", "playwright", "panel-stop-state");
 
 function prepareTestExtension(sidecarOrigin: string): string {
   const tempExtensionDir = mkdtempSync(path.join(tmpdir(), "new-browser-stop-extension-"));
@@ -40,20 +41,93 @@ function prepareTestExtension(sidecarOrigin: string): string {
   return tempExtensionDir;
 }
 
+async function seedUnlockedProviders(panelPage: Page): Promise<void> {
+  await panelPage.evaluate(async () => {
+    const storageKey = "ui.session.unlockedProviders";
+    const unlockedProviders = {
+      google: {
+        provider: "google",
+        apiKey: "test-google-key",
+        baseUrl: "",
+        preferredModel: "gemini-2.5-flash",
+        unlockedAt: new Date().toISOString()
+      }
+    };
+
+    const setIfAvailable = async (area: chrome.storage.StorageArea | undefined) => {
+      if (!area) {
+        return;
+      }
+      await area.set({
+        [storageKey]: unlockedProviders
+      });
+    };
+
+    await setIfAvailable(globalThis.chrome?.storage?.session);
+    await setIfAvailable(globalThis.chrome?.storage?.local);
+  });
+}
+
+async function seedPanelSettings(
+  panelPage: Page,
+  overrides: {
+    browserAdminEnabled?: boolean;
+    localShellEnabled?: boolean;
+    extensionManagementEnabled?: boolean;
+  } = {}
+): Promise<void> {
+  await panelPage.evaluate(async (nextSettings) => {
+    const storageKey = "ui.panelSettings";
+    const baseSettings = {
+      browserAdminEnabled: false,
+      localShellEnabled: false,
+      extensionManagementEnabled: false
+    };
+
+    const setIfAvailable = async (area: chrome.storage.StorageArea | undefined) => {
+      if (!area) {
+        return;
+      }
+      await area.set({
+        [storageKey]: {
+          ...baseSettings,
+          ...nextSettings
+        }
+      });
+    };
+
+    await setIfAvailable(globalThis.chrome?.storage?.local);
+  }, overrides);
+}
+
+async function captureArtifact(page: Page | null, filename: string): Promise<string> {
+  const artifactPath = path.join(ARTIFACT_DIR, filename);
+  await safePageScreenshot(page, artifactPath);
+  expect(existsSync(artifactPath), `Missing screenshot artifact ${filename}`).toBe(true);
+  return artifactPath;
+}
+
 interface SidecarStub {
   origin: string;
   waitForRpcConnection: () => Promise<void>;
   waitForEventStream: () => Promise<void>;
   waitForActionCount: (action: string, count: number) => Promise<void>;
   getActions: () => string[];
+  getRequests: () => Array<{ action: string; params: Record<string, unknown> | null }>;
   close: () => Promise<void>;
 }
 
-async function startSidecarStub(): Promise<SidecarStub> {
+type SidecarScenario = "default" | "navigate-complete" | "interrupted";
+
+async function startSidecarStub(scenario: SidecarScenario = "default"): Promise<SidecarStub> {
   const sseClients = new Set<ServerResponse>();
   const actions: string[] = [];
   const actionCounts = new Map<string, number>();
+  const requests: Array<{ action: string; params: Record<string, unknown> | null }> = [];
   let lastRunId = "run-1";
+  let lastKnownStatus = "idle";
+  let lastFinalAnswer = "";
+  let lastErrorMessage = "";
   let resolveSseConnection: (() => void) | null = null;
   let resolveRpcConnection: (() => void) | null = null;
   let sseConnected = false;
@@ -77,6 +151,15 @@ async function startSidecarStub(): Promise<SidecarStub> {
   }
 
   function broadcastResult(payload: Record<string, unknown>): void {
+    if (typeof payload.status === "string") {
+      lastKnownStatus = payload.status;
+    }
+    if (typeof payload.final_answer === "string") {
+      lastFinalAnswer = payload.final_answer;
+    }
+    if (typeof payload.error_message === "string") {
+      lastErrorMessage = payload.error_message;
+    }
     const data = JSON.stringify({ payload });
     for (const client of sseClients) {
       client.write("event: result\n");
@@ -85,6 +168,9 @@ async function startSidecarStub(): Promise<SidecarStub> {
   }
 
   function broadcastStatus(payload: Record<string, unknown>): void {
+    if (typeof payload.status === "string" && payload.status !== "tool_start" && payload.status !== "tool_done") {
+      lastKnownStatus = payload.status;
+    }
     const data = JSON.stringify({ payload });
     for (const client of sseClients) {
       client.write("event: status\n");
@@ -146,8 +232,13 @@ async function startSidecarStub(): Promise<SidecarStub> {
       const request = JSON.parse(String(raw)) as {
         request_id: string;
         action: string;
+        params?: Record<string, unknown>;
       };
       actions.push(request.action);
+      requests.push({
+        action: request.action,
+        params: request.params && typeof request.params === "object" ? request.params : null
+      });
       actionCounts.set(request.action, (actionCounts.get(request.action) ?? 0) + 1);
 
       const respond = (result: unknown) => {
@@ -162,6 +253,7 @@ async function startSidecarStub(): Promise<SidecarStub> {
 
       if (request.action === "AgentRun") {
         respond({ run_id: lastRunId, status: "started" });
+        lastKnownStatus = "running";
         setTimeout(() => {
           broadcastStatus({
             run_id: lastRunId,
@@ -173,11 +265,30 @@ async function startSidecarStub(): Promise<SidecarStub> {
             }
           });
         }, 20);
+        if (scenario === "navigate-complete") {
+          setTimeout(() => {
+            broadcastResult({
+              run_id: lastRunId,
+              status: "completed",
+              final_answer: "Opened Wikipedia."
+            });
+          }, 90);
+        }
+        if (scenario === "interrupted") {
+          setTimeout(() => {
+            broadcastResult({
+              run_id: lastRunId,
+              status: "interrupted",
+              error_message: "Request was aborted"
+            });
+          }, 90);
+        }
         return;
       }
 
       if (request.action === "AgentPause") {
         respond({ run_id: lastRunId, status: "pausing" });
+        lastKnownStatus = "pausing";
         setTimeout(() => {
           broadcastStatus({
             run_id: lastRunId,
@@ -201,6 +312,7 @@ async function startSidecarStub(): Promise<SidecarStub> {
 
       if (request.action === "AgentResume") {
         respond({ run_id: lastRunId, status: "running" });
+        lastKnownStatus = "running";
         setTimeout(() => {
           broadcastStatus({
             run_id: lastRunId,
@@ -219,12 +331,23 @@ async function startSidecarStub(): Promise<SidecarStub> {
 
       if (request.action === "AgentStop") {
         respond({ run_id: lastRunId, status: "stopped" });
+        lastKnownStatus = "stopped";
         setTimeout(() => {
           broadcastResult({
             run_id: lastRunId,
             status: "stopped"
           });
         }, 25);
+        return;
+      }
+
+      if (request.action === "AgentGetState") {
+        respond({
+          run_id: lastRunId,
+          status: lastKnownStatus,
+          ...(lastFinalAnswer ? { final_answer: lastFinalAnswer } : {}),
+          ...(lastErrorMessage ? { error_message: lastErrorMessage } : {})
+        });
         return;
       }
 
@@ -252,12 +375,10 @@ async function startSidecarStub(): Promise<SidecarStub> {
     });
   });
 
-  await new Promise<void>((resolve, reject) => {
-    httpServer.once("error", reject);
-    httpServer.listen(0, "127.0.0.1", () => {
-      httpServer.off("error", reject);
-      resolve();
-    });
+  await listenWithLoopbackGuard(httpServer, {
+    host: "127.0.0.1",
+    port: 0,
+    label: "panel stop-state sidecar stub"
   });
 
   const address = httpServer.address();
@@ -281,6 +402,7 @@ async function startSidecarStub(): Promise<SidecarStub> {
     },
     waitForActionCount,
     getActions: () => [...actions],
+    getRequests: () => requests.map((entry) => ({ action: entry.action, params: entry.params ? { ...entry.params } : null })),
     close: async () => {
       for (const client of sseClients) {
         client.end();
@@ -330,6 +452,7 @@ describe("Panel stop state", () => {
       panelPage = await context.newPage();
       await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
       await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
+      await seedUnlockedProviders(panelPage);
 
       await sidecarStub.waitForRpcConnection();
       await sidecarStub.waitForEventStream();
@@ -337,6 +460,7 @@ describe("Panel stop state", () => {
       await panelPage.getByLabel("Ask anything").fill("Start something long.");
       await panelPage.getByRole("button", { name: "Send" }).click();
       await panelPage.locator("#btn-send.stop-mode").waitFor({ state: "visible", timeout: 5_000 });
+      await captureArtifact(panelPage, "stop-running.png");
 
       await panelPage.getByRole("button", { name: "Send" }).click();
       await sidecarStub.waitForActionCount("AgentStop", 1);
@@ -349,6 +473,7 @@ describe("Panel stop state", () => {
 
       const assistantText = await panelPage.locator(".thread-msg.assistant .msg-content").last().innerText();
       expect(assistantText).not.toContain("No response");
+      await captureArtifact(panelPage, "stop-stopped.png");
     } catch (error) {
       await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-stop-failure.png"));
       throw error;
@@ -362,7 +487,7 @@ describe("Panel stop state", () => {
     }
   }, 30_000);
 
-  it("shows pausing then paused in the takeover bar and resumes the same run", async () => {
+  it("shows pausing in the overlay and resumes the same run from the panel", async () => {
     expect(existsSync(path.join(EXTENSION_PATH, "manifest.json")), "Missing built extension").toBe(true);
 
     const sidecarStub = await startSidecarStub();
@@ -394,6 +519,7 @@ describe("Panel stop state", () => {
       panelPage = await context.newPage();
       await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
       await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
+      await seedUnlockedProviders(panelPage);
 
       await sidecarStub.waitForRpcConnection();
       await sidecarStub.waitForEventStream();
@@ -410,10 +536,11 @@ describe("Panel stop state", () => {
         { timeout: 3_000, interval: 50 }
       ).toContain("Pausing");
 
-      await targetPage.getByRole("button", { name: "Resume" }).waitFor({ state: "visible", timeout: 5_000 });
+      await panelPage.getByRole("button", { name: "Resume" }).waitFor({ state: "visible", timeout: 5_000 });
       expect(await targetPage.locator("#atlas-bar-status").innerText()).toContain("Paused");
+      await captureArtifact(panelPage, "pause-paused.png");
 
-      await targetPage.getByRole("button", { name: "Resume" }).click();
+      await panelPage.getByRole("button", { name: "Resume" }).click();
       await sidecarStub.waitForActionCount("AgentResume", 1);
 
       await expect.poll(
@@ -422,8 +549,172 @@ describe("Panel stop state", () => {
       ).toContain("Resumed after manual takeover");
 
       expect(sidecarStub.getActions().filter((action) => action === "AgentRun")).toHaveLength(1);
+      await captureArtifact(panelPage, "pause-resumed.png");
     } catch (error) {
       await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-pause-failure.png"));
+      throw error;
+    } finally {
+      if (context) {
+        await context.close();
+      }
+      await sidecarStub.close();
+      rmSync(profileDir, { recursive: true, force: true });
+      rmSync(testExtensionDir, { recursive: true, force: true });
+    }
+  }, 25_000);
+
+  it("finishes a simple navigation run and returns the panel to idle", async () => {
+    expect(existsSync(path.join(EXTENSION_PATH, "manifest.json")), "Missing built extension").toBe(true);
+
+    const sidecarStub = await startSidecarStub("navigate-complete");
+    const testExtensionDir = prepareTestExtension(sidecarStub.origin);
+    const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-navigation-profile-"));
+
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
+    try {
+      context = await launchManagedPersistentContext(profileDir, {
+        channel: "chromium",
+        headless: true,
+        args: [
+          `--disable-extensions-except=${testExtensionDir}`,
+          `--load-extension=${testExtensionDir}`
+        ]
+      });
+
+      const extensionId = await resolveExtensionId(context, 10_000);
+      panelPage = await context.newPage();
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
+      await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
+      await seedUnlockedProviders(panelPage);
+
+      await sidecarStub.waitForRpcConnection();
+      await sidecarStub.waitForEventStream();
+
+      await panelPage.getByLabel("Ask anything").fill("Go to Wikipedia.");
+      await panelPage.getByRole("button", { name: "Send" }).click();
+      await panelPage.locator("#btn-send.stop-mode").waitFor({ state: "visible", timeout: 5_000 });
+      await expect(panelPage.locator(".message--assistant-thinking .thinking-status-row .thinking-copy")).toHaveCount(1);
+      await expect(panelPage.locator(".message--assistant-thinking .thinking-control-btn")).toHaveCount(2);
+      await captureArtifact(panelPage, "navigation-running.png");
+
+      await expect.poll(
+        async () => panelPage.locator(".thread-msg.assistant .msg-content").last().innerText(),
+        { timeout: 5_000, interval: 50 }
+      ).toContain("Opened Wikipedia.");
+
+      await panelPage.locator("#btn-send.stop-mode").waitFor({ state: "hidden", timeout: 5_000 });
+      await captureArtifact(panelPage, "navigation-completed.png");
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-navigation-failure.png"));
+      throw error;
+    } finally {
+      if (context) {
+        await context.close();
+      }
+      await sidecarStub.close();
+      rmSync(profileDir, { recursive: true, force: true });
+      rmSync(testExtensionDir, { recursive: true, force: true });
+    }
+  }, 25_000);
+
+  it("renders interrupted runs as neutral interruptions instead of fatal error slabs", async () => {
+    expect(existsSync(path.join(EXTENSION_PATH, "manifest.json")), "Missing built extension").toBe(true);
+
+    const sidecarStub = await startSidecarStub("interrupted");
+    const testExtensionDir = prepareTestExtension(sidecarStub.origin);
+    const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-interrupted-profile-"));
+
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
+    try {
+      context = await launchManagedPersistentContext(profileDir, {
+        channel: "chromium",
+        headless: true,
+        args: [
+          `--disable-extensions-except=${testExtensionDir}`,
+          `--load-extension=${testExtensionDir}`
+        ]
+      });
+
+      const extensionId = await resolveExtensionId(context, 10_000);
+      panelPage = await context.newPage();
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
+      await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
+      await seedUnlockedProviders(panelPage);
+
+      await sidecarStub.waitForRpcConnection();
+      await sidecarStub.waitForEventStream();
+
+      await panelPage.getByLabel("Ask anything").fill("Go to Wikipedia.");
+      await panelPage.getByRole("button", { name: "Send" }).click();
+
+      await expect.poll(
+        async () => panelPage.locator(".thread-msg.assistant .msg-content").last().innerText(),
+        { timeout: 5_000, interval: 50 }
+      ).toContain("interrupted before it finished");
+
+      expect(await panelPage.locator(".gamma-error").count()).toBe(0);
+      await captureArtifact(panelPage, "interrupted-neutral.png");
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-interrupted-failure.png"));
+      throw error;
+    } finally {
+      if (context) {
+        await context.close();
+      }
+      await sidecarStub.close();
+      rmSync(profileDir, { recursive: true, force: true });
+      rmSync(testExtensionDir, { recursive: true, force: true });
+    }
+  }, 25_000);
+
+  it("allows explicit admin-portal runs through the panel when browser admin is enabled", async () => {
+    expect(existsSync(path.join(EXTENSION_PATH, "manifest.json")), "Missing built extension").toBe(true);
+
+    const sidecarStub = await startSidecarStub("navigate-complete");
+    const testExtensionDir = prepareTestExtension(sidecarStub.origin);
+    const profileDir = mkdtempSync(path.join(tmpdir(), "new-browser-admin-profile-"));
+
+    let context: Awaited<ReturnType<typeof launchManagedPersistentContext>> | null = null;
+    let panelPage: Page | null = null;
+    try {
+      context = await launchManagedPersistentContext(profileDir, {
+        channel: "chromium",
+        headless: true,
+        args: [
+          `--disable-extensions-except=${testExtensionDir}`,
+          `--load-extension=${testExtensionDir}`
+        ]
+      });
+
+      const extensionId = await resolveExtensionId(context, 10_000);
+      panelPage = await context.newPage();
+      await withTimeout("panel goto", panelPage.goto(`chrome-extension://${extensionId}/panel.html`), 10_000);
+      await panelPage.getByLabel("Ask anything").waitFor({ state: "visible", timeout: 8_000 });
+      await seedUnlockedProviders(panelPage);
+      await seedPanelSettings(panelPage, { browserAdminEnabled: true });
+
+      await sidecarStub.waitForRpcConnection();
+      await sidecarStub.waitForEventStream();
+
+      const prompt = "Activate the visible Azure roles except Security Reader.";
+      await panelPage.getByLabel("Ask anything").fill(prompt);
+      await panelPage.getByRole("button", { name: "Send" }).click();
+      await sidecarStub.waitForActionCount("AgentRun", 1);
+
+      const [runRequest] = sidecarStub.getRequests().filter((entry) => entry.action === "AgentRun");
+      expect(runRequest?.params?.prompt).toBe(prompt);
+      expect(runRequest?.params?.allow_browser_admin_pages).toBe(true);
+
+      await expect.poll(
+        async () => panelPage.locator(".thread-msg.assistant .msg-content").last().innerText(),
+        { timeout: 5_000, interval: 50 }
+      ).toContain("Opened Wikipedia.");
+
+      await captureArtifact(panelPage, "admin-allowed.png");
+    } catch (error) {
+      await safePageScreenshot(panelPage, path.join(ROOT, "output", "playwright", "funnels-debug", "panel-admin-failure.png"));
       throw error;
     } finally {
       if (context) {

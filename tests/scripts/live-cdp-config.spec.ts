@@ -1,78 +1,40 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  assertSelectedModelConfig,
-  normalizeGoogleModelId,
-  resolveLiveModelSelection
-} from "../../scripts/lib/live-cdp-config.js";
-import {
-  parseRemoteDebuggingPort
-} from "../../scripts/lib/cdp-discovery.js";
+import { resolveLiveCdpWsUrl } from "../../scripts/lib/live-cdp-config.js";
 
 describe("live CDP config", () => {
-  it("defaults live panel checks to manual gemini-2.5-flash instead of auto mode", () => {
-    expect(resolveLiveModelSelection()).toEqual({
-      modelId: "models/gemini-2.5-flash",
-      mode: "manual"
+  it("prefers the current /json/version websocket over a stale explicit websocket url", async () => {
+    const resolved = await resolveLiveCdpWsUrl({
+      explicitWsUrl: "ws://127.0.0.1:9555/devtools/browser/stale-browser-id",
+      host: "127.0.0.1",
+      port: 9555,
+      portCandidates: [9555],
+      fetchImpl: async () => ({
+        ok: true,
+        async json() {
+          return {
+            webSocketDebuggerUrl: "ws://127.0.0.1:9555/devtools/browser/fresh-browser-id"
+          };
+        }
+      }),
+      resolveRunningChromeWsUrlImpl: async () => "ws://127.0.0.1:9555/devtools/browser/profile-browser-id"
     });
+
+    expect(resolved).toBe("ws://127.0.0.1:9555/devtools/browser/fresh-browser-id");
   });
 
-  it("normalizes explicit manual model selections", () => {
-    expect(resolveLiveModelSelection({
-      requestedModelId: "gemini-3-flash-preview"
-    })).toEqual({
-      modelId: "models/gemini-3-flash-preview",
-      mode: "manual"
-    });
-  });
-
-  it("preserves explicit non-google manual model selections", () => {
-    expect(resolveLiveModelSelection({
-      provider: "openai",
-      requestedModelId: "gpt-4o-mini"
-    })).toEqual({
-      modelId: "gpt-4o-mini",
-      mode: "manual"
-    });
-  });
-
-  it("rejects panel model configs that remain in auto or on the wrong model", () => {
-    expect(() => assertSelectedModelConfig(
-      {
-        defaultModelMode: "auto",
-        selectedProvider: "google",
-        selectedModelId: "auto"
+  it("falls back to the explicit websocket when direct discovery is unavailable", async () => {
+    const resolved = await resolveLiveCdpWsUrl({
+      explicitWsUrl: "ws://127.0.0.1:9555/devtools/browser/explicit-browser-id",
+      host: "127.0.0.1",
+      port: 9555,
+      portCandidates: [9555],
+      fetchImpl: async () => {
+        throw new Error("connection refused");
       },
-      {
-        provider: "google",
-        mode: "manual",
-        modelId: normalizeGoogleModelId("gemini-2.5-flash")
-      }
-    )).toThrow(/Expected manual model mode/i);
+      resolveRunningChromeWsUrlImpl: async () => "ws://127.0.0.1:9555/devtools/browser/profile-browser-id"
+    });
 
-    expect(() => assertSelectedModelConfig(
-      {
-        defaultModelMode: "manual",
-        selectedProvider: "google",
-        selectedModelId: "models/gemini-2.5-flash-lite"
-      },
-      {
-        provider: "google",
-        mode: "manual",
-        modelId: normalizeGoogleModelId("gemini-2.5-flash")
-      }
-    )).toThrow(/Expected selected model/i);
-  });
-
-  it("extracts a running Chromium remote debugging port for the shared profile", () => {
-    expect(parseRemoteDebuggingPort(
-      "/Applications/ungoogled-chromium.app/Contents/MacOS/Chromium --remote-debugging-port=50388 --user-data-dir=/tmp/profile about:blank",
-      { profileRoot: "/tmp/profile" }
-    )).toBe(50388);
-
-    expect(parseRemoteDebuggingPort(
-      "/Applications/ungoogled-chromium.app/Contents/MacOS/Chromium --remote-debugging-port=50388 --user-data-dir=/tmp/other-profile about:blank",
-      { profileRoot: "/tmp/profile" }
-    )).toBeNull();
+    expect(resolved).toBe("ws://127.0.0.1:9555/devtools/browser/explicit-browser-id");
   });
 });

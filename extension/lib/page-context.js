@@ -3,6 +3,20 @@ function normalizeText(value) {
 }
 
 const WEB_TAB_QUERY = ["http://*/*", "https://*/*"];
+const PAGE_CONTEXT_PATTERNS = [
+  "on this page",
+  "current page",
+  "this page",
+  "current site",
+  "this site",
+  "current website",
+  "this website",
+  "website in its current format",
+  "what do you see",
+  "summarize this page",
+  "todo list for tasks on this page"
+];
+const PAGE_LOCAL_AUTH_PATTERN = /\b(log(?:\s|-)?in|sign(?:\s|-)?in|log(?:\s|-)?out|sign(?:\s|-)?out|authenticate)\b/;
 
 export function isPageContextPrompt(prompt) {
   const lower = normalizeText(prompt).toLowerCase();
@@ -10,23 +24,31 @@ export function isPageContextPrompt(prompt) {
     return false;
   }
 
-  return (
-    lower.includes("on this page") ||
-    lower.includes("current page") ||
-    lower.includes("this page") ||
-    lower.includes("current site") ||
-    lower.includes("this site") ||
-    lower.includes("current website") ||
-    lower.includes("this website") ||
-    lower.includes("website in its current format") ||
-    lower.includes("what do you see") ||
-    lower.includes("summarize this page") ||
-    lower.includes("todo list for tasks on this page")
-  );
+  return PAGE_CONTEXT_PATTERNS.some((pattern) => lower.includes(pattern)) || PAGE_LOCAL_AUTH_PATTERN.test(lower);
 }
 
 export function hasAccessibleWebTab(tab) {
   return typeof tab?.id === "number" && /^https?:\/\//i.test(String(tab?.url ?? ""));
+}
+
+export function buildActivePagePromptPrefix(tab) {
+  if (!hasAccessibleWebTab(tab)) {
+    return "";
+  }
+
+  const url = normalizeText(tab?.url);
+  if (!url) {
+    return "";
+  }
+
+  const title = normalizeText(tab?.title);
+  const lines = ["Current page context:"];
+  if (title) {
+    lines.push(`- Title: ${JSON.stringify(title)}`);
+  }
+  lines.push(`- URL: ${url}`);
+  lines.push("Use this page as the starting point unless the user asks to navigate elsewhere.");
+  return lines.join("\n");
 }
 
 export async function getCapturableActiveTab(queryTabs) {
@@ -69,6 +91,14 @@ export function normalizePanelErrorMessage(message) {
 
   if (lower.includes("message port closed before a response was received") || lower.includes("receiving end does not exist")) {
     return "This page stopped responding. Refresh it and try again.";
+  }
+
+  if (
+    lower.includes("request was aborted") ||
+    lower.includes("run aborted") ||
+    lower.includes("operation was aborted")
+  ) {
+    return "The run was interrupted before it finished.";
   }
 
   return text;

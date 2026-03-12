@@ -20,17 +20,21 @@ describe("surface removal", () => {
     expect(server).not.toContain("createSidecarUiHtml(");
   });
 
-  it("keeps embedded settings inside the panel shell", async () => {
+  it("removes embedded settings from the panel shell and keeps only a browser-hosted settings handoff", async () => {
     const rootDir = process.cwd();
     const [{ buildPanelShellMarkup }, script] = await Promise.all([
-      import("../../extension/panel.js"),
-      readFile(resolve(rootDir, "extension/panel.js"), "utf8")
+      import("../../extension/lib/panel-shell.js"),
+      readFile(resolve(rootDir, "extension", "panel.js"), "utf8")
     ]);
     const shell = buildPanelShellMarkup();
 
-    expect(shell).toContain('id="settings-view"');
-    expect(shell).toContain('id="settings-frame"');
-    expect(script).toContain("buildSettingsFrameUrl");
-    expect(script).toContain("openSettingsPage");
+    expect(shell).not.toContain('id="settings-view"');
+    expect(shell).not.toContain('id="settings-root"');
+    expect(shell).not.toContain('id="btn-settings-back"');
+    expect(script).not.toContain("ensureSettingsSurfaceReady");
+    expect(script).not.toContain('fetch(chrome.runtime.getURL("options.html"))');
+    expect(script).toContain('async function openExtensionSettingsPage(section = "general")');
+    expect(script).toContain('chrome.runtime.getURL(`options.html#${targetSection}`)');
+    expect(script).toContain("chrome.tabs.create({");
   });
 });

@@ -1,0 +1,1118 @@
+version: 1
+generated_from:
+  - README.md
+  - docs/testing/browser-agent-automation.md
+  - docs/testing/funnels/comet-transcript-funnels.md
+  - docs/testing/observation-only-targets.md
+  - scripts/run-qa-smoke.mjs
+  - scripts/live-local-browser-course.mjs
+  - scripts/live-gemini-browser-course.mjs
+  - tests/playwright/funnels/comet-transcript-funnels.spec.ts
+  - tests/playwright/funnels/panel-image-attachments.spec.ts
+  - tests/playwright/funnels/panel-stop-state.spec.ts
+
+coverage_states:
+  active: Repo-backed task with executable evidence requirements.
+  planned_observation_only: Canonical read-only task. No write, submit, or settings mutation actions allowed.
+
+evidence_levels:
+  visible-ui-only: Visible page load and read-only summary with no unsafe action taken.
+  visible-ui-plus-artifact: Visible result plus a saved artifact such as report.json or screenshot.
+  visible-ui-plus-dom-eval: Visible flow plus validated DOM end state.
+  visible-ui-plus-rpc-payload: Visible flow plus matching RPC or structured payload evidence.
+
+tasks:
+  - id: panel-screenshot-smoke
+    site_id: assistant-panel
+    name: Capture visible-tab screenshot from the panel
+    start_url: chrome-extension://<resolved-extension-id>/panel.html
+    goal: Use the plus menu to capture the current HTTP or HTTPS tab as a screenshot attachment.
+    expected_outcome: >
+      With a real web page open, clicking plus then Screenshot attaches a screenshot-named chip,
+      shows no error toast, and writes output/playwright/qa-smoke/report.json plus panel-final.png.
+    evidence_level: visible-ui-plus-artifact
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - validation-failure
+      - timeout
+    notes: >
+      Canonical smoke gate. scripts/run-qa-smoke.mjs currently uses https://example.com as
+      the companion page because captureVisibleTab needs a real http or https tab.
+
+  - id: panel-screenshot-agentrun
+    site_id: assistant-panel
+    name: Submit screenshot attachment as image input
+    start_url: chrome-extension://<resolved-extension-id>/panel.html
+    goal: Capture a screenshot, send a prompt, and verify the panel forwards image data to AgentRun.
+    expected_outcome: >
+      A screenshot attachment chip is visible before send, and the first AgentRun payload has
+      has_image_input=true with at least one data:image/png;base64 payload.
+    evidence_level: visible-ui-plus-rpc-payload
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - transport-sync-failure
+      - validation-failure
+    notes: >
+      Backed by tests/playwright/funnels/panel-image-attachments.spec.ts with a local fixture page
+      and stub sidecar.
+
+  - id: panel-history-followup
+    site_id: assistant-panel
+    name: Preserve chat history across follow-up runs
+    start_url: chrome-extension://<resolved-extension-id>/panel.html
+    goal: Send one prompt, receive a response, then send a follow-up and verify prior turns are forwarded.
+    expected_outcome: >
+      The second AgentRun payload contains history_messages with the prior user prompt and the
+      prior assistant answer in order.
+    evidence_level: visible-ui-plus-rpc-payload
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - transport-sync-failure
+      - validation-failure
+      - premature-completion
+    notes: >
+      Backed by the second panel-image-attachments funnel. This is panel-state continuity, not
+      browser-control correctness.
+
+  - id: panel-stop-run
+    site_id: assistant-panel
+    name: Stop an in-flight run from the send button
+    start_url: chrome-extension://<resolved-extension-id>/panel.html
+    goal: Start a run, click Send again while stop-mode is active, and verify the run stops cleanly.
+    expected_outcome: >
+      The stop-mode button appears during the run, a stop request is sent, the button returns to
+      idle, and the last assistant message contains "Stopped" without showing "No response".
+    evidence_level: visible-ui-plus-artifact
+    priority: P0
+    likely_failure_classes:
+      - recovery-failure
+      - transport-sync-failure
+      - validation-failure
+    notes: >
+      Backed by tests/playwright/funnels/panel-stop-state.spec.ts. This is the canonical stop-control
+      task for the panel.
+
+  - id: panel-pause-resume
+    site_id: assistant-panel
+    name: Pause from takeover overlay and resume the same run
+    start_url: chrome-extension://<resolved-extension-id>/panel.html
+    goal: Let the overlay take control, pause the run, then resume it from the panel.
+    expected_outcome: >
+      The overlay status transitions through Pausing to Paused, the Resume button becomes visible,
+      AgentResume is sent, only one AgentRun exists for the flow, and the assistant reports
+      "Resumed after manual takeover".
+    evidence_level: visible-ui-plus-rpc-payload
+    priority: P0
+    likely_failure_classes:
+      - recovery-failure
+      - transport-sync-failure
+      - validation-failure
+      - timeout
+    notes: >
+      Uses the local /fixture page exposed by the stop-state test harness so the overlay can be
+      exercised against a real page.
+
+  - id: panel-navigation-idle
+    site_id: assistant-panel
+    name: Complete a simple navigation run and return to idle
+    start_url: chrome-extension://<resolved-extension-id>/panel.html
+    goal: Run a simple navigation task and verify the panel leaves stop-mode when the task completes.
+    expected_outcome: >
+      The assistant visibly returns a completion message, the stop-mode button disappears, and the
+      panel is back in its idle send state.
+    evidence_level: visible-ui-plus-artifact
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - premature-completion
+      - validation-failure
+    notes: >
+      The current stub-backed completion text is "Opened Wikipedia." in panel-stop-state.spec.ts.
+
+  - id: panel-interrupted-neutral
+    site_id: assistant-panel
+    name: Render interrupted runs as neutral interruptions
+    start_url: chrome-extension://<resolved-extension-id>/panel.html
+    goal: Verify an interrupted run is shown as a neutral interruption rather than a fatal panel error.
+    expected_outcome: >
+      The last assistant message contains "interrupted before it finished" and no .gamma-error slab
+      is rendered in the panel.
+    evidence_level: visible-ui-plus-artifact
+    priority: P1
+    likely_failure_classes:
+      - recovery-failure
+      - validation-failure
+      - runtime-failure
+    notes: >
+      Backed by the interrupted scenario in tests/playwright/funnels/panel-stop-state.spec.ts.
+
+  - id: local-course-checkboxes
+    site_id: local-browser-course
+    name: Checkboxes final state
+    start_url: http://127.0.0.1:<ephemeral>/checkboxes
+    goal: Check checkbox 1, uncheck checkbox 2, and report the final state.
+    expected_outcome: >
+      DOM evaluation reports c1=true and c2=false, the page URL remains on /checkboxes, and the
+      assistant answer states that checkbox 1 is checked and checkbox 2 is unchecked.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P0
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - wrong-site-escape
+      - timeout
+    notes: >
+      Repo-native equivalent of the first browser-control benchmark task.
+
+  - id: local-course-dropdown
+    site_id: local-browser-course
+    name: Dropdown selection
+    start_url: http://127.0.0.1:<ephemeral>/dropdown
+    goal: Select Option 2 and report the selected option.
+    expected_outcome: >
+      DOM evaluation reports value="2", the page URL remains on /dropdown, and the assistant answer
+      explicitly names Option 2.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P0
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - wrong-site-escape
+      - timeout
+    notes: ""
+
+  - id: local-course-dynamic-controls
+    site_id: local-browser-course
+    name: Dynamic controls removal and enable flow
+    start_url: http://127.0.0.1:<ephemeral>/dynamic-controls
+    goal: Remove the checkbox, enable the input, type Atlas, and report the final state.
+    expected_outcome: >
+      DOM evaluation reports the checkbox removed, the input enabled, the input value set to Atlas,
+      and a status message containing enabled or gone; the assistant answer reflects the same state.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P0
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - wrong-site-escape
+      - timeout
+    notes: >
+      This task exercises state transitions rather than a single click and is a common source of
+      premature completion.
+
+  - id: local-course-javascript-prompt
+    site_id: local-browser-course
+    name: JavaScript prompt handling
+    start_url: http://127.0.0.1:<ephemeral>/javascript_alerts
+    goal: Trigger the JS prompt, enter Atlas, accept it, and report the result text.
+    expected_outcome: >
+      DOM evaluation reports result="You entered: Atlas", the page URL remains on /javascript_alerts,
+      and the assistant answer states the same result text.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P0
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - runtime-failure
+      - timeout
+    notes: ""
+
+  - id: local-course-inputs
+    site_id: local-browser-course
+    name: Numeric input entry
+    start_url: http://127.0.0.1:<ephemeral>/inputs
+    goal: Set the number field to 42 and report the final value.
+    expected_outcome: >
+      DOM evaluation reports value="42", the page URL remains on /inputs, and the assistant answer
+      includes 42 as the final value.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P0
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - wrong-site-escape
+      - timeout
+    notes: ""
+
+  - id: local-course-file-upload
+    site_id: local-browser-course
+    name: File upload completion
+    start_url: http://127.0.0.1:<ephemeral>/upload
+    goal: Upload atlas-upload-check.txt and report the uploaded filename.
+    expected_outcome: >
+      DOM evaluation reports a "File Uploaded!" heading and uploaded="atlas-upload-check.txt", the
+      page URL remains on /upload, and the assistant answer names atlas-upload-check.txt.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P0
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - runtime-failure
+      - timeout
+    notes: >
+      Uses scripts/fixtures/atlas-upload-check.txt as the canonical upload artifact.
+
+  - id: heroku-course-checkboxes
+    site_id: the-internet-browser-course
+    name: Public checkboxes benchmark
+    start_url: https://the-internet.herokuapp.com/checkboxes
+    goal: Check checkbox 1, uncheck checkbox 2, and report the final state.
+    expected_outcome: >
+      DOM evaluation reports c1=true and c2=false, the page URL remains on /checkboxes, and the
+      assistant answer states that checkbox 1 is checked and checkbox 2 is unchecked.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P1
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - wrong-site-escape
+      - provider-http-error
+      - timeout
+    notes: >
+      Backed by scripts/live-gemini-browser-course.mjs and used for current Google browser-control
+      model approval.
+
+  - id: heroku-course-dropdown
+    site_id: the-internet-browser-course
+    name: Public dropdown benchmark
+    start_url: https://the-internet.herokuapp.com/dropdown
+    goal: Select Option 2 and report the selected option.
+    expected_outcome: >
+      DOM evaluation reports value="2", the page URL remains on /dropdown, and the assistant answer
+      explicitly names Option 2.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P1
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - wrong-site-escape
+      - provider-http-error
+      - timeout
+    notes: ""
+
+  - id: heroku-course-dynamic-controls
+    site_id: the-internet-browser-course
+    name: Public dynamic controls benchmark
+    start_url: https://the-internet.herokuapp.com/dynamic_controls
+    goal: Remove the checkbox, enable the input, type Atlas, and report the final state.
+    expected_outcome: >
+      DOM evaluation reports the checkbox removed, the input enabled, the input value set to Atlas,
+      and a status message containing enabled or gone; the assistant answer reflects the same state.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P1
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - wrong-site-escape
+      - provider-http-error
+      - timeout
+    notes: ""
+
+  - id: heroku-course-javascript-prompt
+    site_id: the-internet-browser-course
+    name: Public JavaScript prompt benchmark
+    start_url: https://the-internet.herokuapp.com/javascript_alerts
+    goal: Trigger the JS prompt, enter Atlas, accept it, and report the result text.
+    expected_outcome: >
+      DOM evaluation reports result="You entered: Atlas", the page URL remains on /javascript_alerts,
+      and the assistant answer states the same result text.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P1
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - provider-http-error
+      - timeout
+    notes: ""
+
+  - id: heroku-course-inputs
+    site_id: the-internet-browser-course
+    name: Public numeric input benchmark
+    start_url: https://the-internet.herokuapp.com/inputs
+    goal: Set the number field to 42 and report the final value.
+    expected_outcome: >
+      DOM evaluation reports value="42", the page URL remains on /inputs, and the assistant answer
+      includes 42 as the final value.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P1
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - provider-http-error
+      - timeout
+    notes: ""
+
+  - id: heroku-course-file-upload
+    site_id: the-internet-browser-course
+    name: Public file upload benchmark
+    start_url: https://the-internet.herokuapp.com/upload
+    goal: Upload atlas-upload-check.txt and report the uploaded filename.
+    expected_outcome: >
+      DOM evaluation reports a "File Uploaded!" heading and uploaded="atlas-upload-check.txt", the
+      page URL remains on /upload, and the assistant answer names atlas-upload-check.txt.
+    evidence_level: visible-ui-plus-dom-eval
+    priority: P1
+    likely_failure_classes:
+      - dom-mismatch
+      - answer-mismatch
+      - provider-http-error
+      - timeout
+    notes: ""
+
+  - id: funnel-email-triage
+    site_id: comet-funnels-fixture
+    name: Transcript funnel - email triage
+    start_url: http://127.0.0.1:<ephemeral>/email-inbox
+    goal: Ask the panel to find important unanswered emails from the inbox fixture.
+    expected_outcome: >
+      The exact assistant answer "Found 3 important unanswered emails that still need a reply."
+      is visible in the panel thread and a screenshot artifact is captured for the funnel.
+    evidence_level: visible-ui-plus-artifact
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - validation-failure
+      - premature-completion
+      - timeout
+    notes: >
+      Backed by tests/playwright/funnels/comet-transcript-funnels.spec.ts.
+
+  - id: funnel-unsubscribe-spam
+    site_id: comet-funnels-fixture
+    name: Transcript funnel - unsubscribe spam
+    start_url: http://127.0.0.1:<ephemeral>/email-promotions
+    goal: Ask the panel to unsubscribe from promotional mail while preserving priority mail.
+    expected_outcome: >
+      The exact assistant answer "Unsubscribed from 4 promotional senders and left priority mail
+      untouched." is visible in the panel thread and a screenshot artifact is captured.
+    evidence_level: visible-ui-plus-artifact
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - validation-failure
+      - premature-completion
+      - timeout
+    notes: ""
+
+  - id: funnel-conversion-audit
+    site_id: comet-funnels-fixture
+    name: Transcript funnel - conversion audit
+    start_url: http://127.0.0.1:<ephemeral>/product-page
+    goal: Ask the panel for conversion-rate and average-order-value ideas on the product page fixture.
+    expected_outcome: >
+      The exact assistant answer "Add a bundle upsell near add to cart and tighten the offer
+      hierarchy above the fold." is visible in the panel thread and a screenshot artifact is captured.
+    evidence_level: visible-ui-plus-artifact
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - validation-failure
+      - premature-completion
+      - timeout
+    notes: ""
+
+  - id: funnel-tab-recovery
+    site_id: comet-funnels-fixture
+    name: Transcript funnel - tab recovery
+    start_url: http://127.0.0.1:<ephemeral>/workspace-tabs
+    goal: Ask the panel to summarize current work and recommend which tabs to close.
+    expected_outcome: >
+      The exact assistant answer "Keep checkout and research open, close 3 completed comparison
+      tabs." is visible in the panel thread and a screenshot artifact is captured.
+    evidence_level: visible-ui-plus-artifact
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - validation-failure
+      - premature-completion
+      - timeout
+    notes: ""
+
+  - id: obs-microsoft-365-admin-centers
+    site_id: microsoft-365-admin-centers
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only admin landing check
+    start_url: https://admin.microsoft.com
+    goal: Open the Microsoft 365 admin landing surface, summarize the visible state, and identify the main admin areas without changing anything.
+    expected_outcome: >
+      The intended admin page or login wall is visible, the agent reports the current visible state and the
+      main navigation or next safe read-only area, and performs no send, submit, save, publish, delete,
+      role activation, permission change, ticket change, or settings action.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "High-risk work portal. Read only."
+
+  - id: obs-sharepoint-admin-center
+    site_id: sharepoint-admin-center
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only SharePoint admin check
+    start_url: https://<tenant>-admin.sharepoint.com
+    goal: Open the SharePoint admin surface, summarize what is visible, and identify the main read-only navigation points.
+    expected_outcome: >
+      The SharePoint admin landing page or login wall is visible, the agent summarizes the current state,
+      identifies the main admin sections, and performs no writes or configuration changes.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "High-risk work portal. Read only."
+
+  - id: obs-azure-portal
+    site_id: azure-portal
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Azure landing check
+    start_url: https://portal.azure.com
+    goal: Open Azure Portal, summarize the visible landing state, and identify the main navigation areas without modifying resources.
+    expected_outcome: >
+      Azure Portal or its login wall is visible, the agent reports the current state and main navigation,
+      and performs no resource, role, policy, or settings changes.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "High-risk work portal. Read only."
+
+  - id: obs-servicedesk-health-foundation
+    site_id: servicedesk-health-foundation
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only service desk check
+    start_url: https://servicedesk.health.org.uk/home
+    goal: Open the service desk, summarize the visible state, and identify where navigation or ticket areas live without altering tickets.
+    expected_outcome: >
+      The service desk landing page or login wall is visible, the agent describes the visible state and
+      main navigation areas, and performs no ticket creation, update, close, or assignment action.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Work service desk. Read only."
+
+  - id: obs-kocho-n-able
+    site_id: kocho-n-able
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Kocho N-able check
+    start_url: https://kocho.n-able.com/login
+    goal: Open the Kocho N-able surface and summarize the current visible state without making changes.
+    expected_outcome: >
+      The intended login or landing page is visible, the agent reports the visible state and main safe
+      navigation points, and performs no operational changes.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Work admin surface. Read only."
+
+  - id: obs-n-able-n-central
+    site_id: n-able-n-central
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only N-Central check
+    start_url: https://<n-central-host>/login
+    goal: Open the N-Central surface and summarize the visible state without making changes.
+    expected_outcome: >
+      The intended login or landing page is visible, the agent reports the visible state and main safe
+      navigation points, and performs no operational changes.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Environment-specific admin surface. Read only."
+
+  - id: obs-mimecast-admin
+    site_id: mimecast-admin
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Mimecast admin check
+    start_url: https://login-uk.mimecast.com/admin#/home
+    goal: Open Mimecast Admin, summarize the visible state, and identify the main sections without changing policy or mail handling.
+    expected_outcome: >
+      The intended login or home page is visible, the agent reports the visible state and main sections,
+      and performs no policy, routing, or admin changes.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "High-risk email admin surface. Read only."
+
+  - id: obs-outlook-web
+    site_id: outlook-web
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Outlook check
+    start_url: https://outlook.cloud.microsoft.mcas.ms/mail/
+    goal: Open Outlook Web, summarize the visible state, and identify where mail, calendar, and workspace areas live without mutating anything.
+    expected_outcome: >
+      The intended Outlook page or login wall is visible, the agent reports the visible state and main
+      areas, and performs no send, draft, move, delete, or calendar change action.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only mail and calendar surface."
+
+  - id: obs-microsoft-365-chat
+    site_id: microsoft-365-chat
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Microsoft 365 chat check
+    start_url: https://m365.cloud.microsoft.mcas.ms/chat/
+    goal: Open the chat surface, summarize the visible state, and identify conversation areas without sending anything.
+    expected_outcome: >
+      The intended chat page or login wall is visible, the agent reports the visible state and main
+      navigation areas, and performs no message send or conversation mutation.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only chat surface."
+
+  - id: obs-microsoft-teams-web
+    site_id: microsoft-teams-web
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Teams web check
+    start_url: https://teams.microsoft.com
+    goal: Open Microsoft Teams web, summarize the visible state, and identify the main navigation areas without sending or changing anything.
+    expected_outcome: >
+      The intended Teams page or login wall is visible, the agent reports the visible state and main
+      areas, and performs no message, meeting, or settings action.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only collaboration surface."
+
+  - id: obs-excel-online
+    site_id: excel-online
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Excel web check
+    start_url: https://www.office.com/launch/excel
+    goal: Open Excel Online and summarize the visible state without editing files or cells.
+    expected_outcome: >
+      The intended Excel page or login wall is visible, the agent reports the visible state and main
+      navigation points, and performs no edit, save, share, or file mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only document surface."
+
+  - id: obs-word-online
+    site_id: word-online
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Word web check
+    start_url: https://www.office.com/launch/word
+    goal: Open Word Online and summarize the visible state without editing documents.
+    expected_outcome: >
+      The intended Word page or login wall is visible, the agent reports the visible state and main
+      navigation points, and performs no edit, save, share, or file mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only document surface."
+
+  - id: obs-gmail
+    site_id: gmail
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Gmail check
+    start_url: https://mail.google.com
+    goal: Open Gmail, summarize the visible state, and identify the main read-only areas without changing mail state.
+    expected_outcome: >
+      Gmail or its login wall is visible, the agent reports the visible state and main areas, and performs
+      no send, archive, delete, label, or settings action.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only mail surface."
+
+  - id: obs-notion
+    site_id: notion
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Notion check
+    start_url: https://www.notion.so
+    goal: Open Notion, summarize the visible state, and identify the main workspace areas without editing anything.
+    expected_outcome: >
+      The intended workspace page or login wall is visible, the agent reports the visible state and main
+      areas, and performs no page, database, share, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only workspace surface."
+
+  - id: obs-github
+    site_id: github
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only GitHub check
+    start_url: https://github.com
+    goal: Open GitHub, summarize the visible state, and identify the main navigation areas without creating or changing anything.
+    expected_outcome: >
+      GitHub is visible, the agent reports the visible state and main areas, and performs no issue, PR,
+      repo, comment, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only by default."
+
+  - id: obs-google-ai-studio
+    site_id: google-ai-studio
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only AI Studio check
+    start_url: https://aistudio.google.com
+    goal: Open Google AI Studio and summarize the visible state without creating or editing assets.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no prompt, model, or asset mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-notebooklm
+    site_id: notebooklm
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only NotebookLM check
+    start_url: https://notebooklm.google.com
+    goal: Open NotebookLM and summarize the visible state without modifying notebooks or sources.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no notebook, source, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-chatgpt
+    site_id: chatgpt
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only ChatGPT check
+    start_url: https://chatgpt.com
+    goal: Open ChatGPT and summarize the visible landing state without sending a prompt.
+    expected_outcome: >
+      The landing page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no message send or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-perplexity
+    site_id: perplexity
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Perplexity check
+    start_url: https://www.perplexity.ai
+    goal: Open Perplexity and summarize the visible landing state without submitting a query.
+    expected_outcome: >
+      The landing page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no query submit or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-grok
+    site_id: grok
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Grok check
+    start_url: https://grok.com
+    goal: Open Grok and summarize the visible landing state without sending a message.
+    expected_outcome: >
+      The landing page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no message send or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-reddit
+    site_id: reddit
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Reddit check
+    start_url: https://www.reddit.com
+    goal: Open Reddit and summarize the visible state without posting, commenting, or voting.
+    expected_outcome: >
+      Reddit is visible, the agent reports the visible state and main navigation, and performs no post,
+      comment, vote, or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-youtube
+    site_id: youtube
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only YouTube check
+    start_url: https://www.youtube.com
+    goal: Open YouTube and summarize the visible state without posting comments or changing account state.
+    expected_outcome: >
+      YouTube is visible, the agent reports the visible state and main navigation, and performs no upload,
+      comment, subscribe, or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-twitter-x
+    site_id: twitter-x
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only X check
+    start_url: https://x.com
+    goal: Open X and summarize the visible state without posting, DMing, or liking.
+    expected_outcome: >
+      X is visible, the agent reports the visible state and main navigation, and performs no post, DM,
+      like, or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-google-search
+    site_id: google-search
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Google landing check
+    start_url: https://www.google.com
+    goal: Open Google and summarize the visible landing state without submitting a search.
+    expected_outcome: >
+      Google is visible, the agent reports the visible state and main navigation, and performs no query
+      submission or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-pluralsight
+    site_id: pluralsight
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Pluralsight check
+    start_url: https://www.pluralsight.com
+    goal: Open Pluralsight and summarize the visible state without changing account or learning state.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no enrollment, progress, or account mutation.
+    evidence_level: visible-ui-only
+    priority: P2
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation only."
+
+  - id: obs-wix
+    site_id: wix
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Wix check
+    start_url: https://www.wix.com
+    goal: Open Wix and summarize the visible state without editing or publishing websites.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no site edit, publish, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only web management surface."
+
+  - id: obs-canva
+    site_id: canva
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Canva check
+    start_url: https://www.canva.com
+    goal: Open Canva and summarize the visible state without editing designs or sharing anything.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no design edit, export, share, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Read-only design surface."
+
+  - id: obs-google-ads
+    site_id: google-ads
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Google Ads check
+    start_url: https://ads.google.com
+    goal: Open Google Ads and summarize the visible state without changing campaigns, budgets, or assets.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no campaign, budget, billing, asset, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "High-risk marketing admin surface."
+
+  - id: obs-microsoft-ads
+    site_id: microsoft-ads
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Microsoft Ads check
+    start_url: https://ads.microsoft.com
+    goal: Open Microsoft Ads and summarize the visible state without changing campaigns, budgets, or assets.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no campaign, budget, billing, asset, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P0
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "High-risk marketing admin surface."
+
+  - id: obs-marketing-web-tools
+    site_id: marketing-web-tools
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only marketing tools check
+    start_url: https://<marketing-tool>
+    goal: Open the relevant marketing web tool or managed website and summarize the visible state without editing anything.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no edit, publish, campaign, asset, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Generic user-priority marketing bucket. Read only."
+
+  - id: obs-n8n
+    site_id: n8n
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only n8n check
+    start_url: https://n8n.io
+    goal: Open n8n or its landing surface and summarize the visible state without changing workflows or credentials.
+    expected_outcome: >
+      The intended page or login wall is visible, the agent reports the visible state and main navigation,
+      and performs no workflow, credential, execution, or settings mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Automation surface. Read only."
+
+  - id: obs-linkedin
+    site_id: linkedin
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only LinkedIn check
+    start_url: https://www.linkedin.com
+    goal: Open LinkedIn and summarize the visible state without applying, messaging, or editing profile state.
+    expected_outcome: >
+      LinkedIn is visible, the agent reports the visible state and main navigation, and performs no apply,
+      message, connect, or profile mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation-only job and network surface."
+
+  - id: obs-indeed-uk
+    site_id: indeed-uk
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Indeed UK check
+    start_url: https://uk.indeed.com
+    goal: Open Indeed UK and summarize the visible state without applying or changing profile state.
+    expected_outcome: >
+      Indeed is visible, the agent reports the visible state and main navigation, and performs no apply,
+      save-job, message, or profile mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation-only job surface."
+
+  - id: obs-totaljobs
+    site_id: totaljobs
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Totaljobs check
+    start_url: https://www.totaljobs.com
+    goal: Open Totaljobs and summarize the visible state without applying or changing profile state.
+    expected_outcome: >
+      Totaljobs is visible, the agent reports the visible state and main navigation, and performs no apply,
+      save-job, message, or profile mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation-only job surface."
+
+  - id: obs-reed
+    site_id: reed
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only Reed check
+    start_url: https://www.reed.co.uk
+    goal: Open Reed and summarize the visible state without applying or changing profile state.
+    expected_outcome: >
+      Reed is visible, the agent reports the visible state and main navigation, and performs no apply,
+      save-job, message, or profile mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation-only job surface."
+
+  - id: obs-cv-library
+    site_id: cv-library
+    coverage_state: planned_observation_only
+    interaction_mode: observation_only
+    name: Observation-only CV-Library check
+    start_url: https://www.cv-library.co.uk
+    goal: Open CV-Library and summarize the visible state without applying or changing profile state.
+    expected_outcome: >
+      CV-Library is visible, the agent reports the visible state and main navigation, and performs no apply,
+      save-job, message, or profile mutation.
+    evidence_level: visible-ui-only
+    priority: P1
+    likely_failure_classes:
+      - runtime-failure
+      - perception-failure
+      - wrong-site-escape
+      - unsafe-write-attempt
+    notes: "Observation-only job surface."

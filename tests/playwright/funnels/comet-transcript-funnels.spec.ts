@@ -9,6 +9,7 @@ import type { Page } from "playwright";
 import { WebSocketServer } from "ws";
 import { describe, expect, it } from "vitest";
 
+import { listenWithLoopbackGuard } from "../../../scripts/lib/loopback-bind.js";
 import {
   launchManagedPersistentContext,
   resolveExtensionId,
@@ -151,8 +152,11 @@ async function startFixtureServer(): Promise<StartedServer> {
     response.end(page);
   });
 
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
+  await listenWithLoopbackGuard(server, {
+    host: "127.0.0.1",
+    port: 0,
+    label: "comet transcript fixture server"
+  });
   const address = server.address();
   if (!address || typeof address === "string") {
     throw new Error("Failed to start fixture server");
@@ -360,12 +364,10 @@ async function startSidecarStub(): Promise<StartedServer> {
     });
   });
 
-  await new Promise<void>((resolve, reject) => {
-    httpServer.once("error", reject);
-    httpServer.listen(0, "127.0.0.1", () => {
-      httpServer.off("error", reject);
-      resolve();
-    });
+  await listenWithLoopbackGuard(httpServer, {
+    host: "127.0.0.1",
+    port: 0,
+    label: "comet transcript sidecar stub"
   });
 
   const address = httpServer.address();

@@ -372,6 +372,14 @@ function ensureComputerBatchParams(params: JsonObject): ComputerBatchParams {
   return parsed;
 }
 
+function batchEndsOnClick(params: ComputerBatchParams): boolean {
+  if (!Array.isArray(params.steps) || params.steps.length === 0) {
+    return false;
+  }
+
+  return params.steps[params.steps.length - 1]?.kind === "click";
+}
+
 function ensureNavigateParams(params: JsonObject): NavigateParams {
   const parsed = parseTask4Params("Navigate", params);
   if (!parsed) {
@@ -474,6 +482,44 @@ export function createBrowserActionDispatcher(options: BrowserActionDispatcherOp
       const normalizedAction = normalizeTask4Action(action);
       if (!normalizedAction) {
         return undefined;
+      }
+
+      if (normalizedAction === "ComputerBatch") {
+        const parsed = parseTask4Params(normalizedAction, params);
+        if (!parsed || !batchEndsOnClick(parsed)) {
+          return undefined;
+        }
+
+        const runtime = getObservedRuntime(options.runtime, options.traceLogger, normalizedAction, tabId);
+        const baseHooks = buildNavigateReliabilityHooks(runtime, tabId, {
+          mode: "advance",
+          timeout_ms: undefined
+        });
+
+        return {
+          ...baseHooks,
+          getInflightRequestCount: async () => 0,
+          waitFor: async (ctx) => {
+            if (
+              typeof ctx.result.completed_steps !== "number" ||
+              ctx.result.completed_steps < 1 ||
+              ctx.result.javascript_dialog
+            ) {
+              return [];
+            }
+
+            return [
+              {
+                kind: "navigation" as const,
+                expected_url: undefined
+              },
+              {
+                kind: "network_idle" as const,
+                quiet_ms: ctx.policy.network_idle_quiet_ms
+              }
+            ];
+          }
+        };
       }
 
       if (normalizedAction !== "Navigate") {

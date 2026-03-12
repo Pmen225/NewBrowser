@@ -34,6 +34,10 @@ describe("atlas overlay state", () => {
       label: "Resume",
       status: "Paused — you have control"
     });
+    expect(controlButtonState("resuming")).toMatchObject({
+      label: "Resume",
+      status: "Resuming…"
+    });
   });
 
   it("avoids implying account use when the overlay only knows browser control state", () => {

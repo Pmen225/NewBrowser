@@ -1,4 +1,5 @@
 import http from "node:http";
+import { listenWithLoopbackGuard } from "./loopback-bind.js";
 
 function pageTemplate(title, body, script = "") {
   return `<!doctype html>
@@ -336,9 +337,10 @@ export async function createLocalBrowserCourseServer({ host = "127.0.0.1", port 
     response.end(route.body);
   });
 
-  await new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(port, host, resolve);
+  await listenWithLoopbackGuard(server, {
+    host,
+    port,
+    label: "local browser course server"
   });
 
   const address = server.address();

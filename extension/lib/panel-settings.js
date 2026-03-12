@@ -36,6 +36,7 @@ export function normalizePanelSettings(raw) {
   return {
     appearanceTheme: value.appearanceTheme === "light" || value.appearanceTheme === "dark" ? value.appearanceTheme : "system",
     requireToolbarPin: value.requireToolbarPin === true,
+    developerModeEnabled: value.developerModeEnabled === true,
     narrationEnabled: value.narrationEnabled === true,
     transcriptionEnabled: value.transcriptionEnabled === true,
     transcriptionProvider: typeof value.transcriptionProvider === "string" ? value.transcriptionProvider.trim().toLowerCase() : "",

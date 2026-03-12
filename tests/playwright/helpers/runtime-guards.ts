@@ -1,12 +1,20 @@
 import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 
 import type { BrowserContext, LaunchPersistentContextOptions, Page } from "playwright";
-import { chromium } from "playwright";
+
+const requireFromTs = createRequire(import.meta.url);
 
 const trackedContexts = new Set<BrowserContext>();
 let cleanupInstalled = false;
 let shuttingDown = false;
+type PlaywrightChromiumLauncher = {
+  launchPersistentContext: (
+    userDataDir: string,
+    options?: LaunchPersistentContextOptions
+  ) => Promise<BrowserContext>;
+};
 
 async function closeTrackedContexts(): Promise<void> {
   const contexts = [...trackedContexts];
@@ -86,6 +94,7 @@ export async function launchManagedPersistentContext(
   timeoutMs = 15_000
 ): Promise<BrowserContext> {
   installContextCleanup();
+  const chromium = resolvePlaywrightChromiumLauncher();
   const context = await withTimeout(
     "launchPersistentContext",
     chromium.launchPersistentContext(userDataDir, options),
@@ -96,6 +105,61 @@ export async function launchManagedPersistentContext(
     trackedContexts.delete(context);
   });
   return context;
+}
+
+type ResolvePlaywrightChromiumLauncherOptions = {
+  assertBootstrapReady?: () => void;
+  requirePlaywright?: () => unknown;
+};
+
+function defaultAssertBootstrapReady(): void {
+  const { assertPlaywrightBootstrapReady } = requireFromTs("../../../scripts/lib/playwright-bootstrap-check.cjs") as {
+    assertPlaywrightBootstrapReady: (options?: { timeoutMs?: number }) => void;
+  };
+  assertPlaywrightBootstrapReady({
+    timeoutMs: 15_000
+  });
+}
+
+function defaultRequirePlaywright(): unknown {
+  return requireFromTs("playwright");
+}
+
+export function resolvePlaywrightChromiumLauncher({
+  assertBootstrapReady = defaultAssertBootstrapReady,
+  requirePlaywright = defaultRequirePlaywright
+}: ResolvePlaywrightChromiumLauncherOptions = {}): PlaywrightChromiumLauncher {
+  try {
+    assertBootstrapReady();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    const classification = error && typeof error === "object" && typeof error.classification === "string"
+      ? error.classification
+      : "runtime_bootstrap_failure";
+    const phase = error && typeof error === "object" && typeof error.phase === "string"
+      ? error.phase
+      : "";
+    const code = error && typeof error === "object" && typeof error.code === "string"
+      ? error.code
+      : "UNKNOWN";
+    const phaseDetail = phase ? `; phase=${phase}` : "";
+    throw new Error(
+      `Playwright bootstrap gate failed before launchPersistentContext; classification=${classification}; code=${code}${phaseDetail}. ${detail}`
+    );
+  }
+
+  const playwrightModule = requirePlaywright() as { chromium?: unknown };
+  const chromiumCandidate = playwrightModule?.chromium as
+    | { launchPersistentContext?: PlaywrightChromiumLauncher["launchPersistentContext"] }
+    | undefined;
+
+  if (typeof chromiumCandidate?.launchPersistentContext !== "function") {
+    throw new Error(
+      "Invalid playwright module: missing chromium.launchPersistentContext function"
+    );
+  }
+
+  return chromiumCandidate as PlaywrightChromiumLauncher;
 }
 
 export async function safePageScreenshot(page: Page | null | undefined, filePath: string): Promise<void> {

@@ -40,6 +40,11 @@ import {
   recordModelBenchmarkResult,
   isBrowserControlBenchmarkCandidate
 } from "./lib/model-config.js";
+import {
+  getDefaultWebBrowsingSettings,
+  readWebBrowsingSettings,
+  resetWebBrowsingModelConfig
+} from "./lib/web-browsing-settings.js";
 import { getTranscriptionProviderLabel, resolveTranscriptionConfig } from "./lib/transcription-config.js";
 import {
   SHORTCUTS_STORAGE_KEY,
@@ -47,6 +52,11 @@ import {
   upsertShortcut,
   deleteShortcut
 } from "./lib/shortcuts.js";
+import {
+  DEFAULT_SETTINGS_PAGE_ID,
+  isDevSettingsPage,
+  resolveSettingsPageId
+} from "./lib/settings-pages.js";
 
 // ─── Element refs ────────────────────────────────────────────────────────────
 
@@ -88,6 +98,8 @@ const modelModeSelect     = document.getElementById("model-mode-select");
 const thinkingLevelSelect = document.getElementById("thinking-level-select");
 const functionCallingTog  = document.getElementById("function-calling-toggle");
 const browserSearchTog    = document.getElementById("browser-search-toggle");
+const webBrowsingResetBtn = document.getElementById("web-browsing-reset-btn");
+const webBrowsingResetStatus = document.getElementById("web-browsing-reset-status");
 const codeExecutionTog    = document.getElementById("code-execution-toggle");
 const modelSaveDot        = document.getElementById("model-save-dot");
 
@@ -116,6 +128,7 @@ const localShellToggle = document.getElementById("local-shell-toggle");
 const extensionManagementToggle = document.getElementById("extension-management-toggle");
 const appearanceThemeSelect = document.getElementById("appearance-theme-select");
 const toolbarPinToggle = document.getElementById("toolbar-pin-toggle");
+const developerModeToggle = document.getElementById("developer-mode-toggle");
 
 // Chats
 const clearChatsBtn       = document.getElementById("clear-chats-btn");
@@ -311,21 +324,40 @@ function renderTranscriptionPreferences(currentSettings, currentModelConfig, cur
 }
 
 let setActiveSettingsSection = () => {};
-const isEmbeddedPanel = new URLSearchParams(globalThis.location?.search ?? "").get("embedded") === "panel";
+let pendingSettingsSection = null;
+const isEmbeddedPanel =
+  new URLSearchParams(globalThis.location?.search ?? "").get("embedded") === "panel" ||
+  document.body?.dataset?.embedded === "panel";
 
-function normalizeSettingsPageId(value) {
-  const id = typeof value === "string" ? value.trim().toLowerCase() : "";
-  const aliases = {
-    provider: "general-providers",
-    providers: "general-providers",
-    models: "general-models",
-    data: "data-controls",
-    chats: "data-controls-chats",
-    commands: "agent-mode-commands",
-    advanced: "agent-mode-runtime",
-    agent: "agent-mode"
-  };
-  return aliases[id] || id;
+function isDeveloperModeEnabled() {
+  return developerModeToggle?.checked === true;
+}
+
+function syncDeveloperModeNavigation(enabled) {
+  const showDev = enabled === true;
+  const devPages = Array.from(document.querySelectorAll("[data-dev-only='true']"));
+  const devNavItem = document.querySelector(".settings-nav-item[data-page='dev']");
+
+  if (devNavItem) {
+    devNavItem.hidden = !showDev;
+  }
+
+  for (const page of devPages) {
+    if (page.id === "dev") {
+      page.hidden = !showDev || !page.classList.contains("is-active");
+      continue;
+    }
+
+    if (!showDev) {
+      page.hidden = true;
+      page.classList.remove("is-active");
+    }
+  }
+}
+
+export function openSettingsSection(section = DEFAULT_SETTINGS_PAGE_ID) {
+  pendingSettingsSection = section;
+  setActiveSettingsSection(section, { scroll: true });
 }
 
 function applyAppearanceTheme(theme) {
@@ -817,6 +849,12 @@ async function saveModelConfigFromForm() {
   return config;
 }
 
+function matchesDefaultWebBrowsingSettings(modelConfig) {
+  const current = readWebBrowsingSettings(modelConfig);
+  const defaults = getDefaultWebBrowsingSettings();
+  return current.allowBrowserSearch === defaults.allowBrowserSearch;
+}
+
 // ─── Chats ────────────────────────────────────────────────────────────────────
 
 async function loadChats() {
@@ -1072,20 +1110,26 @@ function setupSectionFocus() {
   };
 
   const applyActiveSection = (nextId, { scroll = false } = {}) => {
-    const normalizedId = normalizeSettingsPageId(nextId);
-    const selectedId = pages.some((page) => page.id === normalizedId) ? normalizedId : "general";
+    const selectedId = resolveSettingsPageId(nextId, {
+      developerModeEnabled: isDeveloperModeEnabled()
+    });
     const mainScroller = document.querySelector(".settings-main");
     const activePage = pages.find((page) => page.id === selectedId);
     const activeRoot = resolveRootPage(activePage);
 
     pages.forEach((page) => {
+      const isDevOnly = page.dataset.devOnly === "true";
       const active = page.id === selectedId;
-      page.hidden = !active;
+      page.hidden = !active || (isDevOnly && !isDeveloperModeEnabled());
       page.classList.toggle("is-active", active);
     });
 
     navItems.forEach((item) => {
-      item.classList.toggle("is-active", item.dataset.page === activeRoot);
+      const isDevOnly = item.dataset.devOnly === "true";
+      if (isDevOnly) {
+        item.hidden = !isDeveloperModeEnabled();
+      }
+      item.classList.toggle("is-active", item.dataset.page === activeRoot && (!isDevOnly || isDeveloperModeEnabled()));
       if (item.dataset.page === activeRoot) {
         item.setAttribute("aria-current", "page");
       } else {
@@ -1105,11 +1149,15 @@ function setupSectionFocus() {
   setActiveSettingsSection = applyActiveSection;
 
   const initialId = isEmbeddedPanel
-    ? (query.get("section") || "general")
+    ? (query.get("section") || DEFAULT_SETTINGS_PAGE_ID)
     : typeof location.hash === "string" && location.hash.startsWith("#")
       ? location.hash.slice(1)
-      : "general";
+      : DEFAULT_SETTINGS_PAGE_ID;
   applyActiveSection(initialId);
+  if (pendingSettingsSection) {
+    applyActiveSection(pendingSettingsSection, { scroll: true });
+  }
+  syncDeveloperModeNavigation(isDeveloperModeEnabled());
   if (isEmbeddedPanel) {
     window.scrollTo(0, 0);
   }
@@ -1145,9 +1193,9 @@ function setupSectionFocus() {
   if (isEmbeddedPanel) return;
 
   window.addEventListener("hashchange", () => {
-    const hashId = typeof location.hash === "string" && location.hash.startsWith("#")
+      const hashId = typeof location.hash === "string" && location.hash.startsWith("#")
       ? location.hash.slice(1)
-      : "general";
+      : DEFAULT_SETTINGS_PAGE_ID;
     applyActiveSection(hashId);
   });
 }
@@ -1188,6 +1236,9 @@ async function main() {
   if (toolbarPinToggle) {
     toolbarPinToggle.checked = currentSettings.requireToolbarPin;
   }
+  if (developerModeToggle) {
+    developerModeToggle.checked = currentSettings.developerModeEnabled;
+  }
   narrationToggle.checked    = currentSettings.narrationEnabled;
   transcriptionToggle.checked= currentSettings.transcriptionEnabled;
   if (transcriptionProviderInput) {
@@ -1217,6 +1268,13 @@ async function main() {
   });
   toolbarPinToggle?.addEventListener("change", async () => {
     currentSettings = await persistPanelSettings({ requireToolbarPin: toolbarPinToggle.checked });
+  });
+  developerModeToggle?.addEventListener("change", async () => {
+    currentSettings = await persistPanelSettings({ developerModeEnabled: developerModeToggle.checked });
+    syncDeveloperModeNavigation(currentSettings.developerModeEnabled);
+    if (!currentSettings.developerModeEnabled && isDevSettingsPage(document.querySelector(".settings-page.is-active")?.id)) {
+      openSettingsSection(DEFAULT_SETTINGS_PAGE_ID);
+    }
   });
 
   narrationToggle.addEventListener("change", async () => {
@@ -1389,6 +1447,33 @@ async function main() {
   for (const el of [modelModeSelect, thinkingLevelSelect, functionCallingTog, browserSearchTog, codeExecutionTog]) {
     el?.addEventListener("change", autoSaveModelConfig);
   }
+  webBrowsingResetBtn?.addEventListener("click", async () => {
+    const previousLabel = webBrowsingResetBtn.textContent;
+    webBrowsingResetBtn.disabled = true;
+    webBrowsingResetBtn.textContent = "Resetting…";
+    try {
+      const nextConfig = resetWebBrowsingModelConfig(await loadModelConfig());
+      await chromeSet({ [MODEL_CONFIG_STORAGE_KEY]: nextConfig });
+      const storedConfig = await loadModelConfig();
+      if (!matchesDefaultWebBrowsingSettings(storedConfig)) {
+        throw new Error("Web Browsing defaults did not persist.");
+      }
+      currentModelConfig = storedConfig;
+      applyModelConfigToForm(storedConfig);
+      updateModelSummary(storedConfig, currentCatalog);
+      renderTranscriptionPreferences(currentSettings, storedConfig, currentProviders, currentCatalog);
+      showStatus(webBrowsingResetStatus, "Web Browsing settings reset to defaults.");
+    } catch (error) {
+      showStatus(
+        webBrowsingResetStatus,
+        error instanceof Error ? error.message : "Failed to reset Web Browsing settings.",
+        "error"
+      );
+    } finally {
+      webBrowsingResetBtn.disabled = false;
+      webBrowsingResetBtn.textContent = previousLabel;
+    }
+  });
 
   // ── Chats ──
   renderChats(store);
@@ -1429,6 +1514,9 @@ async function main() {
         if (toolbarPinToggle) {
           toolbarPinToggle.checked = next.requireToolbarPin;
         }
+        if (developerModeToggle) {
+          developerModeToggle.checked = next.developerModeEnabled;
+        }
         narrationToggle.checked     = next.narrationEnabled;
         transcriptionToggle.checked = next.transcriptionEnabled;
         if (transcriptionProviderInput) {
@@ -1442,6 +1530,10 @@ async function main() {
         memoryBookmarksToggle.checked = next.memoryBookmarksEnabled;
         memoryHistoryToggle.checked = next.memoryHistoryEnabled;
         memorySettingsToggle.checked = next.memorySettingsEnabled;
+        syncDeveloperModeNavigation(next.developerModeEnabled);
+        if (!next.developerModeEnabled && isDevSettingsPage(document.querySelector(".settings-page.is-active")?.id)) {
+          openSettingsSection(DEFAULT_SETTINGS_PAGE_ID);
+        }
         renderTranscriptionPreferences(currentSettings, currentModelConfig, currentProviders, currentCatalog);
         updateAgentSummary(readAgentConfigFromForm(), currentSettings);
         await renderMemory(next, await loadModelConfig());
@@ -1492,4 +1584,4 @@ async function main() {
   setupSectionFocus();
 }
 
-main();
+export const settingsAppReady = document.querySelector(".settings-shell") ? main() : Promise.resolve();

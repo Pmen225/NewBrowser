@@ -18,4 +18,9 @@ describe("browser launcher profile lock", () => {
     expect(launchBrowserOnly).toContain('from "./lib/assistant-profile-lock.js"');
     expect(launchBrowserOnly).toContain("await hardenAssistantProfile({");
   });
+
+  it("keeps browser launch resilient when process inspection is permission-blocked", () => {
+    expect(startSidecar).toContain("isProcessInspectionPermissionFailure");
+    expect(launchBrowserOnly).toContain("isProcessInspectionPermissionFailure");
+  });
 });

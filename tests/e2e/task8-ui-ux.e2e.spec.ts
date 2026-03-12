@@ -13,6 +13,7 @@ import { createTraceLogger } from "../../sidecar/src/observability/trace-logger"
 import { createBrowserActionDispatcher } from "../../sidecar/src/rpc/browser-action-dispatcher";
 import { createRpcWebSocketServer } from "../../sidecar/src/ws/rpcServer";
 import type { RpcResponse } from "../../shared/src/transport";
+import { parseJsonl } from "../helpers/jsonl";
 
 interface StartedServer {
   origin: string;
@@ -106,13 +107,6 @@ async function waitForWsMessage(socket: WebSocket): Promise<RpcResponse> {
       resolve(JSON.parse(data.toString()) as RpcResponse);
     });
   });
-}
-
-function parseJsonl(raw: string): TraceLine[] {
-  return raw
-    .split("\n")
-    .filter((line) => line.trim().length > 0)
-    .map((line) => JSON.parse(line) as TraceLine);
 }
 
 afterEach(async () => {

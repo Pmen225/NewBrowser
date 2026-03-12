@@ -46,6 +46,11 @@ describe('atlas-overlay-state', () => {
       primary: false,
       status: 'Pausing…',
     });
+    expect(controlButtonState('resuming')).toEqual({
+      label: 'Resume',
+      primary: false,
+      status: 'Resuming…',
+    });
     expect(controlButtonState('stopping')).toEqual({
       label: 'Take control',
       primary: false,

@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     include: ["tests/playwright/funnels/**/*.spec.ts"],
     environment: "node",
+    globalSetup: ["tests/playwright/helpers/funnels-bootstrap-global-setup.ts"],
     reporters: ["basic"],
     pool: "forks",
     poolOptions: {

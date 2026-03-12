@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildActivePagePromptPrefix,
   getCapturableActiveTab,
   hasAccessibleWebTab,
   isPageContextPrompt,
@@ -13,7 +14,31 @@ describe("page context guardrails", () => {
     expect(isPageContextPrompt("Summarize the current page")).toBe(true);
     expect(isPageContextPrompt("Looking at the current website of Maranatha College of Wisdom, validate this criticism.")).toBe(true);
     expect(isPageContextPrompt("Tell me whether this website in its current format is acceptable.")).toBe(true);
+    expect(
+      isPageContextPrompt("Log in using username tomsmith and password SuperSecretPassword!, then tell me the success message.")
+    ).toBe(true);
+    expect(isPageContextPrompt("Sign in with the saved credentials and tell me whether it worked.")).toBe(true);
     expect(isPageContextPrompt("Search the web for Halo Service Desk")).toBe(false);
+  });
+
+  it("builds a stable prompt prefix for the active page", () => {
+    expect(buildActivePagePromptPrefix({
+      id: 7,
+      title: "The Internet",
+      url: "https://the-internet.herokuapp.com/login"
+    })).toBe(
+      [
+        "Current page context:",
+        '- Title: "The Internet"',
+        "- URL: https://the-internet.herokuapp.com/login",
+        "Use this page as the starting point unless the user asks to navigate elsewhere."
+      ].join("\n")
+    );
+  });
+
+  it("omits page context for inaccessible or empty tabs", () => {
+    expect(buildActivePagePromptPrefix({ id: 9, title: "Settings", url: "chrome://settings" })).toBe("");
+    expect(buildActivePagePromptPrefix({ id: 10, title: "", url: "" })).toBe("");
   });
 
   it("only treats normal website tabs as accessible page context", () => {
@@ -66,6 +91,9 @@ describe("page context guardrails", () => {
     ).toBe("Atlas cannot use this page. Switch to a normal website tab.");
     expect(normalizePanelErrorMessage("The message port closed before a response was received.")).toBe(
       "This page stopped responding. Refresh it and try again."
+    );
+    expect(normalizePanelErrorMessage("Request was aborted")).toBe(
+      "The run was interrupted before it finished."
     );
     expect(normalizePanelErrorMessage("Something else failed")).toBe("Something else failed");
   });

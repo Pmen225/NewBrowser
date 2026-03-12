@@ -31,6 +31,11 @@ import {
   enforceUserFacingResponsePayload,
   validateFinalAnswerWithAutofix
 } from "../policy/response-validator";
+import {
+  allowsValidationPendingComputerAction,
+  hasMultipleStateChangingComputerSteps,
+  requiresValidationAfterPageAction
+} from "./action-validation";
 import { createMemoryStore } from "./memory-store";
 import { loadPromptSpecs, type PromptLoaderOptions } from "./prompt-loader";
 import { buildToolSchemaCatalog, findToolCatalogMismatches } from "./tool-schema";
@@ -70,6 +75,7 @@ export interface OrchestratorOptions {
   providerRegistry?: ProviderRegistry;
   defaultMaxSteps?: number;
   resolveDefaultTabId: () => string | undefined;
+  resolveTabContext?: (tabId: string) => { url?: string; title?: string } | undefined;
   performAction: (action: string, tabId: string, params: Record<string, unknown>, signal: AbortSignal) => Promise<Record<string, unknown>>;
   onRunUpdated?: (state: AgentRunState) => void;
   onToolEvent?: (event: AgentToolEvent) => void;
@@ -301,7 +307,8 @@ function buildCapabilityContextMessages(params: AgentRunParams): ProviderRuntime
   if (shouldAllowBrowserAdminPages(params)) {
     messages.push({
       role: "system",
-      content: "The user explicitly allowed browser admin pages for this run. You may navigate to chrome://settings, chrome://flags, or chrome://extensions when needed. Do not say those pages are inaccessible. For direct browser-admin requests, you must use browser tools before answering. If a chrome:// navigation succeeds, use read_page or get_page_text next and answer from the resulting page state."
+      content:
+        "The user explicitly allowed browser admin work for this run. You may navigate to chrome://settings, chrome://flags, or chrome://extensions when needed, and you may also interact with visible controls on browser-based admin portals the user explicitly directed you to use. Do not claim you are limited to read-only browsing when browser tools can click visible controls. For direct admin-page requests, you must use browser tools before answering. If a navigation succeeds, inspect the resulting page or confirm the landing state before answering. Still never enter passwords, MFA codes, payment details, or other sensitive identity or financial data, and do not perform bulk or clearly destructive changes unless the user explicitly scopes them."
     });
   }
   if (shouldExposeExtensionManagementTool(params)) {
@@ -649,6 +656,77 @@ function buildCurrentPageTaskGuidanceMessages(prompt: string): ProviderRuntimeMe
   ];
 }
 
+function hasExplicitNewTabIntent(value: string): boolean {
+  return includesAny(value, ["new tab", "open tab", "another tab"]);
+}
+
+function isSameSiteWorkflowPrompt(prompt: string): boolean {
+  const normalized = normalizeText(prompt).toLowerCase();
+  if (!normalized || hasExplicitWebResearchIntent(normalized) || hasExplicitNewTabIntent(normalized)) {
+    return false;
+  }
+
+  if (extractFirstUrl(prompt) || extractNavigationIntentUrl(prompt) || extractHistoryNavigationMode(prompt)) {
+    return false;
+  }
+
+  const hasInteractiveIntent =
+    isClickIntent(normalized) ||
+    hasFormActionVerb(normalized) ||
+    includesAny(normalized, ["go to", "open", "visit", "navigate", "add", "remove", "submit", "log in", "login", "sign in"]);
+
+  if (!hasInteractiveIntent) {
+    return false;
+  }
+
+  return (
+    hasFormTarget(normalized) ||
+    includesAny(normalized, [
+      "page",
+      "section",
+      "link",
+      "button",
+      "menu",
+      "dialog",
+      "modal",
+      "alert",
+      "table",
+      "cart",
+      "inventory",
+      "product",
+      "item",
+      "elements",
+      "test case",
+      "test cases",
+      "login"
+    ]) ||
+    prompt.includes("/")
+  );
+}
+
+function buildActiveSiteWorkflowGuidanceMessages(prompt: string, currentTabUrl: string | undefined): ProviderRuntimeMessage[] {
+  if (!currentTabUrl || !isSameSiteWorkflowPrompt(prompt)) {
+    return [];
+  }
+
+  try {
+    const host = normalizeHostname(new URL(currentTabUrl).hostname);
+    if (!host) {
+      return [];
+    }
+
+    return [
+      {
+        role: "system",
+        content:
+          `The active tab is already on ${host}. This task should stay on the current website and current tab unless the user explicitly asks for outside research or a new tab. Do not use Google or other search engines to locate internal pages on this site. Start by reading or finding content on the current page, then follow matching on-site links or controls from the site already open.`
+      }
+    ];
+  } catch {
+    return [];
+  }
+}
+
 function buildUploadTaskGuidanceMessages(prompt: string): ProviderRuntimeMessage[] {
   const lower = normalizeText(prompt).toLowerCase();
   if (!includesAny(lower, ["file upload", "upload the file", "uploaded filename", "uploaded file"])) {
@@ -674,7 +752,7 @@ function isBrowserAdminCapabilityRefusal(text: string, params: AgentRunParams): 
     return false;
   }
 
-  return (
+  const chromeRefusal = (
     normalized.includes("cannot directly open chrome://settings") ||
     normalized.includes("unable to open chrome://settings directly") ||
     normalized.includes("cannot open chrome://flags") ||
@@ -690,6 +768,24 @@ function isBrowserAdminCapabilityRefusal(text: string, params: AgentRunParams): 
     normalized.includes("internal chrome url") ||
     normalized.includes("restricted internal chrome page") ||
     normalized.includes("cannot access internal chrome page")
+  );
+
+  if (chromeRefusal) {
+    return true;
+  }
+
+  if (!looksLikeAdminPortalActionPrompt(params.prompt)) {
+    return false;
+  }
+
+  return (
+    normalized.includes("cannot activate or deactivate roles") ||
+    normalized.includes("cannot manage permissions") ||
+    normalized.includes("limited to browsing the web") ||
+    normalized.includes("limited to browsing the web and retrieving information") ||
+    normalized.includes("beyond my current capabilities") ||
+    normalized.includes("beyond the scope of my browser-based tools") ||
+    normalized.includes("i can only interact with the visual elements of a webpage")
   );
 }
 
@@ -925,6 +1021,55 @@ function getCurrentSiteInteractionBlock(action: string, params: AgentRunParams):
     code: "CURRENT_SITE_NONINTERACTIVE_REVIEW_REQUIRED",
     message:
       "This is a non-interactive current-website validation task. Do not click or type blindly. Use read_page, get_page_text, or find to gather evidence before answering."
+  };
+}
+
+function getActiveSiteWorkflowNavigationBlock(
+  action: string,
+  payload: JsonObject,
+  params: AgentRunParams,
+  activeTabUrl: string | undefined
+): { code: string; message: string } | null {
+  if (!activeTabUrl || !isSameSiteWorkflowPrompt(params.prompt)) {
+    return null;
+  }
+
+  try {
+    const activeUrl = new URL(activeTabUrl);
+    if (!/^https?:$/i.test(activeUrl.protocol)) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  const normalizedPrompt = normalizeText(params.prompt).toLowerCase();
+  if (hasExplicitWebResearchIntent(normalizedPrompt) || hasExplicitNewTabIntent(normalizedPrompt)) {
+    return null;
+  }
+
+  if (action === "tabs_create") {
+    const operation = typeof payload.operation === "string" ? normalizeText(payload.operation).toLowerCase() : "create";
+    if (operation !== "create") {
+      return null;
+    }
+
+    return {
+      code: "ACTIVE_SITE_WORKFLOW_SCOPE_REQUIRED",
+      message:
+        "Stay on the active website for this task. Use the current tab and current site first. Do not open a new tab or detour to a search engine unless the user explicitly asks for outside research or a new tab."
+    };
+  }
+
+  const targetUrl = extractUrlLikeTarget(action, payload);
+  if (!targetUrl || !isLikelyExternalResearchUrl(targetUrl)) {
+    return null;
+  }
+
+  return {
+    code: "ACTIVE_SITE_WORKFLOW_SCOPE_REQUIRED",
+    message:
+      "Stay on the active website for this task. Do not use Google or other search engines to locate pages on the current site. Navigate within the site already open unless the user explicitly asks for outside research."
   };
 }
 
@@ -1359,13 +1504,143 @@ function normalizeNavigationIntentUrl(target: string): string | undefined {
   return `https://${sanitized}.com`;
 }
 
-function extractNavigationIntentUrl(value: string): string | undefined {
+function extractNavigationIntentTarget(value: string): string | undefined {
   const match = value.match(/\b(?:go to|navigate to|open|visit)\s+([^\n]+)/i);
   if (!match?.[1]) {
     return undefined;
   }
 
-  return normalizeNavigationIntentUrl(match[1]);
+  const target = sanitizeNavigationTarget(match[1]);
+  return target.length > 0 ? target : undefined;
+}
+
+function extractNavigationIntentUrl(value: string): string | undefined {
+  const target = extractNavigationIntentTarget(value);
+  if (!target) {
+    return undefined;
+  }
+
+  return normalizeNavigationIntentUrl(target);
+}
+
+function isSimpleNavigationPrompt(prompt: string): boolean {
+  const normalized = normalizeText(prompt).toLowerCase().replace(/[.!?]+$/g, "");
+  if (!normalized) {
+    return false;
+  }
+
+  if (
+    includesAny(normalized, [
+      "summarise",
+      "summarize",
+      "read",
+      "tell me",
+      "what is",
+      "what's",
+      "compare",
+      "find",
+      "look for",
+      "search",
+      "verify",
+      "check",
+      "validate",
+      "activate",
+      "deactivate",
+      "enable",
+      "disable",
+      "delete",
+      "remove",
+      "submit",
+      "fill",
+      "type"
+    ])
+  ) {
+    return false;
+  }
+
+  return /^(?:(?:please|can you|could you|would you)\s+)?(?:go to|navigate to|open|visit)\s+.+$/i.test(normalized);
+}
+
+function extractNavigationIntentTokens(prompt: string): string[] {
+  const target = extractNavigationIntentTarget(prompt);
+  if (!target) {
+    return [];
+  }
+
+  return target
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split(/[^a-z0-9]+/i)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2 && !["go", "to", "open", "visit", "navigate", "www", "com"].includes(token));
+}
+
+function looksLikeAdminPortalActionPrompt(prompt: string): boolean {
+  const normalized = normalizeText(prompt).toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return (
+    includesAny(normalized, ["role", "roles", "permission", "permissions", "entra", "azure", "admin portal", "administrator"]) &&
+    includesAny(normalized, ["activate", "deactivate", "enable", "disable", "grant", "revoke", "remove", "assign"])
+  );
+}
+
+function matchesNavigationLanding(prompt: string, result: JsonObject): boolean {
+  if (!isSimpleNavigationPrompt(prompt)) {
+    return false;
+  }
+
+  const landingUrl = typeof result.url === "string" ? result.url.trim() : "";
+  const landingTitle = typeof result.title === "string" ? normalizeText(result.title).toLowerCase() : "";
+  const targetUrl = extractNavigationIntentUrl(prompt);
+  const tokens = extractNavigationIntentTokens(prompt);
+
+  if (targetUrl && landingUrl) {
+    try {
+      const expected = new URL(targetUrl);
+      const actual = new URL(landingUrl);
+      if (
+        normalizeHostname(expected.hostname) === normalizeHostname(actual.hostname) &&
+        (expected.pathname === "/" || expected.pathname === actual.pathname || actual.pathname.startsWith(expected.pathname))
+      ) {
+        return true;
+      }
+    } catch {
+      if (landingUrl === targetUrl) {
+        return true;
+      }
+    }
+  }
+
+  if (tokens.length === 0) {
+    return false;
+  }
+
+  const landingText = `${landingTitle} ${landingUrl.toLowerCase()}`;
+  return tokens.every((token) => landingText.includes(token));
+}
+
+function buildSimpleNavigationCompletionAnswer(prompt: string, result: JsonObject): string {
+  const title = typeof result.title === "string" ? normalizeText(result.title) : "";
+  if (title) {
+    return `Opened ${title}.`;
+  }
+
+  const landingUrl = typeof result.url === "string" ? result.url.trim() : "";
+  if (landingUrl) {
+    try {
+      const url = new URL(landingUrl);
+      return `Opened ${url.hostname.replace(/^www\./, "")}.`;
+    } catch {
+      return `Opened ${landingUrl}.`;
+    }
+  }
+
+  const target = extractNavigationIntentTarget(prompt);
+  return target ? `Opened ${target}.` : "Opened the requested page.";
 }
 
 function truncate(value: string, maxLength: number): string {
@@ -1814,45 +2089,6 @@ function isStructuredInspectionAction(action: string): boolean {
 
 function isPostActionValidationAction(action: string): boolean {
   return action === "read_page" || action === "find" || action === "get_page_text";
-}
-
-function countStateChangingComputerSteps(payload: JsonObject): number {
-  const steps = Array.isArray(payload.steps) ? payload.steps : [];
-  let count = 0;
-
-  for (const rawStep of steps) {
-    if (!isRecord(rawStep)) {
-      continue;
-    }
-
-    const kind = typeof rawStep.kind === "string" ? normalizeText(rawStep.kind).toLowerCase() : "";
-    if (kind === "click" || kind === "type" || kind === "key" || kind === "drag" || kind === "dialog") {
-      count += 1;
-    }
-  }
-
-  return count;
-}
-
-function hasMultipleStateChangingComputerSteps(payload: JsonObject): boolean {
-  return countStateChangingComputerSteps(payload) > 1;
-}
-
-function requiresValidationAfterPageAction(action: string, payload: JsonObject, result: JsonObject): boolean {
-  if (action === "computer") {
-    return countStateChangingComputerSteps(payload) > 0;
-  }
-
-  if (action !== "form_input") {
-    return false;
-  }
-
-  const applied = Array.isArray(result.applied) ? result.applied : [];
-  if (applied.length === 0) {
-    return true;
-  }
-
-  return applied.some((entry) => !isRecord(entry) || !Object.prototype.hasOwnProperty.call(entry, "confirmed_value"));
 }
 
 function hasCoordinateDrivenComputerInteraction(payload: JsonObject): boolean {
@@ -2629,6 +2865,9 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
     const browseSearchEnabled = state.params.allow_browser_search !== false;
     const codeExecEnabled = state.params.enable_code_execution === true;
     const tabId = state.params.tab_id ?? options.resolveDefaultTabId() ?? "__system__";
+    const initialTabContext = tabId !== "__system__" ? options.resolveTabContext?.(tabId) : undefined;
+    const initialObservedPageUrl = typeof initialTabContext?.url === "string" ? initialTabContext.url : undefined;
+    const sameSiteWorkflowRun = Boolean(initialObservedPageUrl) && isSameSiteWorkflowPrompt(state.params.prompt);
     const searchWebSuppressedForRun = shouldDisableWebSearchForRun(state.params.prompt, tabId);
     const apiKey = typeof state.params.api_key === "string" ? state.params.api_key.trim() : "";
     const model = typeof state.params.model === "string" ? state.params.model.trim() : "";
@@ -2684,6 +2923,9 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         toolCatalog = [];
       } else if (!browseSearchEnabled || searchWebSuppressedForRun) {
         toolCatalog = toolCatalog.filter((tool) => tool.name !== "search_web");
+      }
+      if (sameSiteWorkflowRun && !hasExplicitNewTabIntent(normalizeText(state.params.prompt).toLowerCase())) {
+        toolCatalog = toolCatalog.filter((tool) => tool.name !== "tabs_create");
       }
       const todoWriteFallbackTool = funcCallingEnabled ? fullToolCatalog.find((tool) => tool.name === "todo_write") : undefined;
       const availableToolNames = toolCatalog.map((tool) => tool.name);
@@ -2753,6 +2995,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
         ...buildObservationResponseInstruction(state.params.prompt, state.hasImageInput),
         ...buildDefaultResponseStyleMessages(state.params.prompt),
         ...buildCurrentPageTaskGuidanceMessages(state.params.prompt),
+        ...buildActiveSiteWorkflowGuidanceMessages(state.params.prompt, initialObservedPageUrl),
         ...buildCapabilityContextMessages(state.params),
         ...buildUploadTaskGuidanceMessages(state.params.prompt),
         ...buildMemoryContextMessages(state.params),
@@ -2764,7 +3007,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
       let webCitationIndex = 0;
       let screenshotCitationIndex = 0;
       let lastResult: JsonObject | undefined;
-      let observedPageUrl: string | undefined;
+      let observedPageUrl: string | undefined = initialObservedPageUrl;
       const recentToolSignatures: string[] = [];
       let loopGuardTrips = 0;
       let consecutiveFailures = 0;
@@ -3005,6 +3248,50 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
               continue;
             }
 
+            const activeSiteWorkflowBlock = getActiveSiteWorkflowNavigationBlock(
+              action,
+              payload,
+              state.params,
+              initialObservedPageUrl
+            );
+            if (activeSiteWorkflowBlock) {
+              appendRecentSignature(recentToolSignatures, toolSignature);
+              executedSteps += 1;
+
+              appendStep(
+                state,
+                {
+                  ts: nowIso(),
+                  phase: "executor",
+                  action,
+                  status: "failed",
+                  details: {
+                    step_id: toolCall.id,
+                    step_index: executedSteps,
+                    description: `Execute ${toolCall.name}`,
+                    input_hash: inputHash,
+                    payload,
+                    error_code: activeSiteWorkflowBlock.code,
+                    error_message: activeSiteWorkflowBlock.message
+                  }
+                },
+                memoryStore,
+                options.onRunUpdated
+              );
+
+              messages.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                tool_name: toolCall.name,
+                content: JSON.stringify({
+                  ok: false,
+                  error_code: activeSiteWorkflowBlock.code,
+                  error_message: activeSiteWorkflowBlock.message
+                })
+              });
+              continue;
+            }
+
             if (policy.requireSingleStateChangingComputerAction && action === "computer" && hasMultipleStateChangingComputerSteps(payload)) {
               const validationMessage =
                 "Perform only one state-changing computer action per tool call. After it completes, validate the page state with read_page, find, or get_page_text before continuing.";
@@ -3084,10 +3371,16 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
               continue;
             }
 
+            const isAllowedPendingDialogRecovery =
+              policy.requireValidationAfterPageActions &&
+              needsPostActionValidation &&
+              allowsValidationPendingComputerAction(action, payload, Boolean(pendingJavaScriptDialog));
+
             if (
               policy.requireValidationAfterPageActions &&
               needsPostActionValidation &&
               !isPostActionValidationAction(action) &&
+              !isAllowedPendingDialogRecovery &&
               requiresValidationAfterPageAction(action, payload, {})
             ) {
               const validationMessage =
@@ -3434,6 +3727,35 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
               });
               consecutiveFailures = 0;
 
+              if (action === "computer" && matchesNavigationLanding(state.params.prompt, result)) {
+                const availableCitations = state.sources
+                  .map((source) => source.id)
+                  .filter((id) => /^\[(?:web|screenshot):\d+\]$/.test(id));
+                const navigationAnswerCandidate = buildSimpleNavigationCompletionAnswer(state.params.prompt, result);
+                const navigationValidation = validateFinalAnswerWithAutofix({
+                  userPrompt: state.params.prompt,
+                  text: navigationAnswerCandidate,
+                  availableCitations,
+                  hasImageInput: state.hasImageInput
+                });
+                completeRun(
+                  navigationValidation.ok
+                    ? navigationValidation.normalized_text
+                    : buildValidatedFinalAnswer({
+                        userPrompt: state.params.prompt,
+                        executedSteps: executedSteps + 1,
+                        lastResult,
+                        availableCitations,
+                        hasImageInput: state.hasImageInput
+                      }).text,
+                  {
+                    executed_steps: executedSteps + 1,
+                    completed_via: "simple_navigation"
+                  }
+                );
+                return;
+              }
+
               // Flag page load wait if we navigated (applied before next LLM turn)
               if (action === "navigate" || action === "tabs_create") {
                 needsPageLoadWait = true;
@@ -3559,6 +3881,13 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
                 failure_reason: normalized.code   // Comet: e.failureReason
               });
 
+              if (normalized.code === "REQUEST_ABORTED") {
+                throw Object.assign(new Error(normalized.message), {
+                  code: normalized.code,
+                  retryable: normalized.retryable
+                });
+              }
+
               consecutiveFailures += 1;
               if (failureTolerance > 0 && consecutiveFailures >= failureTolerance) {
                 throw Object.assign(
@@ -3661,7 +3990,9 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
           messages.push({
             role: "user",
             content:
-              "That is incorrect. Browser admin pages were explicitly allowed for this run. Use browser tools now. Navigate to the requested chrome:// page, inspect it with read_page or get_page_text, then answer from the observed page state."
+              looksLikeAdminPortalActionPrompt(state.params.prompt)
+                ? "That is incorrect. The user explicitly allowed browser-admin work for this run, including visible controls on the requested admin portal. Use browser tools now. Do not claim you are read-only. Interact with the visible page controls needed for the requested task, then verify the resulting page state before answering."
+                : "That is incorrect. Browser admin pages were explicitly allowed for this run. Use browser tools now. Navigate to the requested chrome:// page, inspect it with read_page or get_page_text, then answer from the observed page state."
           });
           continue;
         }
@@ -3773,7 +4104,8 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
     } catch (error) {
       const normalized = normalizeExecutorError(error);
       const stopped = state.abortController.signal.aborted;
-      state.status = stopped ? "stopped" : "failed";
+      const interrupted = !stopped && normalized.code === "REQUEST_ABORTED";
+      state.status = stopped ? "stopped" : interrupted ? "interrupted" : "failed";
       state.errorMessage = normalized.message;
       appendStep(
         state,
@@ -3781,7 +4113,7 @@ export async function createOrchestrator(options: OrchestratorOptions): Promise<
           ts: nowIso(),
           phase: "executor",
           action: "execute",
-          status: stopped ? "stopped" : "failed",
+          status: stopped ? "stopped" : interrupted ? "failed" : "failed",
           details: {
             code: normalized.code,
             message: normalized.message

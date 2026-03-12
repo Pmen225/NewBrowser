@@ -12,6 +12,7 @@ describe("panel settings", () => {
     expect(normalizePanelSettings(null)).toEqual({
       appearanceTheme: "system",
       requireToolbarPin: false,
+      developerModeEnabled: false,
       narrationEnabled: false,
       transcriptionEnabled: false,
       transcriptionProvider: "",
@@ -31,6 +32,7 @@ describe("panel settings", () => {
     })).toEqual({
       appearanceTheme: "system",
       requireToolbarPin: false,
+      developerModeEnabled: false,
       narrationEnabled: true,
       transcriptionEnabled: false,
       transcriptionProvider: "",
@@ -48,6 +50,7 @@ describe("panel settings", () => {
     expect(normalizePanelSettings({
       appearanceTheme: "dark",
       requireToolbarPin: false,
+      developerModeEnabled: true,
       transcriptionEnabled: true,
       transcriptionProvider: "openai",
       transcriptionModelId: "models/gemini-2.5-flash",
@@ -62,6 +65,7 @@ describe("panel settings", () => {
     })).toEqual({
       appearanceTheme: "dark",
       requireToolbarPin: false,
+      developerModeEnabled: true,
       narrationEnabled: false,
       transcriptionEnabled: true,
       transcriptionProvider: "openai",
@@ -96,6 +100,7 @@ describe("panel settings", () => {
 
     try {
       await savePanelSettings({
+        developerModeEnabled: true,
         transcriptionEnabled: true,
         transcriptionProvider: "openai",
         transcriptionModelId: "gpt-4o-transcribe",
@@ -103,11 +108,13 @@ describe("panel settings", () => {
       }, null);
 
       const loaded = await loadPanelSettings(null);
+      expect(loaded.developerModeEnabled).toBe(true);
       expect(loaded.transcriptionEnabled).toBe(true);
       expect(loaded.transcriptionProvider).toBe("openai");
       expect(loaded.transcriptionModelId).toBe("gpt-4o-transcribe");
       expect(loaded.transcriptionLanguage).toBe("en-GB");
       expect(JSON.parse(storage.get(PANEL_SETTINGS_STORAGE_KEY))).toMatchObject({
+        developerModeEnabled: true,
         transcriptionProvider: "openai",
         transcriptionModelId: "gpt-4o-transcribe"
       });

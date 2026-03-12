@@ -4,20 +4,6 @@
                 markdownView.css, iconButton.css, checkbox.css
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Fonts ─────────────────────────────────────────────────────────── */
-@font-face {
-  font-family: "pplxSans";
-  src: url("https://r2cdn.perplexity.ai/fonts/PPLX-Sans-Beta-v1-VF.woff2") format("woff2");
-  font-weight: 100 900;
-  font-display: swap;
-}
-@font-face {
-  font-family: "FKGroteskNeue";
-  src: url("https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2") format("woff2");
-  font-weight: 100 900;
-  font-display: swap;
-}
-
 /* ── Comet easing curves (layout-sidebar-Q9VG8R8J.css) ────────────── */
 :root {
   --ease-out-cubic:      cubic-bezier(.33, 1, .68, 1);
@@ -150,7 +136,7 @@ html, body {
 }
 #root {
   width: 100%; height: 100%;
-  font-family: "pplxSans", "FKGroteskNeue", system-ui, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.55;
   color: var(--text);
@@ -523,14 +509,15 @@ html, body {
 
 .settings-view {
   background: var(--bg);
+  overflow: hidden;
 }
 
-.settings-frame {
+.settings-root {
   width: 100%;
   height: 100%;
-  border: 0;
   background: transparent;
   display: block;
+  overflow: auto;
 }
 
 /* ── Connection status bar ─────────────────────────────────────────── */
@@ -799,142 +786,184 @@ html, body {
 }
 
 .message--assistant-thinking {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .message--assistant-stale {
-  opacity: .78;
+  opacity: .82;
 }
 
 .thinking-block {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.thinking-status-row {
+  display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 80%, transparent), var(--surface)),
-    var(--surface);
-  box-shadow: var(--shadow-subtle);
-  animation: thinkingFloat 2.4s var(--ease-in-out-sine) infinite;
 }
 
-.thinking-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 8px);
-  gap: 5px;
-  padding-top: 2px;
-  flex-shrink: 0;
-}
-
-.thinking-grid-dot {
-  width: 8px;
-  height: 8px;
+.thinking-indicator {
+  width: 9px;
+  height: 9px;
+  margin-top: 5px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--super-color) 72%, white 28%);
-  animation: _thinking-dot 1.1s ease-in-out infinite;
+  flex-shrink: 0;
+  background: var(--super-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--super-color) 18%, transparent);
+  animation: thinkingPulse 1.4s var(--ease-in-out-sine) infinite;
 }
-
-.thinking-grid-dot:nth-child(2) { animation-delay: .12s; }
-.thinking-grid-dot:nth-child(3) { animation-delay: .24s; }
-.thinking-grid-dot:nth-child(4) { animation-delay: .36s; }
 
 .thinking-copy {
+  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+}
+
+.thinking-headline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .thinking-headline {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: var(--font-semibold);
   color: var(--text);
+  letter-spacing: -.01em;
 }
 
 .thinking-summary {
   margin: 0;
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.45;
-  color: var(--text-quiet);
+  color: color-mix(in srgb, var(--text) 88%, var(--text-quiet));
 }
 
-.thinking-chips {
+.thinking-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.thinking-chip {
+.thinking-meta-item {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 22px;
   padding: 0 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-hover) 84%, transparent);
+  background: color-mix(in srgb, var(--bg-raised) 88%, var(--surface));
   border: 1px solid var(--border);
   font-size: 10.5px;
+  font-weight: var(--font-medium);
   color: var(--text-quiet);
 }
 
-.thinking-task-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-  padding: 9px 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-}
-
-.thinking-task-summary,
-.thinking-task-note {
+.thinking-detail,
+.thinking-subdetail {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.45;
-  color: var(--text-quiet);
+  color: var(--text-quieter);
 }
 
-.thinking-task-note--error {
+.thinking-subdetail--error {
   color: oklch(62.8% .258 29.23);
 }
 
-.thinking-task-chips {
+.thinking-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  padding-top: 4px;
 }
 
-.thinking-task-chip {
+.thinking-control-btn {
+  appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 20px;
-  padding: 0 8px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-hover) 78%, transparent);
-  font-size: 10.5px;
-  color: var(--text-quiet);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition:
+    background .15s var(--ease-out-cubic),
+    border-color .15s var(--ease-out-cubic),
+    transform .12s var(--ease-out-soft),
+    box-shadow .15s var(--ease-out-cubic),
+    opacity .15s var(--ease-out-cubic);
 }
 
-@keyframes thinkingFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-1px); }
+.thinking-control-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
-@keyframes _thinking-dot {
+.thinking-control-btn:focus-visible {
+  outline: 2px solid var(--super-color);
+  outline-offset: 2px;
+}
+
+.thinking-control-btn:disabled {
+  opacity: .56;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.thinking-control-btn--primary {
+  background: var(--send-bg);
+  border-color: transparent;
+  color: oklch(100% 0 0);
+}
+
+.thinking-control-btn--primary:hover:not(:disabled) {
+  background: var(--send-hover);
+}
+
+@keyframes thinkingPulse {
   0%, 100% {
-    opacity: .4;
-    transform: scale(.85);
+    transform: scale(.92);
+    opacity: .85;
   }
   50% {
-    opacity: 1;
     transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking-indicator {
+    animation: none;
+  }
+
+  .thinking-control-btn {
+    transition: none;
+  }
+
+  .thinking-control-btn:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
   }
 }
 

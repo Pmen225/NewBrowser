@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { createTraceLogger } from "../../sidecar/src/observability/trace-logger";
+import { parseJsonl } from "../helpers/jsonl";
 
 interface TraceLine {
   timestamp: string;
@@ -16,13 +17,6 @@ interface TraceLine {
   event: string;
   params?: Record<string, unknown>;
   result?: Record<string, unknown>;
-}
-
-function parseJsonl(raw: string): TraceLine[] {
-  return raw
-    .split("\n")
-    .filter((line) => line.trim().length > 0)
-    .map((line) => JSON.parse(line) as TraceLine);
 }
 
 describe("createTraceLogger", () => {

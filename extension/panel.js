@@ -11,21 +11,31 @@ import { readImportedAttachments, buildAttachmentPromptPrefix } from "./lib/file
 import { createAudioRecorderController, isAudioRecordingSupported } from "./lib/speech.js";
 import { overlayPhaseForTool } from "./lib/atlas-overlay-state.js";
 import { buildMemoryContextItems, loadMemoryStore } from "./lib/memory.js";
-import { getCapturableActiveTab, hasAccessibleWebTab, isPageContextPrompt, normalizePanelErrorMessage } from "./lib/page-context.js";
+import {
+  buildActivePagePromptPrefix,
+  getCapturableActiveTab,
+  hasAccessibleWebTab,
+  isPageContextPrompt,
+  normalizePanelErrorMessage
+} from "./lib/page-context.js";
 import { buildMissingProviderSessionMessage, resolveProviderSelection } from "./lib/provider-resolution.js";
+import { resolveSettingsPageId } from "./lib/settings-pages.js";
 import {
   normalizeChatSessionsStore, ensureActiveSession,
-  appendSessionMessage, pruneChatSessions, CHAT_SESSIONS_STORAGE_KEY
+  appendSessionMessage, clearActiveSession, pruneChatSessions, CHAT_SESSIONS_STORAGE_KEY
 } from "./lib/recent-chats.js";
 import { readUnlockedProviders } from "./lib/provider-session.js";
 import { loadPanelSettings, PANEL_SETTINGS_STORAGE_KEY } from "./lib/panel-settings.js";
 import { resolveTranscriptionConfig } from "./lib/transcription-config.js";
+import {
+  buildPanelShellMarkup as renderPanelShellMarkup,
+  EMPTY_DEFAULT_COPY,
+  FULL_PROMPT_PLACEHOLDER,
+  PROMPT_ARIA_LABEL
+} from "./lib/panel-shell.js";
 
 const SIDECAR_WS   = "ws://127.0.0.1:3210";
 const EVENTS_URL   = "http://127.0.0.1:3210/events";
-const FULL_PROMPT_PLACEHOLDER = "Ask anything...";
-const PROMPT_ARIA_LABEL = "Ask anything";
-const EMPTY_DEFAULT_COPY = "What can I help with?";
 const OFFLINE_EMPTY_COPY = "Sidecar offline. Start local dev, then reconnect.";
 const RECONNECT_BUSY_LABEL = "Reconnecting...";
 
@@ -44,6 +54,34 @@ const escHtml = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+export function sanitizeAssistantResponseText(raw) {
+  const original = typeof raw === "string" ? raw.replace(/<\/?answer>/gi, "").trim() : "";
+  if (!original) {
+    return "";
+  }
+
+  let cleaned = original;
+  let strippedTabUpdate = false;
+
+  if (/^The current tab has been updated to:\s*/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^The current tab has been updated to:\s*/i, "").trimStart();
+    strippedTabUpdate = true;
+  }
+
+  if (strippedTabUpdate) {
+    cleaned = cleaned.replace(/^\{[\s\S]*?\}\s*/u, "").trimStart();
+  }
+
+  cleaned = cleaned
+    .replace(/^The query text was\s+["“][\s\S]*?["”]\.?\s*/i, "")
+    .replace(/^The query text was\s+[^.\n]+\.?\s*/i, "")
+    .replace(/\s*The task is complete\.?$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned || original;
+}
+
 function buildHistoryMessages(store, sessionId) {
   const normalizedStore = normalizeChatSessionsStore(store);
   const targetSession = normalizedStore.sessions.find((session) => session.id === sessionId);
@@ -52,15 +90,25 @@ function buildHistoryMessages(store, sessionId) {
   }
 
   return targetSession.messages
-    .filter((message) =>
-      (message.role === "user" || message.role === "assistant") &&
-      typeof message.text === "string" &&
-      message.text.trim().length > 0
-    )
-    .map((message) => ({
-      role: message.role,
-      text: message.text.trim()
-    }));
+    .map((message) => {
+      if ((message.role !== "user" && message.role !== "assistant") || typeof message.text !== "string") {
+        return null;
+      }
+
+      const text = message.role === "assistant"
+        ? sanitizeAssistantResponseText(message.text)
+        : message.text.trim();
+
+      if (!text) {
+        return null;
+      }
+
+      return {
+        role: message.role,
+        text
+      };
+    })
+    .filter(Boolean);
 }
 
 function nowIso() {
@@ -223,77 +271,12 @@ const BUILTIN_SHORTCUTS = [
 // ═══════════════════════════════════════════════════════════════════
 // DOM build
 // ═══════════════════════════════════════════════════════════════════
-export function buildPanelShellMarkup() {
-  return `
-<div class="assistant-shell">
-  <header class="panel-header">
-    <div class="panel-header-brand">
-      <button class="icon-btn panel-back-btn" id="btn-settings-back" title="Back" aria-label="Back" hidden>${SVG.chevronLeft}</button>
-      <div class="brand-icon" id="panel-brand-icon">${svgGamma("")}</div>
-      <span id="panel-header-title">Assistant</span>
-    </div>
-    <div class="panel-header-actions" id="panel-header-actions-main">
-      <div class="kebab-wrap">
-        <button class="icon-btn" id="btn-new-chat" title="Open menu" aria-label="Open menu">${SVG.newChat}</button>
-        <div id="kebab-menu" class="overlay-panel kebab-menu" hidden></div>
-      </div>
-    </div>
-  </header>
-
-  <div class="assistant-main-view" id="assistant-main-view">
-    <div id="conn-bar" class="conn-bar" hidden>
-      <span class="conn-dot" id="conn-dot"></span>
-      <span id="conn-label">Connecting…</span>
-    </div>
-
-    <div class="stage-wrap">
-      <div class="stage" id="stage">
-        <div class="empty-state" id="empty-state">
-          <p class="empty-title">${EMPTY_DEFAULT_COPY}</p>
-          <div class="suggested-chips" id="chips">
-            <button class="chip" data-prompt="Summarise this page for me">✦ Summarise</button>
-            <button class="chip" data-prompt="What can I do on this page?">What can I do here?</button>
-            <button class="chip" data-prompt="Tell me more about this page">Learn more</button>
-            <button class="chip" data-prompt="Find the main call to action on this page">Find CTA</button>
-          </div>
-          <button class="empty-reconnect-btn" id="empty-reconnect-btn" type="button" hidden>Reconnect to sidecar</button>
-        </div>
-        <div class="thread" id="thread" hidden></div>
-      </div>
-      <button class="scroll-fab" id="scroll-fab" hidden title="Scroll to bottom" aria-label="Scroll to bottom">${SVG.chevronDown}</button>
-    </div>
-
-    <div class="composer-wrap">
-      <div class="composer-blur"></div>
-      <div id="overlay-panel" class="overlay-panel composer-overlay" hidden></div>
-      <div class="composer" id="composer">
-        <div id="attachment-preview" class="attachment-preview" hidden></div>
-        <textarea id="prompt-input" rows="1" placeholder="${FULL_PROMPT_PLACEHOLDER}" autocomplete="off" spellcheck="true" aria-label="${PROMPT_ARIA_LABEL}"></textarea>
-        <div class="composer-dock">
-          <button id="btn-plus" class="dock-btn dock-btn--icon" title="Add content" aria-label="Add content">${SVG.plus}</button>
-          <div class="dock-right">
-            <button id="btn-model" class="dock-btn dock-btn--pill" title="Select model" aria-label="Select model">
-              <span id="model-label">Auto</span>
-              ${SVG.chevronDown}
-            </button>
-            <button id="btn-mic" class="dock-btn dock-btn--icon" title="Voice input" aria-label="Voice input" hidden>${SVG.mic}</button>
-            <button id="btn-send" title="Send" aria-label="Send">${SVG.send}</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <section class="settings-view" id="settings-view" hidden>
-    <iframe id="settings-frame" class="settings-frame" title="Settings"></iframe>
-  </section>
-
-  <div class="toast-container" id="toast-container"></div>
-</div>`;
-}
-
 function buildUI(root) {
   root.innerHTML = buildPanelShellMarkup();
+}
+
+export function buildPanelShellMarkup() {
+  return renderPanelShellMarkup();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -337,7 +320,7 @@ export function deriveTerminalRunSnapshot(payload) {
   }
 
   const status = payload.status;
-  if (status !== "completed" && status !== "failed" && status !== "stopped") {
+  if (status !== "completed" && status !== "failed" && status !== "stopped" && status !== "interrupted") {
     return null;
   }
 
@@ -356,9 +339,10 @@ export function deriveTerminalRunSnapshot(payload) {
 
   return {
     status,
-    rawText: rawAnswer.replace(/<\/?answer>/gi, "").trim(),
+    rawText: sanitizeAssistantResponseText(rawAnswer),
     errorMessage: typeof payload.error_message === "string" ? payload.error_message : "",
     isStopped: status === "stopped",
+    isInterrupted: status === "interrupted",
     draftArtifact: payload.draft_artifact,
     sources
   };
@@ -393,35 +377,33 @@ export function deriveTaskStatusMeta(task) {
   const children = Array.isArray(task.children) ? task.children : [];
   const childCount = children.length;
   const chips = [];
-  chips.push(task.role === "subagent" ? "Worker" : "Primary");
-  chips.push(task.visibility === "hidden" ? "Hidden" : "Panel");
   if (childCount > 0) {
-    chips.push(`${childCount} hidden worker${childCount === 1 ? "" : "s"}`);
+    chips.push(`${childCount} worker${childCount === 1 ? "" : "s"}`);
   }
   if (task.activeChildTaskId) {
     chips.push("Delegating");
   } else if (task.childError) {
     chips.push("Needs review");
   } else if (task.childSummary) {
-    chips.push("Returned");
+    chips.push("Update ready");
   }
 
   let description = task.role === "subagent"
-    ? "Running as a delegated worker for the active task."
-    : "Keeping this page live while the agent works.";
+    ? "Working in the background for the current task."
+    : "Working on this page.";
 
   if (task.activeChildTaskId) {
-    description = "Delegating a hidden worker while keeping this page live.";
+    description = "Working on this page while a background worker checks a subtask.";
   } else if (task.childError) {
-    description = "A delegated worker hit a problem and returned control here.";
+    description = "A background worker needs review before this run can finish cleanly.";
   } else if (task.childSummary) {
-    description = "A delegated worker returned with an update.";
+    description = "A background worker returned an update.";
   }
 
   return {
     description,
     chips,
-    summary: task.childSummary || "",
+    summary: stripAnswerEnvelope(task.childSummary || ""),
     error: task.childError || ""
   };
 }
@@ -445,6 +427,135 @@ export function deriveLiveRunState(currentRunState, payload) {
   return nextRunState;
 }
 
+export function deriveRunControlModel(controlState, runStatus = "running") {
+  const normalizedControlState = String(controlState || "active").toLowerCase();
+  const normalizedRunStatus = String(runStatus || "running").toLowerCase();
+
+  if (normalizedControlState === "active" && normalizedRunStatus === "running") {
+    return {
+      headline: "Working",
+      summary: "",
+      chip: null,
+      actions: [
+        { id: "pause", label: "Take control", kind: "primary" },
+        { id: "stop", label: "Stop", kind: "secondary" }
+      ]
+    };
+  }
+
+  if (normalizedControlState === "paused" || normalizedRunStatus === "paused") {
+    return {
+      headline: "Paused",
+      summary: "The agent is paused. Resume or stop this run.",
+      chip: "Paused",
+      actions: [
+        { id: "resume", label: "Resume", kind: "primary" },
+        { id: "stop", label: "Stop", kind: "secondary" }
+      ]
+    };
+  }
+
+  if (normalizedControlState === "pausing" || normalizedRunStatus === "pausing") {
+    return {
+      headline: "Pausing",
+      summary: "Waiting for a safe boundary before handing control back.",
+      chip: "Pausing",
+      actions: []
+    };
+  }
+
+  if (normalizedControlState === "resuming") {
+    return {
+      headline: "Resuming",
+      summary: "Handing control back to the agent.",
+      chip: "Resuming",
+      actions: []
+    };
+  }
+
+  if (normalizedControlState === "stopping") {
+    return {
+      headline: "Stopping",
+      summary: "Stopping the current run.",
+      chip: "Stopping",
+      actions: []
+    };
+  }
+
+  return {
+    headline: "Working",
+    summary: "",
+    chip: null,
+    actions: []
+  };
+}
+
+export function deriveThinkingPresentation(runState, controlState) {
+  const steps = Array.isArray(runState?.steps) ? runState.steps : [];
+  const latestStep = steps.at(-1) ?? null;
+  const completedCount = steps.filter((step) => step?.status === "completed").length;
+  const normalizedControlState = String(controlState || "active").toLowerCase();
+  const normalizedRunStatus = String(runState?.status || "running").toLowerCase();
+  const isFinishing =
+    normalizedRunStatus === "running" &&
+    normalizedControlState === "active" &&
+    steps.length > 0 &&
+    steps.every((step) => step?.status === "completed");
+  const details = describeAgentStep(latestStep);
+  const taskMeta = deriveTaskStatusMeta(runState?.task ?? null);
+  const controlModel = isFinishing
+    ? {
+        headline: "Finishing",
+        summary: "Preparing the final response.",
+        chip: "Done",
+        actions: [{ id: "stop", label: "Stop", kind: "secondary" }]
+      }
+    : deriveRunControlModel(controlState, runState?.status ?? "running");
+  const meta = [];
+
+  if (controlModel.chip || details.chip) {
+    meta.push(controlModel.chip || details.chip);
+  }
+  if (completedCount > 0) {
+    meta.push(`${completedCount} step${completedCount === 1 ? "" : "s"} done`);
+  }
+  if (taskMeta?.chips?.length) {
+    meta.push(...taskMeta.chips);
+  }
+
+  return {
+    headline: controlModel.headline,
+    summary: controlModel.summary || details.description,
+    detail: isFinishing ? "" : taskMeta?.description || "",
+    subdetail: taskMeta?.summary || "",
+    error: taskMeta?.error || "",
+    meta,
+    actions: controlModel.actions,
+    isStale: completedCount > 0 && !latestStep
+  };
+}
+
+function deriveThinkingRenderSignature(runState, controlState) {
+  return JSON.stringify({
+    controlState: String(controlState || "active").toLowerCase(),
+    status: typeof runState?.status === "string" ? runState.status : "running",
+    steps: Array.isArray(runState?.steps)
+      ? runState.steps.map((step) => ({
+          title: typeof step?.title === "string" ? step.title : "",
+          status: typeof step?.status === "string" ? step.status : "",
+          count: Number.isFinite(step?.count) ? step.count : null
+        }))
+      : [],
+    task: runState?.task && typeof runState.task === "object"
+      ? {
+          title: typeof runState.task.title === "string" ? runState.task.title : "",
+          description: typeof runState.task.description === "string" ? runState.task.description : "",
+          chips: Array.isArray(runState.task.chips) ? runState.task.chips : []
+        }
+      : null
+  });
+}
+
 export function deriveOverlayCueForToolStart(toolName, input = {}) {
   if (toolName === "computer") {
     const coord = Array.isArray(input.coordinate) ? input.coordinate : null;
@@ -465,8 +576,7 @@ export function deriveOverlayCueForToolStart(toolName, input = {}) {
 
   if (toolName === "read_page" || toolName === "get_page_text") {
     return {
-      cursor: { x: 0.5, y: 0.18 },
-      highlight: { x: 0.08, y: 0.16, w: 0.84, h: 0.64 }
+      cursor: { x: 0.5, y: 0.18 }
     };
   }
 
@@ -680,7 +790,6 @@ let recorder        = null;
 let overlayTabId  = null;
 let overlayActive = false;
 let currentControlState = "active";
-let panelMode = "assistant";
 let isReconnecting = false;
 let sseReconnectTimer = null;
 let currentRunPollTimer = null;
@@ -860,99 +969,97 @@ function describeAgentStep(step) {
 function buildThinkingState(message) {
   const article = document.createElement("div");
   article.classList.add("message--assistant-thinking");
+  article.setAttribute("role", "status");
+  article.setAttribute("aria-live", "polite");
 
   const runState = message?.runState ?? null;
-  const steps = Array.isArray(runState?.steps) ? runState.steps : [];
-  const latestStep = steps.at(-1) ?? null;
-  const completedCount = steps.filter((step) => step?.status === "completed").length;
-  const details = describeAgentStep(latestStep);
-  const taskMeta = deriveTaskStatusMeta(runState?.task ?? null);
+  const thinkingModel = deriveThinkingPresentation(runState, currentControlState);
 
-  if (completedCount > 0 && !latestStep) {
+  if (thinkingModel.isStale) {
     article.classList.add("message--assistant-stale");
   }
 
   const thinking = document.createElement("div");
   thinking.className = "thinking-block";
 
-  const dots = document.createElement("div");
-  dots.className = "thinking-grid";
-  for (let index = 0; index < 4; index += 1) {
-    const dot = document.createElement("span");
-    dot.className = "thinking-grid-dot";
-    dots.appendChild(dot);
-  }
+  const statusRow = document.createElement("div");
+  statusRow.className = "thinking-status-row";
+
+  const indicator = document.createElement("span");
+  indicator.className = "thinking-indicator";
+  indicator.setAttribute("aria-hidden", "true");
 
   const copy = document.createElement("div");
   copy.className = "thinking-copy";
 
+  const headlineRow = document.createElement("div");
+  headlineRow.className = "thinking-headline-row";
+
   const headline = document.createElement("div");
   headline.className = "thinking-headline";
-  headline.textContent = "Thinking";
+  headline.textContent = thinkingModel.headline;
+  headlineRow.appendChild(headline);
 
   const summary = document.createElement("p");
   summary.className = "thinking-summary";
-  summary.textContent = details.description;
+  summary.textContent = thinkingModel.summary;
 
-  const chips = document.createElement("div");
-  chips.className = "thinking-chips";
-
-  const statusChip = document.createElement("span");
-  statusChip.className = "thinking-chip";
-  statusChip.textContent = details.chip;
-  chips.appendChild(statusChip);
-
-  if (completedCount > 0) {
-    const completedChip = document.createElement("span");
-    completedChip.className = "thinking-chip";
-    completedChip.textContent = `${completedCount} step${completedCount === 1 ? "" : "s"}`;
-    chips.appendChild(completedChip);
+  if (thinkingModel.meta.length > 0) {
+    const meta = document.createElement("div");
+    meta.className = "thinking-meta";
+    thinkingModel.meta.forEach((label) => {
+      const item = document.createElement("span");
+      item.className = "thinking-meta-item";
+      item.textContent = label;
+      meta.appendChild(item);
+    });
+    headlineRow.appendChild(meta);
   }
 
-  copy.appendChild(headline);
+  copy.appendChild(headlineRow);
   copy.appendChild(summary);
-  copy.appendChild(chips);
 
-  if (taskMeta) {
-    const taskCard = document.createElement("div");
-    taskCard.className = "thinking-task-card";
-
-    const taskDescription = document.createElement("p");
-    taskDescription.className = "thinking-task-summary";
-    taskDescription.textContent = taskMeta.description;
-    taskCard.appendChild(taskDescription);
-
-    if (taskMeta.summary) {
-      const taskReturned = document.createElement("p");
-      taskReturned.className = "thinking-task-note";
-      taskReturned.textContent = taskMeta.summary;
-      taskCard.appendChild(taskReturned);
-    }
-
-    if (taskMeta.error) {
-      const taskError = document.createElement("p");
-      taskError.className = "thinking-task-note thinking-task-note--error";
-      taskError.textContent = taskMeta.error;
-      taskCard.appendChild(taskError);
-    }
-
-    if (taskMeta.chips.length > 0) {
-      const taskChips = document.createElement("div");
-      taskChips.className = "thinking-task-chips";
-      taskMeta.chips.forEach((label) => {
-        const chip = document.createElement("span");
-        chip.className = "thinking-task-chip";
-        chip.textContent = label;
-        taskChips.appendChild(chip);
-      });
-      taskCard.appendChild(taskChips);
-    }
-
-    copy.appendChild(taskCard);
+  if (thinkingModel.detail) {
+    const detail = document.createElement("p");
+    detail.className = "thinking-detail";
+    detail.textContent = thinkingModel.detail;
+    copy.appendChild(detail);
   }
 
-  thinking.appendChild(dots);
-  thinking.appendChild(copy);
+  if (thinkingModel.subdetail) {
+    const subdetail = document.createElement("p");
+    subdetail.className = "thinking-subdetail";
+    subdetail.textContent = thinkingModel.subdetail;
+    copy.appendChild(subdetail);
+  }
+
+  if (thinkingModel.error) {
+    const taskError = document.createElement("p");
+    taskError.className = "thinking-subdetail thinking-subdetail--error";
+    taskError.textContent = thinkingModel.error;
+    copy.appendChild(taskError);
+  }
+
+  if (thinkingModel.actions.length > 0) {
+    const controls = document.createElement("div");
+    controls.className = "thinking-controls";
+    thinkingModel.actions.forEach((action) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `thinking-control-btn thinking-control-btn--${action.kind}`;
+      button.dataset.runControl = action.id;
+      button.textContent = action.label;
+      if (currentControlState === "pausing" || currentControlState === "resuming" || currentControlState === "stopping") {
+        button.disabled = true;
+      }
+      controls.appendChild(button);
+    });
+    thinking.appendChild(controls);
+  }
+
+  statusRow.appendChild(indicator);
+  statusRow.appendChild(copy);
+  thinking.appendChild(statusRow);
   article.appendChild(thinking);
   return article;
 }
@@ -967,6 +1074,15 @@ function renderThinkingState(messageEl, runState) {
   if (!content) return;
   clearThinkingState(messageEl);
   const thinking = buildThinkingState({ runState });
+  thinking.querySelector('[data-run-control="pause"]')?.addEventListener("click", () => {
+    void pauseRun();
+  });
+  thinking.querySelector('[data-run-control="resume"]')?.addEventListener("click", () => {
+    void resumeRun();
+  });
+  thinking.querySelector('[data-run-control="stop"]')?.addEventListener("click", () => {
+    void stopRun();
+  });
   content.prepend(thinking);
   syncOverlayTaskStatus(runState);
 }
@@ -1083,6 +1199,22 @@ function syncOverlayTaskStatus(runState = currentRunState) {
 function setOverlayControlState(nextState) {
   currentControlState = nextState;
   broadcastOverlayControlState();
+}
+
+function syncControlStateFromRunStatus(runStatus) {
+  if (runStatus === "paused") {
+    setOverlayControlState("paused");
+    return;
+  }
+
+  if (runStatus === "pausing") {
+    setOverlayControlState("pausing");
+    return;
+  }
+
+  if (runStatus === "running" && currentControlState !== "stopping") {
+    setOverlayControlState("active");
+  }
 }
 
 function ensureActionLog(msgEl) {
@@ -1229,7 +1361,7 @@ function buildProviderSetupCard(provider) {
         <div class="inline-state-title">${escHtml(`${providerLabel} needs setup`)}</div>
         <div class="inline-state-body">${escHtml(buildMissingProviderSessionMessage(provider))}</div>
       </div>
-      <button class="inline-state-action" type="button" data-open-settings-section="general">Open General</button>
+      <button class="inline-state-action" type="button" data-open-settings-page="general">Open General</button>
     </div>`;
 }
 
@@ -1705,7 +1837,7 @@ async function renderRecentsPalette(panel) {
     });
   });
   panel.querySelector('[data-recents-manage="true"]')?.addEventListener("click", () => {
-    void openSettingsPage("data-controls");
+    void openExtensionSettingsPage("data-controls");
   });
 }
 
@@ -1726,7 +1858,8 @@ function restoreSession(session) {
       const el = appendAiMsg();
       if (el) el.style.animation = "none";
       const content = el?.querySelector(".msg-content");
-      if (content) content.innerHTML = msg.text ? renderMarkdown(msg.text) : "<em style='opacity:.5'>No response.</em>";
+      const assistantText = sanitizeAssistantResponseText(msg.text);
+      if (content) content.innerHTML = assistantText ? renderMarkdown(assistantText) : "<em style='opacity:.5'>No response.</em>";
     }
   }
   scrollToBottom(false);
@@ -1768,7 +1901,7 @@ function renderKebabRootMenu(menu) {
   });
   document.getElementById("kebab-settings")?.addEventListener("click", () => {
     closeKebab();
-    void openSettingsPage();
+    void openExtensionSettingsPage();
   });
 }
 
@@ -1869,72 +2002,33 @@ async function syncModelLabelFromStorage() {
 // ═══════════════════════════════════════════════════════════════════
 let sseSource   = null;
 let actionItems = new Map();
-
-function normaliseSettingsSection(value) {
-  const id = typeof value === "string" ? value.trim().toLowerCase() : "";
-  const aliases = {
-    provider: "general",
-    models: "general",
-    data: "data-controls",
-    commands: "agent-mode",
-    agent: "agent-mode"
-  };
-  return aliases[id] || id || "general";
-}
-
-function buildSettingsFrameUrl(section = "general") {
-  const targetSection = normaliseSettingsSection(section);
-  const path = `options.html?embedded=panel&section=${targetSection}`;
-  if (typeof chrome !== "undefined" && typeof chrome.runtime?.getURL === "function") {
-    return chrome.runtime.getURL(path);
-  }
-  return path;
-}
-
-function setPanelMode(mode, section = "general") {
-  panelMode = mode === "settings" ? "settings" : "assistant";
+async function openExtensionSettingsPage(section = "general") {
+  const targetSection = resolveSettingsPageId(section, { developerModeEnabled: true });
+  const targetUrl = chrome.runtime.getURL(`options.html#${targetSection}`);
   const header = document.querySelector(".panel-header");
-  const shell = document.querySelector(".assistant-shell");
-  const mainView = document.getElementById("assistant-main-view");
-  const settingsView = document.getElementById("settings-view");
-  const settingsFrame = document.getElementById("settings-frame");
-  const backButton = document.getElementById("btn-settings-back");
-  const headerActions = document.getElementById("panel-header-actions-main");
-  const headerTitle = document.getElementById("panel-header-title");
-  const brandIcon = document.getElementById("panel-brand-icon");
-
-  const isSettings = panelMode === "settings";
   if (header) header.hidden = false;
-  shell?.classList.toggle("is-settings-mode", isSettings);
-  if (mainView) mainView.hidden = isSettings;
-  if (settingsView) settingsView.hidden = !isSettings;
-  if (backButton) backButton.hidden = !isSettings;
-  if (headerActions) headerActions.hidden = isSettings;
-  if (headerTitle) headerTitle.textContent = isSettings ? "Settings" : "Assistant";
-  if (brandIcon) brandIcon.hidden = isSettings;
-
-  if (isSettings && settingsFrame) {
-    const nextUrl = buildSettingsFrameUrl(section);
-    if (settingsFrame.getAttribute("src") !== nextUrl) {
-      settingsFrame.setAttribute("src", nextUrl);
-    }
-  }
-}
-
-async function openSettingsPage(section = "general") {
   closeKebab();
   setOverlay(OVERLAY_NONE);
-  setPanelMode("settings", section);
-}
+  try {
+    const existingTabs = await chrome.tabs.query({ url: `${chrome.runtime.getURL("options.html")}*` });
+    const existingTab = existingTabs.find((tab) => typeof tab.id === "number");
+    if (existingTab?.id) {
+      await chrome.tabs.update(existingTab.id, { active: true, url: targetUrl });
+      if (typeof existingTab.windowId === "number") {
+        await chrome.windows.update(existingTab.windowId, { focused: true }).catch(() => {});
+      }
+      return;
+    }
+  } catch {}
 
-function closeSettingsPage() {
-  setPanelMode("assistant");
-  const input = document.getElementById("prompt-input");
-  input?.focus();
+  await chrome.tabs.create({
+    url: targetUrl,
+    active: true
+  });
 }
 
 async function openCommandsSettingsPage() {
-  await openSettingsPage("agent-mode");
+  await openExtensionSettingsPage("agent-mode-commands");
 }
 
 function clearSseReconnectTimer() {
@@ -2013,22 +2107,24 @@ function connectSSE() {
       const s    = p?.status;
 
       if (s === "running" && currentAiEl) {
-        setOverlayControlState("active");
+        syncControlStateFromRunStatus("running");
         clearRunState(currentAiEl.querySelector(".msg-content"));
         setAiAvatar(currentAiEl, "gamma-thinking");
         renderThinkingState(currentAiEl, currentRunState);
       }
 
       if (s === "pausing" && currentAiEl) {
-        setOverlayControlState("pausing");
-        const content = currentAiEl.querySelector(".msg-content");
-        upsertRunState(content, "pausing", "<em style='opacity:.5'>Pausing…</em>");
+        syncControlStateFromRunStatus("pausing");
+        currentRunState = deriveLiveRunState(currentRunState, { status: "pausing" });
+        clearRunState(currentAiEl.querySelector(".msg-content"));
+        renderThinkingState(currentAiEl, currentRunState);
       }
 
       if (s === "paused" && currentAiEl) {
-        setOverlayControlState("paused");
-        const content = currentAiEl.querySelector(".msg-content");
-        upsertRunState(content, "paused", "<em style='opacity:.5'>Paused — you have control.</em>");
+        syncControlStateFromRunStatus("paused");
+        currentRunState = deriveLiveRunState(currentRunState, { status: "paused" });
+        clearRunState(currentAiEl.querySelector(".msg-content"));
+        renderThinkingState(currentAiEl, currentRunState);
       }
 
       if (s === "tool_start" && currentAiEl) {
@@ -2305,7 +2401,7 @@ function finalizeCurrentRun(runId, payload) {
   currentRunState = null;
 
   if (currentAiEl) {
-    if (terminal.errorMessage) {
+    if (terminal.errorMessage && !terminal.isInterrupted && !terminal.isStopped) {
       setAiAvatar(currentAiEl, "gamma-error");
       const content = currentAiEl.querySelector(".msg-content");
       const log = content?.querySelector(".action-log");
@@ -2314,10 +2410,10 @@ function finalizeCurrentRun(runId, payload) {
         if (log) content.appendChild(log);
         const errEl = document.createElement("div");
         errEl.style.color = "oklch(62.8% .258 29.23)";
-        errEl.innerHTML = SVG.warning + " " + escHtml(terminal.errorMessage || "An error occurred.");
+        errEl.innerHTML = SVG.warning + " " + escHtml(normalizePanelErrorMessage(terminal.errorMessage || "An error occurred."));
         content.appendChild(errEl);
       }
-      showToast(terminal.errorMessage || "Agent error", "error");
+      showToast(normalizePanelErrorMessage(terminal.errorMessage || "Agent error"), "error");
     } else {
       const content = currentAiEl.querySelector(".msg-content");
       const log = content?.querySelector(".action-log");
@@ -2326,6 +2422,12 @@ function finalizeCurrentRun(runId, payload) {
         if (log) content.appendChild(log);
         if (terminal.isStopped) {
           upsertRunState(content, "stopped", "<em style='opacity:.5'>Stopped.</em>");
+        } else if (terminal.isInterrupted) {
+          upsertRunState(
+            content,
+            "interrupted",
+            `<em style='opacity:.5'>${escHtml(normalizePanelErrorMessage(terminal.errorMessage || "The run was interrupted before it finished."))}</em>`
+          );
         } else {
           const textEl = document.createElement("div");
           textEl.innerHTML = terminal.rawText ? renderMarkdown(terminal.rawText) : "<em style='opacity:.5'>No response.</em>";
@@ -2337,6 +2439,8 @@ function finalizeCurrentRun(runId, payload) {
       }
       if (terminal.isStopped) {
         setAiAvatar(currentAiEl, "");
+      } else if (terminal.isInterrupted) {
+        setAiAvatar(currentAiEl, "");
       } else {
         setAiAvatar(currentAiEl, "gamma-done");
         appendSources(currentAiEl, terminal.sources);
@@ -2345,7 +2449,11 @@ function finalizeCurrentRun(runId, payload) {
     }
   }
 
-  const sessionText = terminal.isStopped ? "Stopped." : terminal.rawText;
+  const sessionText = terminal.isStopped
+    ? "Stopped."
+    : terminal.isInterrupted
+      ? normalizePanelErrorMessage(terminal.errorMessage || "The run was interrupted before it finished.")
+      : terminal.rawText;
   if (activeSessionId && sessionStore && sessionText) {
     try {
       sessionStore = appendSessionMessage(sessionStore, activeSessionId, {
@@ -2389,8 +2497,12 @@ async function pollCurrentRunState(runId) {
     if (state !== "running" || currentRunId !== runId) {
       return;
     }
-    currentRunState = deriveLiveRunState(currentRunState, snapshot);
-    if (currentAiEl) {
+    const previousSignature = deriveThinkingRenderSignature(currentRunState, currentControlState);
+    syncControlStateFromRunStatus(snapshot?.status);
+    const nextRunState = deriveLiveRunState(currentRunState, snapshot);
+    const nextSignature = deriveThinkingRenderSignature(nextRunState, currentControlState);
+    currentRunState = nextRunState;
+    if (currentAiEl && previousSignature !== nextSignature) {
       renderThinkingState(currentAiEl, currentRunState);
     }
     if (finalizeCurrentRun(runId, snapshot)) {
@@ -2473,13 +2585,25 @@ async function sendPrompt(promptText) {
       return;
     }
 
-    // Build full prompt with attachments prefix
+    // Build full prompt with page and attachment context.
     let fullPrompt = resolvedPromptText;
+    const promptPrefixes = [];
+    if (isPageContextPrompt(resolvedPromptText)) {
+      const activePagePromptPrefix = buildActivePagePromptPrefix(activeTabForPrompt);
+      if (activePagePromptPrefix) {
+        promptPrefixes.push(activePagePromptPrefix);
+      }
+    }
     if (pendingAttachments.length > 0) {
       try {
         const prefix = buildAttachmentPromptPrefix(pendingAttachments);
-        if (prefix) fullPrompt = prefix + "\n\n" + resolvedPromptText;
+        if (prefix) {
+          promptPrefixes.push(prefix);
+        }
       } catch {}
+    }
+    if (promptPrefixes.length > 0) {
+      fullPrompt = `${promptPrefixes.join("\n\n")}\n\n${resolvedPromptText}`;
     }
 
     const imageDataUrls = pendingAttachments
@@ -2554,8 +2678,8 @@ async function sendPrompt(promptText) {
     if (missingProviderSession) {
       setAiAvatar(currentAiEl, "");
       setAiContent(currentAiEl, buildProviderSetupCard(provider));
-      currentAiEl?.querySelector('[data-open-settings-section="general"]')?.addEventListener("click", () => {
-        void openSettingsPage("general");
+      currentAiEl?.querySelector('[data-open-settings-page="general"]')?.addEventListener("click", () => {
+        void openExtensionSettingsPage("general");
       });
       transitionState("idle");
       return;
@@ -2643,6 +2767,9 @@ async function resumeRun() {
   if (state !== "running" || !currentRunId || currentControlState !== "paused") return;
 
   try {
+    setOverlayControlState("resuming");
+    const content = currentAiEl?.querySelector(".msg-content");
+    upsertRunState(content, "resuming", "<em style='opacity:.5'>Resuming…</em>");
     const result = await rpc.call("AgentResume", null, { run_id: currentRunId });
     if (result?.status === "running") {
       setOverlayControlState("active");
@@ -2659,9 +2786,6 @@ async function resumeRun() {
 // ═══════════════════════════════════════════════════════════════════
 function newChat() {
   if (state === "running") stopRun();
-  if (panelMode === "settings") {
-    setPanelMode("assistant");
-  }
   const thread = document.getElementById("thread");
   const empty  = document.getElementById("empty-state");
 
@@ -2676,6 +2800,8 @@ function newChat() {
     currentControlState = "active";
     attachments = [];
     updateAttachmentPreview();
+    sessionStore = clearActiveSession(sessionStore);
+    chrome.storage.local.set({ [CHAT_SESSIONS_STORAGE_KEY]: sessionStore }).catch(() => {});
     activeSessionId = null;
     const input = document.getElementById("prompt-input");
     if (input) { input.value = ""; input.style.height = ""; input.focus(); }
@@ -2713,12 +2839,10 @@ function autoResize(el) {
   if (!root) return;
 
   buildUI(root);
-  setPanelMode("assistant");
 
   const input   = document.getElementById("prompt-input");
   const sendBtn = document.getElementById("btn-send");
   const newBtn  = document.getElementById("btn-new-chat");
-  const settingsBackBtn = document.getElementById("btn-settings-back");
   const chips   = document.getElementById("chips");
   const plusBtn = document.getElementById("btn-plus");
   const modelBtn = document.getElementById("btn-model");
@@ -2797,9 +2921,6 @@ function autoResize(el) {
     e.stopPropagation();
     setOverlay(OVERLAY_NONE);
     toggleKebab();
-  });
-  settingsBackBtn?.addEventListener("click", () => {
-    closeSettingsPage();
   });
   emptyReconnectButton?.addEventListener("click", reconnectToSidecar);
   chips.addEventListener("click", (e) => {

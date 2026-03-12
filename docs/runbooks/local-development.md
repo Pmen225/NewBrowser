@@ -21,6 +21,8 @@
 - `npm run dev`
 - `npm run test:all`
 - `npm start`
+- `npm run launch:browser`
+- `npm run launch:browser:only`
 - `npm run test`
 - `npx vitest run tests/transport.parsers.spec.ts tests/agent/orchestrator.spec.ts tests/policy/response-validator.spec.ts`
 
@@ -29,6 +31,8 @@
 - `npm run dev`: wait for `extension/manifest.json`, then start the sidecar launcher.
 - `npm run test:all`: run the full root Vitest suite.
 - `npm start`: run the sidecar launcher (loads extension from `extension/`).
+- `npm run launch:browser`: alias for the full assistant stack startup.
+- `npm run launch:browser:only`: launch Chromium with the extension only, without the sidecar.
 - `npm run test`: run the root Vitest suite.
 - `npx vitest run tests/transport.parsers.spec.ts ...`: run the focused backend agent contract checks.
 

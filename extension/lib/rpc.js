@@ -73,6 +73,7 @@ export function createPanelRpcClient(options) {
   let retryDelay = 1000;
   let retryTimer = null;
   let intentionalClose = false;
+  let activeSocketToken = 0;
 
   function scheduleReconnect() {
     if (intentionalClose) return;
@@ -93,24 +94,47 @@ export function createPanelRpcClient(options) {
     }
 
     intentionalClose = false;
-    ws = new WebSocket(rawWebSocketUrl);
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
 
-    ws.addEventListener("open", () => {
+    const socketToken = activeSocketToken + 1;
+    const socket = new WebSocket(rawWebSocketUrl);
+    activeSocketToken = socketToken;
+    ws = socket;
+
+    socket.addEventListener("open", () => {
+      if (activeSocketToken !== socketToken || ws !== socket) {
+        return;
+      }
       retryDelay = 1000;
       notify("onOpen");
     });
 
-    ws.addEventListener("close", () => {
+    socket.addEventListener("close", () => {
+      if (ws === socket) {
+        ws = null;
+      }
+      if (activeSocketToken !== socketToken) {
+        return;
+      }
       clearPending("WebSocket disconnected");
       notify("onClose");
       scheduleReconnect();
     });
 
-    ws.addEventListener("error", () => {
+    socket.addEventListener("error", () => {
+      if (activeSocketToken !== socketToken || ws !== socket) {
+        return;
+      }
       notify("onError", new Error("WebSocket error"));
     });
 
-    ws.addEventListener("message", (event) => {
+    socket.addEventListener("message", (event) => {
+      if (activeSocketToken !== socketToken || ws !== socket) {
+        return;
+      }
       handleMessage(event.data);
     });
   }
@@ -124,6 +148,7 @@ export function createPanelRpcClient(options) {
     if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
     const socket = ws;
     ws = null;
+    activeSocketToken += 1;
     clearPending("WebSocket closed");
     socket.close(1000, "Client closed");
   }
