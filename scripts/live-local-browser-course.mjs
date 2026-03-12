@@ -1,4 +1,5 @@
 import { mkdirSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 
@@ -11,6 +12,14 @@ import {
 import { normalizeGoogleModelId, resolveLiveModelSelection } from "./lib/live-cdp-config.js";
 import { buildLocalBrowserCourseScenarios, createLocalBrowserCourseServer } from "./lib/local-browser-course.js";
 import { runLivePanelCheck } from "./live-cdp-panel-check.mjs";
+
+const requireFromEsm = createRequire(import.meta.url);
+const {
+  classifyBenchmarkRuntimeFailure,
+  resolveBrowserCourseScenarioPreflight,
+  resolvePlaywrightBootstrapReadiness,
+  shouldFailBrowserCourseBenchmarkProcess
+} = requireFromEsm("./lib/browser-course-bootstrap.cjs");
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT_ROOT = path.join(ROOT, "output", "playwright", process.env.LIVE_BENCHMARK_OUTPUT_DIR?.trim() || "live-local-browser-course");
@@ -44,6 +53,15 @@ function parseModels() {
 function classifyFailure(report, scenario, error) {
   if (error) {
     const message = error instanceof Error ? error.message : String(error);
+    const runtimeFailure = classifyBenchmarkRuntimeFailure(error);
+    if (runtimeFailure) {
+      return {
+        status: "hard_fail",
+        failureMode: runtimeFailure.failureMode,
+        hardFailure: true,
+        detail: runtimeFailure.detail
+      };
+    }
     if (/http 400|provider_http_error|provider auth|provider_empty_response/i.test(message)) {
       return { status: "hard_fail", failureMode: "provider_http_error", hardFailure: true, detail: message };
     }
@@ -132,13 +150,26 @@ function summarizeModel(modelId, results) {
 
 async function main() {
   mkdirSync(DEFAULT_OUTPUT_ROOT, { recursive: true });
-  const server = await createLocalBrowserCourseServer();
+  const bootstrapReadiness = resolvePlaywrightBootstrapReadiness();
+  let server = null;
+  let serverFailure = null;
 
   try {
-    const scenarios = buildLocalBrowserCourseScenarios({
-      baseUrl: server.baseUrl,
-      uploadFixturePath: UPLOAD_FIXTURE_PATH
-    });
+    server = await createLocalBrowserCourseServer();
+  } catch (error) {
+    serverFailure = error;
+  }
+
+  const baseUrl = server?.baseUrl || "http://127.0.0.1:<ephemeral>";
+  const scenarios = buildLocalBrowserCourseScenarios({
+    baseUrl,
+    uploadFixturePath: UPLOAD_FIXTURE_PATH
+  });
+  const scenarioPreflight = resolveBrowserCourseScenarioPreflight({
+    startupFailure: serverFailure,
+    bootstrapReadiness
+  });
+  try {
     const modelsToRun = parseModels();
     const excludedVisibleModels = GOOGLE_VISIBLE_MODEL_IDS.filter((modelId) => !GOOGLE_BROWSER_BENCHMARK_MODEL_IDS.includes(modelId));
     const modelSummaries = [];
@@ -152,7 +183,23 @@ async function main() {
       for (const [index, scenario] of scenarios.entries()) {
         const scenarioDir = path.join(modelDir, `${String(index + 1).padStart(2, "0")}-${scenario.name}`);
         mkdirSync(scenarioDir, { recursive: true });
-        const result = await runScenario(modelId, scenario, scenarioDir);
+        const serverFailureClassification = serverFailure ? classifyBenchmarkRuntimeFailure(serverFailure) : null;
+        const result = serverFailureClassification
+          ? {
+              modelId,
+              scenario: scenario.name,
+              targetUrl: scenario.targetUrl,
+              outputDir: scenarioDir,
+              elapsedMs: 0,
+              panelText: "",
+              siteUrl: "",
+              siteEval: null,
+              status: "hard_fail",
+              failureMode: serverFailureClassification.failureMode,
+              hardFailure: true,
+              detail: serverFailureClassification.detail
+            }
+          : await runScenario(modelId, scenario, scenarioDir);
         results.push(result);
         writeFileSync(path.join(scenarioDir, "benchmark-result.json"), JSON.stringify(result, null, 2));
       }
@@ -167,7 +214,14 @@ async function main() {
       generatedAt: new Date().toISOString(),
       benchmarkKind: "local-browser-control-course",
       searchExcluded: true,
-      baseUrl: server.baseUrl,
+      baseUrl,
+      bootstrapReady: scenarioPreflight.bootstrapReady,
+      bootstrapFailure: scenarioPreflight.bootstrapFailure,
+      bootstrapFailureMode: scenarioPreflight.bootstrapFailureMode,
+      startupReady: !serverFailure,
+      startupFailure: serverFailure
+        ? classifyBenchmarkRuntimeFailure(serverFailure)?.detail || (serverFailure instanceof Error ? serverFailure.message : String(serverFailure))
+        : "",
       scenarios: scenarios.map((scenario) => scenario.name),
       modelsTested: modelsToRun,
       visibleButExcludedModels: excludedVisibleModels,
@@ -177,8 +231,13 @@ async function main() {
 
     writeFileSync(path.join(DEFAULT_OUTPUT_ROOT, "summary.json"), JSON.stringify(aggregate, null, 2));
     console.log(JSON.stringify(aggregate, null, 2));
+    if (shouldFailBrowserCourseBenchmarkProcess({ summaries: modelSummaries })) {
+      process.exitCode = 1;
+    }
   } finally {
-    await server.close();
+    if (server) {
+      await server.close();
+    }
   }
 }
 

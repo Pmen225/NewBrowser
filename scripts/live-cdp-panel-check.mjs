@@ -1,7 +1,9 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createWriteStream, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
 
 import WebSocket from "ws";
 import {
@@ -11,11 +13,185 @@ import {
   resolveLiveModelSelection
 } from "./lib/live-cdp-config.js";
 import { buildBenchmarkWorkspace } from "./lib/live-benchmark-tabs.js";
+import { assertLoopbackBindReady } from "./lib/loopback-bind.js";
+import {
+  cleanupPreparedSidecarLaunchCommand,
+  prepareSidecarLaunchCommand
+} from "./lib/sidecar-launch.js";
+import sidecarRuntime from "./lib/sidecar-runtime.cjs";
 
 const ROOT = process.cwd();
+const {
+  deriveSidecarHealthUrl,
+  waitForManagedSidecarRuntimeReadiness,
+  waitForSidecarRuntimeReadiness
+} = sidecarRuntime;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function resolveManagedSidecarLaunchCommand({ root = ROOT, buildImpl } = {}) {
+  return prepareSidecarLaunchCommand({ root, buildImpl });
+}
+
+export async function startManagedSidecarProcess({
+  cdpWsUrl,
+  root = ROOT,
+  baseEnv = process.env,
+  spawnImpl = spawn,
+  buildImpl
+}) {
+  const launch = await resolveManagedSidecarLaunchCommand({ root, buildImpl });
+  const childEnv = { ...baseEnv };
+
+  for (const key of Object.keys(childEnv)) {
+    if (key.startsWith("npm_") || key.startsWith("npx_")) {
+      delete childEnv[key];
+    }
+  }
+  delete childEnv._;
+  const startupStateDir = mkdtempSync(path.join(tmpdir(), "newbrowser-sidecar-startup-"));
+  const startupStatePath = path.join(startupStateDir, "startup-state.json");
+  const managedStdoutPath = path.join(startupStateDir, "managed-sidecar.stdout.log");
+  const managedStderrPath = path.join(startupStateDir, "managed-sidecar.stderr.log");
+
+  const processHandle = spawnImpl(launch.command, launch.args, {
+    cwd: root,
+    stdio: ["ignore", "pipe", "pipe"],
+    env: {
+      ...childEnv,
+      CHROME_CDP_WS_URL: cdpWsUrl,
+      SIDECAR_STARTUP_STATE_PATH: startupStatePath
+    }
+  });
+
+  const stdoutStream = createWriteStream(managedStdoutPath, { flags: "a" });
+  const stderrStream = createWriteStream(managedStderrPath, { flags: "a" });
+  processHandle.stdout?.on("data", (chunk) => {
+    stdoutStream.write(chunk);
+    process.stdout.write(chunk);
+  });
+  processHandle.stderr?.on("data", (chunk) => {
+    stderrStream.write(chunk);
+    process.stderr.write(chunk);
+  });
+  processHandle.once?.("close", () => {
+    stdoutStream.end();
+    stderrStream.end();
+    cleanupPreparedSidecarLaunchCommand(launch);
+  });
+
+  processHandle.startupStatePath = startupStatePath;
+  processHandle.startupStateDir = startupStateDir;
+  processHandle.managedStdoutPath = managedStdoutPath;
+  processHandle.managedStderrPath = managedStderrPath;
+  return processHandle;
+}
+
+function readManagedStartupState(processHandle) {
+  const startupStatePath = processHandle?.startupStatePath;
+  if (typeof startupStatePath !== "string" || startupStatePath.trim().length === 0 || !existsSync(startupStatePath)) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(readFileSync(startupStatePath, "utf8"));
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function managedLogHasContent(filePath) {
+  if (typeof filePath !== "string" || filePath.trim().length === 0 || !existsSync(filePath)) {
+    return false;
+  }
+
+  try {
+    return readFileSync(filePath).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function readManagedLog(filePath) {
+  if (typeof filePath !== "string" || filePath.trim().length === 0 || !existsSync(filePath)) {
+    return "";
+  }
+
+  try {
+    return readFileSync(filePath, "utf8");
+  } catch {
+    return "";
+  }
+}
+
+function isSilentManagedStartupFailure(processHandle) {
+  return !readManagedStartupState(processHandle)
+    && !managedLogHasContent(processHandle?.managedStdoutPath)
+    && !managedLogHasContent(processHandle?.managedStderrPath);
+}
+
+function isRetriableManagedStartupFailure(processHandle) {
+  if (isSilentManagedStartupFailure(processHandle)) {
+    return true;
+  }
+
+  const stderr = readManagedLog(processHandle?.managedStderrPath);
+  return /ECANCELED:\s*operation canceled,\s*read/i.test(stderr)
+    && /tsx\/dist\/esm\/index\.mjs/i.test(stderr);
+}
+
+function createManagedSidecarRecoveryError({ healthUrl, cdpWsUrl, cause, processHandle }) {
+  const reason = cause instanceof Error ? cause.message : String(cause);
+  const startupState = readManagedStartupState(processHandle);
+  const phaseDetail =
+    typeof startupState?.phase === "string" && startupState.phase.trim().length > 0
+      ? ` Last startup phase: ${startupState.phase}${typeof startupState?.detail === "string" && startupState.detail.trim().length > 0 ? ` (${startupState.detail})` : ""}.`
+      : "";
+  const error = new Error(
+    `Assistant sidecar managed recovery failed at ${healthUrl} after starting a local sidecar process (${reason}).${phaseDetail}`
+  );
+  error.code = "SIDECAR_RUNTIME_MANAGED_START_FAILED";
+  error.healthUrl = healthUrl;
+  error.cdpWsUrl = cdpWsUrl;
+  error.reachable = false;
+  error.cause = cause;
+  if (startupState) {
+    error.startupPhase = startupState.phase;
+    error.startupPhaseDetail = startupState.detail;
+    error.startupStatePath = processHandle?.startupStatePath;
+  } else if (typeof processHandle?.startupStatePath === "string") {
+    error.startupPhase = "not_emitted";
+    error.startupStatePath = processHandle.startupStatePath;
+  }
+  if (typeof processHandle?.managedStdoutPath === "string") {
+    error.managedStdoutPath = processHandle.managedStdoutPath;
+  }
+  if (typeof processHandle?.managedStderrPath === "string") {
+    error.managedStderrPath = processHandle.managedStderrPath;
+  }
+  return error;
+}
+
+function isLoopbackHost(hostname) {
+  const host = typeof hostname === "string" ? hostname.trim().toLowerCase() : "";
+  if (!host) {
+    return false;
+  }
+  return host === "localhost" || host === "::1" || host.startsWith("127.");
+}
+
+function resolveHealthHostname(healthUrl) {
+  try {
+    return new URL(healthUrl).hostname || "";
+  } catch {
+    return "";
+  }
 }
 
 function withTimeout(promise, timeoutMs, label) {
@@ -117,6 +293,93 @@ export function resolveConfiguredExtensionId({
   }
 
   throw new Error("Unable to resolve extension id from Chromium profile");
+}
+
+export function validateLiveRunPrompt(prompt, { envVarName = "LIVE_PROMPT" } = {}) {
+  const normalizedPrompt = typeof prompt === "string" ? prompt.trim() : "";
+  if (normalizedPrompt.length === 0) {
+    throw new Error(`${envVarName} is required; qa:trace must execute a real task prompt.`);
+  }
+  return normalizedPrompt;
+}
+
+export function prepareLiveRunOutputDir(outputDir) {
+  const resolvedOutputDir = typeof outputDir === "string" ? outputDir.trim() : "";
+  if (!resolvedOutputDir) {
+    throw new Error("A live-run output directory is required.");
+  }
+
+  rmSync(resolvedOutputDir, { recursive: true, force: true });
+  mkdirSync(resolvedOutputDir, { recursive: true });
+  return resolvedOutputDir;
+}
+
+function normalizeLiveRunError(error) {
+  if (!error) {
+    return null;
+  }
+
+  const explicitMessage = typeof error?.message === "string" && error.message.trim().length > 0
+    ? error.message
+    : null;
+  const explicitName = typeof error?.name === "string" && error.name.trim().length > 0
+    ? error.name
+    : null;
+  const normalized = {
+    name: explicitName || "Error",
+    message: explicitMessage || (error instanceof Error ? error.message : String(error))
+  };
+
+  if (typeof error?.classification === "string" && error.classification.trim().length > 0) {
+    normalized.classification = error.classification;
+  }
+  if (typeof error?.code === "string" && error.code.trim().length > 0) {
+    normalized.code = error.code;
+  }
+
+  return normalized;
+}
+
+export function buildLiveRunReport({
+  cdpWsUrl = "",
+  extensionId = "",
+  targetUrl = "",
+  prompt = "",
+  provider = "",
+  modelId = "",
+  elapsedMs = 0,
+  runId = null,
+  status = "passed",
+  panel = null,
+  site = null,
+  siteEval = null,
+  error = null
+} = {}) {
+  const report = {
+    cdpWsUrl,
+    extensionId,
+    targetUrl,
+    prompt,
+    provider,
+    modelId,
+    elapsedMs: Number.isFinite(elapsedMs) && elapsedMs >= 0 ? elapsedMs : 0,
+    runId: typeof runId === "string" && runId.trim().length > 0 ? runId.trim() : null,
+    status: status === "failed" ? "failed" : "passed",
+    panel: panel ?? null,
+    site: site ?? null,
+    siteEval: siteEval ?? null
+  };
+
+  const normalizedError = normalizeLiveRunError(error);
+  if (normalizedError) {
+    report.error = normalizedError;
+  }
+
+  return report;
+}
+
+function writeLiveRunReport(outputDir, report) {
+  writeFileSync(path.join(outputDir, "report.json"), JSON.stringify(report, null, 2));
 }
 
 function resolveOutputDir(requestedOutputDir) {
@@ -285,6 +548,188 @@ export async function rpcCall(rpcUrl, action, params, tabId = "__system__") {
       }
 
       resolve(payload.result);
+    });
+  });
+}
+
+export async function ensureSidecarRuntimeReady({
+  rpcUrl = process.env.LIVE_RPC_URL?.trim() || "ws://127.0.0.1:3210/rpc",
+  healthUrl,
+  timeoutMs = 15_000,
+  pollMs = 250,
+  fetchImpl = globalThis.fetch,
+  cdpWsUrl = process.env.CHROME_CDP_WS_URL?.trim() || "",
+  assertLoopbackReady = assertLoopbackBindReady,
+  waitForRuntimeReadiness = waitForSidecarRuntimeReadiness,
+  waitForManagedRuntimeReadiness = waitForManagedSidecarRuntimeReadiness,
+  startManagedSidecar = ({ cdpWsUrl: managedCdpWsUrl }) => startManagedSidecarProcess({ cdpWsUrl: managedCdpWsUrl })
+} = {}) {
+  const resolvedHealthUrl = healthUrl?.trim() || deriveSidecarHealthUrl(rpcUrl);
+  const healthHost = resolveHealthHostname(resolvedHealthUrl);
+  const shouldCheckLoopbackPreflight = isLoopbackHost(healthHost);
+  const existingRuntimeRecoveryTimeoutMs = Math.min(Math.max(pollMs * 4, 1_000), Math.max(timeoutMs, 1_000));
+  try {
+    const payload = await waitForRuntimeReadiness({
+      healthUrl: resolvedHealthUrl,
+      timeoutMs,
+      pollMs,
+      fetchImpl
+    });
+    return {
+      healthUrl: resolvedHealthUrl,
+      payload,
+      recoveredByManagedStart: false,
+      recoveredByExistingRuntime: false
+    };
+  } catch (error) {
+    const runtimeUnreachable = Boolean(error && typeof error === "object" && error.reachable === false);
+    if (runtimeUnreachable && shouldCheckLoopbackPreflight) {
+      try {
+        await assertLoopbackReady({ host: healthHost || "127.0.0.1" });
+      } catch (loopbackError) {
+        const detail = loopbackError instanceof Error ? loopbackError.message : String(loopbackError);
+        const wrapped = new Error(
+          `Assistant sidecar runtime is unreachable at ${resolvedHealthUrl} and loopback preflight failed. ${detail}`
+        );
+        wrapped.code = "SIDECAR_RUNTIME_LOOPBACK_BLOCKED";
+        wrapped.healthUrl = resolvedHealthUrl;
+        wrapped.reachable = false;
+        wrapped.cause = error;
+        throw wrapped;
+      }
+    }
+
+    const canAttemptManagedRecovery = Boolean(cdpWsUrl)
+      && error
+      && typeof error === "object"
+      && error.reachable === false;
+    if (!canAttemptManagedRecovery) {
+      throw error;
+    }
+
+    const managedSidecarProcess = await startManagedSidecar({ cdpWsUrl });
+    let payload;
+    try {
+      payload = await waitForManagedRuntimeReadiness({
+        serverProcess: managedSidecarProcess,
+        healthUrl: resolvedHealthUrl,
+        timeoutMs,
+        pollMs,
+        fetchImpl
+      });
+    } catch (managedError) {
+      try {
+        const existingRuntimePayload = await waitForRuntimeReadiness({
+          healthUrl: resolvedHealthUrl,
+          timeoutMs: existingRuntimeRecoveryTimeoutMs,
+          pollMs,
+          fetchImpl
+        });
+        return {
+          healthUrl: resolvedHealthUrl,
+          payload: existingRuntimePayload,
+          recoveredByManagedStart: false,
+          recoveredByExistingRuntime: true
+        };
+      } catch {}
+
+      if (isRetriableManagedStartupFailure(managedSidecarProcess)) {
+        await stopManagedSidecarProcess(managedSidecarProcess);
+        const retryManagedSidecarProcess = await startManagedSidecar({ cdpWsUrl });
+        try {
+          payload = await waitForManagedRuntimeReadiness({
+            serverProcess: retryManagedSidecarProcess,
+            healthUrl: resolvedHealthUrl,
+            timeoutMs,
+            pollMs,
+            fetchImpl
+          });
+          return {
+            healthUrl: resolvedHealthUrl,
+            payload,
+            recoveredByManagedStart: true,
+            recoveredByExistingRuntime: false,
+            managedSidecarProcess: retryManagedSidecarProcess,
+            managedStartAttemptCount: 2
+          };
+        } catch (retryManagedError) {
+          throw createManagedSidecarRecoveryError({
+            healthUrl: resolvedHealthUrl,
+            cdpWsUrl,
+            cause: retryManagedError,
+            processHandle: retryManagedSidecarProcess
+          });
+        }
+      }
+
+      throw createManagedSidecarRecoveryError({
+        healthUrl: resolvedHealthUrl,
+        cdpWsUrl,
+        cause: managedError,
+        processHandle: managedSidecarProcess
+      });
+    }
+    return {
+      healthUrl: resolvedHealthUrl,
+      payload,
+      recoveredByManagedStart: true,
+      recoveredByExistingRuntime: false,
+      managedSidecarProcess,
+      managedStartAttemptCount: 1
+    };
+  }
+}
+
+export function buildSetActiveTabPayload({
+  chromeTabId,
+  targetId,
+  url,
+  title
+}) {
+  const payload = {};
+
+  if (typeof chromeTabId === "number") {
+    payload.chrome_tab_id = chromeTabId;
+  }
+
+  if (typeof targetId === "string" && targetId.trim().length > 0) {
+    payload.target_id = targetId;
+  }
+
+  if (typeof url === "string" && url.trim().length > 0) {
+    payload.url = url;
+  }
+
+  if (typeof title === "string" && title.trim().length > 0) {
+    payload.title = title;
+  }
+
+  return payload;
+}
+
+async function stopManagedSidecarProcess(processHandle, signal = "SIGTERM") {
+  if (!processHandle || typeof processHandle.kill !== "function" || processHandle.killed) {
+    return;
+  }
+  if (processHandle.exitCode !== null || processHandle.signalCode !== null) {
+    return;
+  }
+
+  try {
+    processHandle.kill(signal);
+  } catch {
+    return;
+  }
+
+  if (typeof processHandle.once !== "function") {
+    return;
+  }
+
+  await new Promise((resolve) => {
+    const timer = setTimeout(resolve, 1_000);
+    processHandle.once("exit", () => {
+      clearTimeout(timer);
+      resolve(undefined);
     });
   });
 }
@@ -702,6 +1147,8 @@ async function clearPanelThread(cdp, sessionId) {
 }
 
 async function sendPrompt(cdp, sessionId, prompt) {
+  await installAgentRunCapture(cdp, sessionId);
+
   await evaluate(
     cdp,
     sessionId,
@@ -725,6 +1172,124 @@ async function sendPrompt(cdp, sessionId, prompt) {
         throw new Error("Send button not found");
       }
       button.click();
+      return true;
+    })()`
+  );
+
+  const capturedRun = await waitForFunction(
+    cdp,
+    sessionId,
+    `(() => {
+      const capture = globalThis.__atlasLiveAgentRunCapture;
+      if (!capture || typeof capture !== "object") {
+        return null;
+      }
+      if (capture.lastError) {
+        return {
+          runId: "",
+          requestId: capture.lastRequestId || "",
+          lastError: capture.lastError
+        };
+      }
+      if (capture.lastRequestId && capture.responseSeen) {
+        return {
+          runId: capture.lastRunId || "",
+          requestId: capture.lastRequestId || "",
+          lastError: ""
+        };
+      }
+      return null;
+    })()`,
+    10_000,
+    100
+  );
+
+  if (capturedRun?.lastError) {
+    throw new Error(`AgentRun failed before the live run started: ${capturedRun.lastError}`);
+  }
+  if (!capturedRun?.runId) {
+    throw new Error("AgentRun response did not include a run id.");
+  }
+
+  return capturedRun;
+}
+
+async function installAgentRunCapture(cdp, sessionId) {
+  await evaluate(
+    cdp,
+    sessionId,
+    `(() => {
+      if (globalThis.__atlasLiveAgentRunCaptureInstalled) {
+        return true;
+      }
+
+      globalThis.__atlasLiveAgentRunCaptureInstalled = true;
+      globalThis.__atlasLiveAgentRunCapture = {
+        lastRequestId: "",
+        lastRunId: "",
+        lastError: "",
+        lastPrompt: "",
+        responseSeen: false
+      };
+
+      const state = globalThis.__atlasLiveAgentRunCapture;
+      const originalSend = WebSocket.prototype.send;
+
+      const decodePayload = (value) => {
+        if (typeof value === "string") {
+          return value;
+        }
+        if (value instanceof ArrayBuffer) {
+          return new TextDecoder().decode(new Uint8Array(value));
+        }
+        if (ArrayBuffer.isView(value)) {
+          return new TextDecoder().decode(value);
+        }
+        return "";
+      };
+
+      const ensureListener = (socket) => {
+        if (socket.__atlasLiveAgentRunCaptureListenerInstalled) {
+          return;
+        }
+        socket.__atlasLiveAgentRunCaptureListenerInstalled = true;
+        socket.addEventListener("message", (event) => {
+          try {
+            const payload = JSON.parse(typeof event.data === "string" ? event.data : "");
+            const requestId = typeof payload?.request_id === "string" ? payload.request_id : "";
+            if (!requestId || requestId !== state.lastRequestId) {
+              return;
+            }
+            state.responseSeen = true;
+            state.lastError = payload?.ok === false
+              ? (payload?.error?.message || "AgentRun failed")
+              : "";
+            const result = payload?.result;
+            state.lastRunId = typeof result?.run_id === "string"
+              ? result.run_id
+              : (typeof result?.id === "string" ? result.id : "");
+          } catch {}
+        });
+      };
+
+      WebSocket.prototype.send = function patchedSend(data) {
+        ensureListener(this);
+        try {
+          const raw = decodePayload(data);
+          if (raw) {
+            const payload = JSON.parse(raw);
+            if (payload?.action === "AgentRun") {
+              state.lastRequestId = typeof payload?.request_id === "string" ? payload.request_id : "";
+              state.lastPrompt = typeof payload?.params?.prompt === "string" ? payload.params.prompt : "";
+              state.lastRunId = "";
+              state.lastError = "";
+              state.responseSeen = false;
+            }
+          }
+        } catch {}
+        return originalSend.call(this, data);
+      };
+
       return true;
     })()`
   );
@@ -932,27 +1497,54 @@ export async function runLivePanelCheck({
   modelId = process.env.LIVE_MODEL?.trim() || "",
   modelMode = process.env.LIVE_MODEL_MODE?.trim() || ""
 } = {}) {
-  mkdirSync(outputDir, { recursive: true });
-  const selection = resolveLiveModelSelection({
-    requestedModelId: modelId,
-    provider,
-    requestedMode: modelMode,
-    benchmarkMode: process.env.LIVE_BENCHMARK_MODE === "1"
-  });
-
-  const resolvedCdpWsUrl = cdpWsUrl || await resolveLiveCdpWsUrl();
-  const extensionId = resolveConfiguredExtensionId();
-  console.log(`Connecting to ${resolvedCdpWsUrl}`);
-  console.log(`Resolved extension id: ${extensionId}`);
-
-  const cdp = createCdpClient(resolvedCdpWsUrl);
-  await cdp.connect();
+  const resolvedOutputDir = prepareLiveRunOutputDir(outputDir);
+  let normalizedPrompt = typeof prompt === "string" ? prompt.trim() : "";
+  let selection = null;
+  let resolvedCdpWsUrl = typeof cdpWsUrl === "string" ? cdpWsUrl : "";
+  let extensionId = "";
+  let cdp = null;
   const createdTargets = [];
   let benchmarkWorkspace = null;
   let panel = null;
   let site = null;
+  let runId = null;
+  let panelState = null;
+  let siteState = null;
+  let siteEval = null;
+  let elapsedMs = 0;
+  let managedSidecarProcess = null;
 
   try {
+    normalizedPrompt = validateLiveRunPrompt(prompt);
+    selection = resolveLiveModelSelection({
+      requestedModelId: modelId,
+      provider,
+      requestedMode: modelMode,
+      benchmarkMode: process.env.LIVE_BENCHMARK_MODE === "1"
+    });
+    resolvedCdpWsUrl = cdpWsUrl || await resolveLiveCdpWsUrl();
+    const sidecarRuntimeState = await ensureSidecarRuntimeReady({
+      rpcUrl,
+      cdpWsUrl: resolvedCdpWsUrl
+    });
+    managedSidecarProcess = sidecarRuntimeState.managedSidecarProcess;
+    extensionId = resolveConfiguredExtensionId();
+    console.log(`Connecting to ${resolvedCdpWsUrl}`);
+    console.log(`Resolved extension id: ${extensionId}`);
+    console.log(`Sidecar runtime ready via ${sidecarRuntimeState.healthUrl}`);
+    if (sidecarRuntimeState.recoveredByManagedStart) {
+      if (sidecarRuntimeState.managedStartAttemptCount > 1) {
+        console.log("Recovered sidecar runtime by retrying managed sidecar startup after an early launch failure");
+      } else {
+        console.log("Recovered sidecar runtime by starting a managed sidecar process for this run");
+      }
+    } else if (sidecarRuntimeState.recoveredByExistingRuntime) {
+      console.log("Recovered sidecar runtime by reconnecting to an already-running sidecar after managed startup failed");
+    }
+
+    cdp = createCdpClient(resolvedCdpWsUrl);
+    await cdp.connect();
+
     const scenarioName = (() => {
       try {
         const url = new URL(targetUrl);
@@ -999,12 +1591,16 @@ export async function runLivePanelCheck({
     console.log("Panel composer is visible");
 
     const chromeTabId = await resolveChromeTabIdByUrl(cdp, panel.sessionId, benchmarkWorkspace.siteUrl);
-    await rpcCall(rpcUrl, "SetActiveTab", {
-      chrome_tab_id: typeof chromeTabId === "number" ? chromeTabId : 0,
-      target_id: site.targetId,
-      url: benchmarkWorkspace.siteUrl,
-      title: await evaluate(cdp, site.sessionId, "document.title")
-    });
+    await rpcCall(
+      rpcUrl,
+      "SetActiveTab",
+      buildSetActiveTabPayload({
+        chromeTabId,
+        targetId: site.targetId,
+        url: benchmarkWorkspace.siteUrl,
+        title: await evaluate(cdp, site.sessionId, "document.title")
+      })
+    );
     console.log(`Synced active tab to target ${site.targetId}${typeof chromeTabId === "number" ? ` (chrome tab ${chromeTabId})` : ""}`);
 
     const registerResult = await withRecoveredSession(
@@ -1051,47 +1647,43 @@ export async function runLivePanelCheck({
       console.log("Selected auto model mode");
     }
 
-    let panelState = null;
-    let elapsedMs = 0;
-    if (prompt) {
-      await stopActiveRun(cdp, panel.sessionId).catch(() => false);
-      await withRecoveredSession(cdp, panel, (sessionId) => clearPanelThread(cdp, sessionId));
-      console.log(`Sending prompt: ${prompt}`);
-      const startedAt = Date.now();
-      await withRecoveredSession(cdp, panel, (sessionId) => sendPrompt(cdp, sessionId, prompt));
-      const steerPromise = steerPrompt
-        ? (async () => {
-            await sleep(Number.isFinite(steerDelayMs) && steerDelayMs >= 0 ? steerDelayMs : 2_500);
-            await waitForFunction(
-              cdp,
-              panel.sessionId,
-              `(() => document.getElementById("btn-send")?.classList.contains("stop-mode") ?? false)()`,
-              10_000
-            ).catch(() => undefined);
-            console.log(`Queueing steer prompt: ${steerPrompt}`);
-            await withRecoveredSession(cdp, panel, (sessionId) => sendPrompt(cdp, sessionId, steerPrompt));
-            return true;
-          })().catch((error) => {
-            console.warn(`Failed to queue steer prompt: ${error instanceof Error ? error.message : String(error)}`);
-            return false;
-          })
-        : null;
-      try {
-        panelState = await withRecoveredSession(cdp, panel, (sessionId) => waitForAssistantResult(cdp, sessionId, timeoutMs));
-        if (steerPromise) {
-          await steerPromise;
-        }
-        elapsedMs = Date.now() - startedAt;
-        console.log(`Assistant result: ${panelState.assistantText}`);
-      } catch (error) {
-        panelState = error?.lastSnapshot ?? (await withRecoveredSession(cdp, panel, (sessionId) => getPanelSnapshot(cdp, sessionId)).catch(() => null));
-        await stopActiveRun(cdp, panel.sessionId).catch(() => false);
-        await withRecoveredSession(cdp, panel, (sessionId) => clearPanelThread(cdp, sessionId)).catch(() => undefined);
-        throw error;
+    await stopActiveRun(cdp, panel.sessionId).catch(() => false);
+    await withRecoveredSession(cdp, panel, (sessionId) => clearPanelThread(cdp, sessionId));
+    console.log(`Sending prompt: ${normalizedPrompt}`);
+    const startedAt = Date.now();
+    const sendResult = await withRecoveredSession(cdp, panel, (sessionId) => sendPrompt(cdp, sessionId, normalizedPrompt));
+    runId = sendResult.runId;
+    const steerPromise = steerPrompt
+      ? (async () => {
+          await sleep(Number.isFinite(steerDelayMs) && steerDelayMs >= 0 ? steerDelayMs : 2_500);
+          await waitForFunction(
+            cdp,
+            panel.sessionId,
+            `(() => document.getElementById("btn-send")?.classList.contains("stop-mode") ?? false)()`,
+            10_000
+          ).catch(() => undefined);
+          console.log(`Queueing steer prompt: ${steerPrompt}`);
+          await withRecoveredSession(cdp, panel, (sessionId) => sendPrompt(cdp, sessionId, steerPrompt));
+          return true;
+        })().catch((error) => {
+          console.warn(`Failed to queue steer prompt: ${error instanceof Error ? error.message : String(error)}`);
+          return false;
+        })
+      : null;
+    try {
+      panelState = await withRecoveredSession(cdp, panel, (sessionId) => waitForAssistantResult(cdp, sessionId, timeoutMs));
+      if (steerPromise) {
+        await steerPromise;
       }
+      elapsedMs = Date.now() - startedAt;
+      console.log(`Assistant result: ${panelState.assistantText}`);
+    } catch (error) {
+      panelState = error?.lastSnapshot ?? (await withRecoveredSession(cdp, panel, (sessionId) => getPanelSnapshot(cdp, sessionId)).catch(() => null));
+      await stopActiveRun(cdp, panel.sessionId).catch(() => false);
+      throw error;
     }
 
-    const siteState = await withRecoveredSession(
+    siteState = await withRecoveredSession(
       cdp,
       site,
       (sessionId) => evaluate(
@@ -1106,33 +1698,81 @@ export async function runLivePanelCheck({
       )
     );
 
-    const siteEval = siteEvalSource
+    siteEval = siteEvalSource
       ? await withRecoveredSession(cdp, site, (sessionId) => evaluate(cdp, sessionId, `(${siteEvalSource})()`))
       : null;
 
-    await withRecoveredSession(cdp, panel, (sessionId) => captureScreenshot(cdp, sessionId, path.join(outputDir, "panel-final.png")));
-    await withRecoveredSession(cdp, site, (sessionId) => captureScreenshot(cdp, sessionId, path.join(outputDir, "site-final.png")));
+    await withRecoveredSession(cdp, panel, (sessionId) => captureScreenshot(cdp, sessionId, path.join(resolvedOutputDir, "panel-final.png")));
+    await withRecoveredSession(cdp, site, (sessionId) => captureScreenshot(cdp, sessionId, path.join(resolvedOutputDir, "site-final.png")));
 
-    const report = {
+    const report = buildLiveRunReport({
       cdpWsUrl: resolvedCdpWsUrl,
       extensionId,
       targetUrl,
-      prompt,
+      prompt: normalizedPrompt,
       provider,
-      modelId: selection.mode === "manual"
+      modelId: selection?.mode === "manual"
         ? (provider === "google" ? normalizeGoogleModelId(selection.modelId) || selection.modelId : selection.modelId)
-        : "auto",
+        : (selection?.mode === "auto" ? "auto" : modelId),
       elapsedMs,
+      runId,
+      status: "passed",
       panel: panelState,
       site: siteState,
       siteEval
-    };
+    });
 
-    writeFileSync(path.join(outputDir, "report.json"), JSON.stringify(report, null, 2));
+    writeLiveRunReport(resolvedOutputDir, report);
     console.log(JSON.stringify(report, null, 2));
     return report;
+  } catch (error) {
+    if (cdp && panel) {
+      panelState = panelState ?? (await withRecoveredSession(cdp, panel, (sessionId) => getPanelSnapshot(cdp, sessionId)).catch(() => null));
+      await withRecoveredSession(cdp, panel, (sessionId) => captureScreenshot(cdp, sessionId, path.join(resolvedOutputDir, "panel-final.png"))).catch(() => undefined);
+    }
+    if (cdp && site) {
+      siteState = siteState ?? (await withRecoveredSession(
+        cdp,
+        site,
+        (sessionId) => evaluate(
+          cdp,
+          sessionId,
+          `(() => ({
+            url: window.location.href,
+            title: document.title,
+            heading: document.querySelector("h1,h2,h3")?.textContent?.trim() ?? "",
+            uploaded: document.getElementById("uploaded-files")?.textContent?.trim() ?? ""
+          }))()`
+        )
+      ).catch(() => null));
+      await withRecoveredSession(cdp, site, (sessionId) => captureScreenshot(cdp, sessionId, path.join(resolvedOutputDir, "site-final.png"))).catch(() => undefined);
+      if (siteEvalSource && siteEval === null) {
+        siteEval = await withRecoveredSession(cdp, site, (sessionId) => evaluate(cdp, sessionId, `(${siteEvalSource})()`)).catch(() => null);
+      }
+    }
+
+    const failureReport = buildLiveRunReport({
+      cdpWsUrl: resolvedCdpWsUrl || "",
+      extensionId: typeof extensionId === "string" ? extensionId : "",
+      targetUrl,
+      prompt: typeof normalizedPrompt === "string" ? normalizedPrompt : "",
+      provider,
+      modelId: selection?.mode === "manual"
+        ? (provider === "google" ? normalizeGoogleModelId(selection.modelId) || selection.modelId : selection.modelId)
+        : (selection?.mode === "auto" ? "auto" : modelId),
+      elapsedMs,
+      runId,
+      status: "failed",
+      panel: panelState,
+      site: siteState,
+      siteEval,
+      error
+    });
+    writeLiveRunReport(resolvedOutputDir, failureReport);
+    throw error;
   } finally {
-    if (panel && benchmarkWorkspace) {
+    await stopManagedSidecarProcess(managedSidecarProcess).catch(() => undefined);
+    if (cdp && panel && benchmarkWorkspace) {
       await withRecoveredSession(
         cdp,
         panel,
@@ -1145,7 +1785,9 @@ export async function runLivePanelCheck({
     for (const targetId of createdTargets.reverse()) {
       await closeTarget(cdp, targetId);
     }
-    await cdp.close();
+    if (cdp) {
+      await cdp.close().catch(() => undefined);
+    }
   }
 }
 

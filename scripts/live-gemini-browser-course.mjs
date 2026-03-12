@@ -1,4 +1,5 @@
 import { mkdirSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 
@@ -10,6 +11,14 @@ import {
 } from "../extension/lib/model-config.js";
 import { normalizeGoogleModelId, resolveLiveModelSelection } from "./lib/live-cdp-config.js";
 import { runLivePanelCheck } from "./live-cdp-panel-check.mjs";
+
+const requireFromEsm = createRequire(import.meta.url);
+const {
+  classifyBenchmarkRuntimeFailure,
+  resolveBrowserCourseScenarioPreflight,
+  resolvePlaywrightBootstrapReadiness,
+  shouldFailBrowserCourseBenchmarkProcess
+} = requireFromEsm("./lib/browser-course-bootstrap.cjs");
 
 const ROOT = process.cwd();
 const DEFAULT_BASE_URL = "https://the-internet.herokuapp.com";
@@ -138,6 +147,15 @@ function parseModels() {
 function classifyFailure(report, scenario, error) {
   if (error) {
     const message = error instanceof Error ? error.message : String(error);
+    const runtimeFailure = classifyBenchmarkRuntimeFailure(error);
+    if (runtimeFailure) {
+      return {
+        status: "hard_fail",
+        failureMode: runtimeFailure.failureMode,
+        hardFailure: true,
+        detail: runtimeFailure.detail
+      };
+    }
     if (/http 400|provider_http_error|provider auth|provider_empty_response/i.test(message)) {
       return { status: "hard_fail", failureMode: "provider_http_error", hardFailure: true, detail: message };
     }
@@ -226,6 +244,11 @@ function summarizeModel(modelId, results) {
 
 async function main() {
   mkdirSync(DEFAULT_OUTPUT_ROOT, { recursive: true });
+  const bootstrapReadiness = resolvePlaywrightBootstrapReadiness();
+  const scenarioPreflight = resolveBrowserCourseScenarioPreflight({
+    startupFailure: null,
+    bootstrapReadiness
+  });
 
   const modelsToRun = parseModels();
   const excludedVisibleModels = GOOGLE_VISIBLE_MODEL_IDS.filter((modelId) => !GOOGLE_BROWSER_BENCHMARK_MODEL_IDS.includes(modelId));
@@ -256,6 +279,9 @@ async function main() {
     benchmarkKind: "gemini-browser-control-course",
     searchExcluded: true,
     baseUrl: DEFAULT_BASE_URL,
+    bootstrapReady: scenarioPreflight.bootstrapReady,
+    bootstrapFailure: scenarioPreflight.bootstrapFailure,
+    bootstrapFailureMode: scenarioPreflight.bootstrapFailureMode,
     scenarios: SCENARIOS.map((scenario) => scenario.name),
     modelsTested: modelsToRun,
     visibleButExcludedModels: excludedVisibleModels,
@@ -265,6 +291,9 @@ async function main() {
 
   writeFileSync(path.join(DEFAULT_OUTPUT_ROOT, "summary.json"), JSON.stringify(aggregate, null, 2));
   console.log(JSON.stringify(aggregate, null, 2));
+  if (shouldFailBrowserCourseBenchmarkProcess({ summaries: modelSummaries })) {
+    process.exitCode = 1;
+  }
 }
 
 main().catch((error) => {
